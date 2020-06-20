@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "263594363462",
+    "firebase_url": "https://atletica-7f96b.firebaseio.com",
+    "project_id": "atletica-7f96b",
+    "storage_bucket": "atletica-7f96b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:263594363462:android:7d3539a22fa71035da5847",
+        "android_client_info": {
+          "package_name": "com.example.Atletica"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "263594363462-m1tllhfcq5nq398uqskhik1pkgbks9va.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.Atletica",
+            "certificate_hash": "fbba63eec1ba255eaefbc01fb94c4c6b2be4905a"
+          }
+        },
+        {
+          "client_id": "263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTr5JsbDRsJNqG0o9i_Hq8MbeABAkoYUs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

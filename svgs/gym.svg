@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.0" id="high_jump" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+	<g>
+		<path d="M0,0 H512 V512 H0 Z" fill="#FFF"/>
+	</g>
+	<g>
+		<circle cx="256" cy="200" r="30" fill-opacity="0" stroke-width="8" stroke="#000"/>
+		<path d="M256,250 v150" fill-opacity="0" stroke-width="8" stroke="#000"/>
+		<path d="M220,480 q-20,-150,36,-80 q56,-70,36,80" fill-opacity="0" stroke-width="8" stroke="#000"/>
+		<path d="M180,140 q0,110,76,110 q76,0,76,-110" fill-opacity="0" stroke-width="8" stroke="#000"/>
+		<path d="M80,150 Q256,130,432,150" fill-opacity="0" stroke-width="8" stroke="#000"/>
+		<path d="M80,150,l-5,-44 l44,-5 l10,88 l-44,5 z"/>
+		<path d="M432,150,l5,-44 l-44,-5 l-10,88 l44,5 z"/>
+	</g>
+</svg>
