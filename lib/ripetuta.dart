@@ -88,7 +88,10 @@ class Tipologia {
     targetFormatter: (target) => target == null
         ? ''
         : (target < 60 ? '' : "${target ~/ 60}'") +
-            '${target >= 60 && target - target.truncate() == 0 ? (target % 60).round() : (target % 60).toStringAsFixed(2)}"',
+            (target >= 60 && target - target.truncate() == 0
+                ? (target % 60).toStringAsFixed(0).padLeft(2, '0')
+                : (target % 60).toStringAsFixed(2).padLeft(5, '0')) +
+            '"',
     targetValidator: RegularExpressions.time,
     targetScheme: "es: 1' 20\"",
     targetParser: (target) {

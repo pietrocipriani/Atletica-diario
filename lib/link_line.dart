@@ -13,7 +13,7 @@ class Keys {
 class Result {
   double result;
   GlobalKey key = GlobalKey();
-  Result (this.result);
+  Result(this.result);
 }
 
 class LinkLine extends StatefulWidget {
@@ -33,6 +33,8 @@ class LinkLine extends StatefulWidget {
 class _LinkLineState extends State<LinkLine> {
   GlobalKey painter = GlobalKey();
 
+  dynamic selected;
+
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
@@ -49,11 +51,20 @@ class _LinkLineState extends State<LinkLine> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: groups.first.atleti
-                .map((atleta) => DragTarget<GlobalKey>(
-                      builder: (BuildContext context,
-                          List<dynamic> candidateData,
-                          List<dynamic> rejectedData) {
-                        return Padding(
+                .map((atleta) => DragTarget<GlobalKey>(builder:
+                        (BuildContext context, List<dynamic> candidateData,
+                            List<dynamic> rejectedData) {
+                      return GestureDetector(
+                        onTap: () {
+                          if (selected == null || selected is Atleta)
+                            selected = selected == atleta ? null : atleta;
+                          else {
+                            widget.links[atleta].result = selected.key;
+                            selected = null;
+                          }
+                          setState(() {});
+                        },
+                        child: Padding(
                           key: widget.links[atleta].atleta,
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: DottedBorder(
@@ -61,18 +72,18 @@ class _LinkLineState extends State<LinkLine> {
                             padding: const EdgeInsets.all(8),
                             radius: Radius.circular(20),
                             borderType: BorderType.RRect,
-                            color: candidateData.isEmpty
+                            strokeWidth: selected != atleta ? 1 : 2,
+                            color: candidateData.isEmpty && selected != atleta
                                 ? Colors.grey[300]
                                 : Theme.of(context).primaryColor,
                             dashPattern: [6, 4],
                           ),
-                        );
-                      },
-                      onAccept: (data) {
-                        widget.links[atleta].result = data;
-                        setState(() {});
-                      }
-                    ))
+                        ),
+                      );
+                    }, onAccept: (data) {
+                      widget.links[atleta].result = data;
+                      setState(() {});
+                    }))
                 .toList(),
           ),
           Column(
@@ -99,26 +110,41 @@ class _LinkLineState extends State<LinkLine> {
                       ),
                     ),
                   ),
-                  child: Chip(
-                    key: result.key,
-                    label: Text(
-                      result.result.isNaN
-                          ? 'N.P.'
-                          : widget.rip.template.tipologia.targetFormatter(
-                              result.result,
-                            ),
-                      style: Theme.of(context).textTheme.overline.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: result.result.isNaN ||
-                                  result ==
-                                      widget.results[widget.results.length - 2]
-                              ? Colors.red
-                              : null),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (selected == null || selected is Result)
+                        selected = result == selected ? null : result;
+                      else {
+                        widget.links[selected].result = result.key;
+                        selected = null;
+                      }
+                      setState(() {});
+                    },
+                    child: Chip(
+                      key: result.key,
+                      label: Text(
+                        result.result.isNaN
+                            ? 'N.P.'
+                            : widget.rip.template.tipologia.targetFormatter(
+                                result.result,
+                              ),
+                        style: Theme.of(context).textTheme.overline.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: result.result.isNaN ||
+                                    result ==
+                                        widget
+                                            .results[widget.results.length - 2]
+                                ? Colors.red
+                                : null),
+                      ),
+                      backgroundColor: Theme.of(context).dialogBackgroundColor,
+                      shape: StadiumBorder(
+                        side: BorderSide(
+                          color: selected != result ? Colors.grey[300] : Theme.of(context).primaryColor,
+                          width: selected == result ? 2 : 1
+                        ),
+                      ),
                     ),
-                    backgroundColor: Theme.of(context).dialogBackgroundColor,
-                    shape: StadiumBorder(
-                        side:
-                            BorderSide(color: Theme.of(context).primaryColor)),
                   ),
                 );
               },
@@ -137,12 +163,14 @@ class LinksPainter extends CustomPainter {
   final Paint p = Paint();
 
   LinksPainter(
-      {@required this.paintRO, this.color = Colors.black, @required this.keys}) {
-        p.color = color;
-        p.strokeWidth = 4;
-        p.strokeCap = StrokeCap.round;
-        p.style = PaintingStyle.stroke;
-      }
+      {@required this.paintRO,
+      this.color = Colors.black,
+      @required this.keys}) {
+    p.color = color;
+    p.strokeWidth = 2;
+    p.strokeCap = StrokeCap.round;
+    p.style = PaintingStyle.stroke;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -150,12 +178,20 @@ class LinksPainter extends CustomPainter {
     for (Keys key in keys) {
       if (key.result == null) continue;
 
-      dynamic atleta = key.atleta.currentContext.findRenderObject().getTransformTo(paintRO).getTranslation();
-      atleta = Offset(atleta.x + key.atleta.currentContext.size.width, atleta.y + key.atleta.currentContext.size.height/2);
-      dynamic result = key.result.currentContext.findRenderObject().getTransformTo(paintRO).getTranslation();
-      result = Offset(result.x, result.y + key.result.currentContext.size.height/2);
-      Offset q1 = Offset((atleta.dx + result.dx)/2, atleta.dy);
-      Offset q2 = Offset((atleta.dx + result.dx)/2, result.dy);
+      dynamic atleta = key.atleta.currentContext
+          .findRenderObject()
+          .getTransformTo(paintRO)
+          .getTranslation();
+      atleta = Offset(atleta.x + key.atleta.currentContext.size.width + 4,
+          atleta.y + key.atleta.currentContext.size.height / 2);
+      dynamic result = key.result.currentContext
+          .findRenderObject()
+          .getTransformTo(paintRO)
+          .getTranslation();
+      result = Offset(
+          result.x - 4, result.y + key.result.currentContext.size.height / 2);
+      Offset q1 = Offset((atleta.dx + result.dx) / 2, atleta.dy);
+      Offset q2 = Offset((atleta.dx + result.dx) / 2, result.dy);
 
       Path path = Path();
       path.moveTo(atleta.dx, atleta.dy);

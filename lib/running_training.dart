@@ -6,8 +6,10 @@ import 'package:Atletica/ripetuta.dart';
 import 'package:Atletica/stopwatch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-//import 'package:vibrate/vibrate.dart';
+import 'package:vibration/vibration.dart';
 import 'main.dart';
+
+final int kCriticRemainingTime = 10;
 
 class RunningTraining extends StatefulWidget {
   final Allenamento allenamento;
@@ -78,7 +80,7 @@ class _RunningTrainingState extends State<RunningTraining>
 
   DateTime recuperoStartTime;
   bool _overtimeNotified = false;
-  bool _10secNotified = false;
+  bool _criticNotified = false;
   Ticker t;
   int current = 0;
   Ripetuta rip;
@@ -103,7 +105,7 @@ class _RunningTrainingState extends State<RunningTraining>
   void _next() {
     rip = widget.allenamento.ripetutaFromIndex(current);
     rec = widget.allenamento.recuperoFromIndex(current++);
-    _overtimeNotified = _10secNotified = false;
+    _overtimeNotified = _criticNotified = false;
     if (rec == null || rec < 10)
       _controller.repeat(reverse: true);
     else if (_controller.isAnimating) _controller.stop();
@@ -124,12 +126,12 @@ class _RunningTrainingState extends State<RunningTraining>
         : rec -
             DateTime.now().difference(recuperoStartTime).inMilliseconds / 1000;
     if (!_overtimeNotified && remainingTime != null && remainingTime < 0) {
-      //TODO Vibrate.feedback(FeedbackType.error);
+      if (canVibrate) Vibration.vibrate(duration: 500);
       _overtimeNotified = true;
     }
-    if (!_10secNotified && remainingTime != null && remainingTime < 10) {
-      //TODO Vibrate.feedback(FeedbackType.warning);
-      _10secNotified = true;
+    if (!_criticNotified && remainingTime != null && remainingTime < kCriticRemainingTime) {
+      if (canVibrate) Vibration.vibrate(pattern: [0, 100, 100, 200]);
+      _criticNotified = true;
     }
     double progress = remainingTime == null || remainingTime < 0
         ? null
@@ -146,7 +148,7 @@ class _RunningTrainingState extends State<RunningTraining>
         fontWeight: FontWeight.bold,
       ),
     );
-    if (remainingTime != null && remainingTime < 10 && remainingTime >= 0) {
+    if (remainingTime != null && remainingTime < kCriticRemainingTime && remainingTime >= 0) {
       if (!_controller.isAnimating) _controller.repeat(reverse: true);
       title = Transform.scale(
         scale: _sizeAnimation.value,
@@ -236,7 +238,7 @@ class _RunningTrainingState extends State<RunningTraining>
       if (!tickerProvider.ticker.isTicking) return false;
       results.add(tickerProvider.elapsed.inMilliseconds / 1000);
       tickerProvider.lap();
-      //TODO Vibrate.feedback(FeedbackType.heavy);
+      if (canVibrate) Vibration.vibrate(duration: 100);
       return true;
     };
     showDialog(
@@ -271,6 +273,7 @@ class _RunningTrainingState extends State<RunningTraining>
                           onPressed: () {
                             if (!lap()) {
                               tickerProvider.ticker.start();
+                              if (canVibrate) Vibration.vibrate(duration: 100);
                               setState(() {});
                             }
                           },

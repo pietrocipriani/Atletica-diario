@@ -3,12 +3,14 @@ import 'package:Atletica/atleta.dart';
 import 'package:Atletica/database.dart';
 import 'package:Atletica/running_training.dart';
 import 'package:Atletica/tabella.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mdi/mdi.dart';
 import 'package:package_info/package_info.dart';
+import 'package:vibration/vibration.dart';
 
 const double kListTileHeight = 72.0;
 
@@ -16,6 +18,8 @@ PackageInfo packageInfo;
 GoogleSignInAccount user;
 GoogleSignInAuthentication auth;
 FirebaseUser firebaseUser;
+
+bool canVibrate, vibrationAmplitude, vibrationCustomPattern;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +38,13 @@ void main() async {
         .user;
   }();
   await init();
+  canVibrate = await Vibration.hasVibrator();
+  vibrationAmplitude = await Vibration.hasAmplitudeControl();
+  vibrationCustomPattern = await Vibration.hasCustomVibrationsSupport();
+
+  print ('canVibrate: $canVibrate');
+  print ('amplitude: $vibrationAmplitude');
+  print ('customVibration: $vibrationCustomPattern');
   runApp(MyApp());
 }
 
