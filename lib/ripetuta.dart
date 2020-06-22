@@ -98,7 +98,7 @@ class Tipologia {
       target.replaceAll(',', '.');
       String match = RegExp(r"\d+\s*'").stringMatch(target) ?? "0'";
       int min = int.tryParse(match?.substring(0, match.length - 1)) ?? 0;
-      match = RegExp(r'\d+(.\d+)?\s*"').stringMatch(target) ?? '0"';
+      match = RegExp(r'\d+(\.\d+)?\s*"').stringMatch(target) ?? '0"';
       double sec = double.tryParse(match?.substring(0, match.length - 1)) ?? 0;
       return min * 60 + sec;
     },

@@ -106,9 +106,17 @@ class _RunningTrainingState extends State<RunningTraining>
     rip = widget.allenamento.ripetutaFromIndex(current);
     rec = widget.allenamento.recuperoFromIndex(current++);
     _overtimeNotified = _criticNotified = false;
+
     if (rec == null || rec < 10)
       _controller.repeat(reverse: true);
     else if (_controller.isAnimating) _controller.stop();
+
+    if (rip == null) {
+      runningTrainings.remove(widget);
+      context.findAncestorStateOfType<MyHomePageState>().setState(() {});
+    } else {
+      results[rip] = <Atleta, double>{};
+    }
   }
 
   @override
@@ -129,26 +137,36 @@ class _RunningTrainingState extends State<RunningTraining>
       if (canVibrate) Vibration.vibrate(duration: 500);
       _overtimeNotified = true;
     }
-    if (!_criticNotified && remainingTime != null && remainingTime < kCriticRemainingTime) {
+    if (!_criticNotified &&
+        remainingTime != null &&
+        remainingTime < kCriticRemainingTime) {
       if (canVibrate) Vibration.vibrate(pattern: [0, 100, 100, 200]);
       _criticNotified = true;
     }
     double progress = remainingTime == null || remainingTime < 0
         ? null
         : 1 - remainingTime / rec;
-    String timerString = remainingTime == null
-        ? '0:00'
-        : '${remainingTime < 0 ? '-' : ''}${remainingTime.abs() ~/ 60}:${(remainingTime.abs() % 60).floor().toString().padLeft(2, '0')}';
+    String timerString = tickerProvider.ticker?.isActive ?? false
+        ? '${tickerProvider.elapsed.inMinutes}:${((tickerProvider.elapsed.inMilliseconds / 1000) % 60).toStringAsFixed(2).padLeft(5, '0')}"'
+        : remainingTime == null
+            ? '0:00'
+            : '${remainingTime < 0 ? '-' : ''}${remainingTime.abs() ~/ 60}:${(remainingTime.abs() % 60).floor().toString().padLeft(2, '0')}';
     Widget title = Text(
       timerString,
       style: TextStyle(
-        color: remainingTime != null && remainingTime < 0
-            ? Colors.red
-            : rec == null ? Color.fromRGBO(0, 0, 0, _opacityAnim.value) : null,
+        color: tickerProvider.ticker?.isActive ?? false
+            ? null
+            : remainingTime != null && remainingTime < 0
+                ? Colors.red
+                : rec == null
+                    ? Color.fromRGBO(0, 0, 0, _opacityAnim.value)
+                    : null,
         fontWeight: FontWeight.bold,
       ),
     );
-    if (remainingTime != null && remainingTime < kCriticRemainingTime && remainingTime >= 0) {
+    if (remainingTime != null &&
+        remainingTime < kCriticRemainingTime &&
+        remainingTime >= 0) {
       if (!_controller.isAnimating) _controller.repeat(reverse: true);
       title = Transform.scale(
         scale: _sizeAnimation.value,
@@ -164,13 +182,15 @@ class _RunningTrainingState extends State<RunningTraining>
           ListTile(
             onTap: () => _timerDialog(context: context, rip: rip),
             title: title,
-            leading: remainingTime != null && remainingTime < 0
-                ? Container(
-                    child: AlertPoint(),
-                    width: 10,
-                    height: 10,
-                  )
-                : null,
+            leading: tickerProvider.ticker?.isActive ?? false
+                ? TimerRunningIcon()
+                : remainingTime != null && remainingTime < 0
+                    ? Container(
+                        child: AlertPoint(),
+                        width: 10,
+                        height: 10,
+                      )
+                    : null,
             subtitle: RichText(
               text: TextSpan(
                 text: remainingTime != null && remainingTime > 0
@@ -202,14 +222,6 @@ class _RunningTrainingState extends State<RunningTraining>
                         recuperoStartTime = DateTime.now();
                         _next();
                       });
-                      if (rip == null) {
-                        runningTrainings.remove(widget);
-                        context
-                            .findAncestorStateOfType<MyHomePageState>()
-                            .setState(() {});
-                      } else {
-                        results[rip] = <Atleta, double>{};
-                      }
                     }
                   : null,
               disabledColor: Colors.black12,
@@ -230,18 +242,20 @@ class _RunningTrainingState extends State<RunningTraining>
     );
   }
 
-  void _timerDialog({@required BuildContext context, @required Ripetuta rip}) {
-    TickerProvider tickerProvider = TickerProvider();
-    bool showResults = false;
-    List<double> results = <double>[];
+  TickerProvider tickerProvider = TickerProvider();
+  bool showResults = false;
+  List<double> rawResults = <double>[];
+
+  void _timerDialog(
+      {@required BuildContext context, @required Ripetuta rip}) async {
     bool Function() lap = () {
-      if (!tickerProvider.ticker.isTicking) return false;
-      results.add(tickerProvider.elapsed.inMilliseconds / 1000);
+      if (!tickerProvider.ticker.isActive) return false;
+      rawResults.add(tickerProvider.elapsed.inMilliseconds / 1000);
       tickerProvider.lap();
       if (canVibrate) Vibration.vibrate(duration: 100);
       return true;
     };
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
@@ -250,7 +264,7 @@ class _RunningTrainingState extends State<RunningTraining>
           title: Text('CRONOMETRO'),
           content: showResults
               ? LinkLine(
-                  results: results,
+                  results: rawResults,
                   rip: rip,
                 )
               : Column(
@@ -264,7 +278,7 @@ class _RunningTrainingState extends State<RunningTraining>
                       Expanded(
                         child: OutlineButton(
                           child: Icon(
-                              tickerProvider?.ticker?.isTicking ?? false
+                              tickerProvider.ticker?.isActive ?? false
                                   ? Icons.timer
                                   : Icons.play_arrow,
                               size: 36,
@@ -292,19 +306,19 @@ class _RunningTrainingState extends State<RunningTraining>
                           child: Icon(
                             Icons.stop,
                             size: 36,
-                            color: tickerProvider.ticker?.isTicking ?? false
+                            color: tickerProvider.ticker?.isActive ?? false
                                 ? Colors.red
                                 : Colors.grey[300],
                           ),
                           padding: const EdgeInsets.all(16),
-                          onPressed: tickerProvider.ticker?.isTicking ?? false
+                          onPressed: tickerProvider.ticker?.isActive ?? false
                               ? () {
                                   tickerProvider.ticker.stop();
                                   showResults = true;
-                                  results.add(
+                                  rawResults.add(
                                       tickerProvider.elapsed.inMilliseconds /
                                           1000);
-                                  results.add(double.nan);
+                                  rawResults.add(double.nan);
                                   setState(() {});
 
                                   this.setState(() {
@@ -332,20 +346,29 @@ class _RunningTrainingState extends State<RunningTraining>
         ),
       ),
     );
+    if (showResults) {
+      showResults = false;
+      tickerProvider = TickerProvider();
+      rawResults = <double>[];
+    }
   }
 }
 
 class TickerProvider {
   Ticker ticker;
   Duration elapsed = Duration();
+  bool muted = false;
 
   void Function(Duration elapsed) lapCallBack;
 
   Ticker createTicker(void Function() onTick) {
-    return ticker = Ticker((elapsed) {
+    Ticker ticker = Ticker((elapsed) {
       this.elapsed = elapsed;
-      onTick?.call();
+      if (!muted) onTick?.call();
     });
+    if (this.ticker != null) ticker.absorbTicker(this.ticker);
+    muted = false;
+    return this.ticker = ticker;
   }
 
   void lap() {

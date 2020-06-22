@@ -219,7 +219,7 @@ class MyHomePageState extends State<MyHomePage> {
       ],
     );
     Widget content = runningTrainings.isNotEmpty
-        ? ListView(children: runningTrainings)
+        ? ListView(key: Key(runningTrainings.length.toString()), children: runningTrainings)
         : Text('Nessun allenamento in programma per oggi!');
     content = Container(
         alignment: Alignment.center, decoration: _bgDecoration, child: content);

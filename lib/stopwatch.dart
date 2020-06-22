@@ -42,7 +42,7 @@ class _StopWatchState extends State<StopWatch>
 
   @override
   void dispose() {
-    ticker.dispose();
+    widget.ticker.muted = true;
     _controller.dispose();
     super.dispose();
   }
