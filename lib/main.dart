@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:Atletica/allenamento.dart';
 import 'package:Atletica/animated_text.dart';
 import 'package:Atletica/atleta.dart';
@@ -13,6 +11,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl_standalone.dart';
 import 'package:mdi/mdi.dart';
 import 'package:package_info/package_info.dart';
 import 'package:vibration/vibration.dart';

@@ -271,7 +271,13 @@ class _RunningTrainingState extends State<RunningTraining>
                   children: <Widget>[
                     GestureDetector(
                       child: StopWatch(ticker: tickerProvider),
-                      onTap: lap,
+                      onTap: () {
+                        if (!lap()) {
+                          tickerProvider.ticker.start();
+                          if (canVibrate) Vibration.vibrate(duration: 100);
+                          setState(() {});
+                        }
+                      },
                     ),
                     Row(children: [
                       Expanded(
@@ -312,6 +318,7 @@ class _RunningTrainingState extends State<RunningTraining>
                           padding: const EdgeInsets.all(16),
                           onPressed: tickerProvider.ticker?.isActive ?? false
                               ? () {
+                                  if (canVibrate) Vibration.vibrate(duration: 200);
                                   tickerProvider.ticker.stop();
                                   showResults = true;
                                   rawResults.add(

@@ -382,7 +382,7 @@ class Ripetuta {
               child: Text('Annulla'),
             ),
             FlatButton(
-              onPressed: () async {
+              onPressed: template == null ? null : () async {
                 if (!templates.contains(template)) {
                   template = Template.copy(
                     id: await db.insert('Templates', template.asMap),

@@ -6,6 +6,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:sqflite/sqlite_api.dart';
 
 List<Tabella> plans = <Tabella>[];
 
@@ -334,7 +335,10 @@ class _PlansRouteState extends State<PlansRoute>
                 },
                 onDismissed: (direction) {
                   plans.remove(plan);
-                  db.delete('Plans', where: 'id = ?', whereArgs: [plan.id]);
+                  Batch b = db.batch();
+                  b.delete('Weeks', where: 'plan = ?', whereArgs: [plan.id]);
+                  b.delete('Plans', where: 'id = ?', whereArgs: [plan.id]);
+                  b.commit();
                 },
                 child: CustomExpansionTile(
                   trailing: IconButton(
