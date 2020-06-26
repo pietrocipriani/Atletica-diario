@@ -29,6 +29,11 @@ class Template {
         .firstWhere((tipologia) => tipologia.name == raw['tipologia']);
     lastTarget = raw['lastTarget'];
   }
+  Template.copy({@required this.id, @required Template other}) {
+    name = other.name;
+    tipologia = other.tipologia;
+    lastTarget = other.lastTarget;
+  }
 
   Map<String, dynamic> get asMap => {
         'name': name,
@@ -39,8 +44,8 @@ class Template {
 }
 
 class RegularExpressions {
-  static final RegExp time = RegExp(
-      "^\\s*(\\d+\\s*'\\s*)?([0-5]?[0-9]([.,]\\d\\d?)?\\s*\"\\s*)?\\s*\$");
+  static final RegExp time =
+      RegExp("^\\s*\\d+\\s*('([0-5]?\\d\\s*\"\\s*\\d?\\d?)?|\"\\d?\\d?)\\s*\$");
   static final RegExp integer = RegExp(r'^\d+$');
   static final RegExp real = RegExp(r'^\d+(.\d+)?$');
 }
@@ -87,20 +92,20 @@ class Tipologia {
     ),
     targetFormatter: (target) => target == null
         ? ''
-        : (target < 60 ? '' : "${target ~/ 60}'") +
-            (target >= 60 && target - target.truncate() == 0
-                ? (target % 60).toStringAsFixed(0).padLeft(2, '0')
-                : (target % 60).toStringAsFixed(2).padLeft(5, '0')) +
-            '"',
+        : (target >= 60 ? "${target ~/ 60}'" : '') +
+            '${(target.truncate() % 60).toString().padLeft(target >= 60 ? 2 : 1, '0')}"' +
+            (target < 60 || target != target.truncate()
+                ? ((target * 100).round() % 100).toString().padLeft(2, '0')
+                : ''),
     targetValidator: RegularExpressions.time,
-    targetScheme: "es: 1' 20\"",
+    targetScheme: "es: 1' 20\"50",
     targetParser: (target) {
-      target.replaceAll(',', '.');
       String match = RegExp(r"\d+\s*'").stringMatch(target) ?? "0'";
       int min = int.tryParse(match?.substring(0, match.length - 1)) ?? 0;
-      match = RegExp(r'\d+(\.\d+)?\s*"').stringMatch(target) ?? '0"';
-      double sec = double.tryParse(match?.substring(0, match.length - 1)) ?? 0;
-      return min * 60 + sec;
+      match = RegExp(r'\d+\s*"\s*\d?\d?').stringMatch(target) ?? '0"';
+      int sec = int.tryParse(match.split('"')[0]) ?? 0;
+      int cent = int.tryParse(match.split('"')[1]) ?? 0;
+      return min * 60 + sec + cent / 100;
     },
   );
   static final Tipologia corsaTemp = Tipologia(
@@ -213,21 +218,14 @@ class Ripetuta {
                 controller: controller,
                 clearOnSubmit: false,
                 key: GlobalKey(),
-                textSubmitted: (value) async {
+                textSubmitted: (value) {
                   bool dist = RegExp(r'\d+\s*[mM][\s$]').hasMatch(value);
                   bool temp =
                       RegExp(r'\d+\s*(mins?)||(h(ours?)?)').hasMatch(value);
+
                   template = getTemplate(value) ??
                       Template(
-                        id: await db.insert('Templates', {
-                          'name': value,
-                          'tipologia': (dist
-                                  ? Tipologia.corsaDist
-                                  : temp
-                                      ? Tipologia.corsaTemp
-                                      : Tipologia.esercizi)
-                              ?.name,
-                        }),
+                        id: null,
                         name: value,
                         tipologia: dist
                             ? Tipologia.corsaDist
@@ -295,12 +293,6 @@ class Ripetuta {
                                 (tipologia) => GestureDetector(
                                   onTap: () => setState(() {
                                     template.tipologia = tipologia;
-                                    db.update(
-                                      'Templates',
-                                      {'tipologia': tipologia.name},
-                                      where: 'id = ?',
-                                      whereArgs: [template.name],
-                                    );
                                   }),
                                   child: AnimatedContainer(
                                     duration: Duration(milliseconds: 500),
@@ -385,16 +377,19 @@ class Ripetuta {
           actions: <Widget>[
             FlatButton(
               onPressed: () {
-                if (template != null && !templates.contains(template))
-                  db.delete('Templates',
-                      where: 'id = ?', whereArgs: [template.id]);
                 Navigator.pop(context, false);
               },
               child: Text('Annulla'),
             ),
             FlatButton(
               onPressed: () async {
-                if (!templates.contains(template)) templates.add(template);
+                if (!templates.contains(template)) {
+                  template = Template.copy(
+                    id: await db.insert('Templates', template.asMap),
+                    other: template,
+                  );
+                  templates.add(template);
+                }
                 template.lastTarget = target;
                 db.update('Templates', {'lastTarget': target},
                     where: 'id = ?', whereArgs: [template.id]);
@@ -559,6 +554,8 @@ class Ripetuta {
                                       context, Duration(seconds: recupero)))
                                   ?.inSeconds ??
                               recupero;
+                          db.update('Ripetute', {'recupero': recupero},
+                              where: 'id = ?', whereArgs: [id]);
                           setState(() {});
                         }
                       : null,
@@ -576,3 +573,17 @@ class Ripetuta {
         ),
       );
 }
+
+/* 
+
+\d+'
+\d+'[0-5][0-9]"
+\d+'[0-5][0-9]"\d
+\d+'[0-5][0-9]"\d\d
+\d+"
+\d+"\d
+\d+"\d\d
+
+^\s*\d+\s*('([0-5]?\d\s*"\s*\d?\d?)?|"\d?\d?)\s*$
+
+*/

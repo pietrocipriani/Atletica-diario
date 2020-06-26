@@ -9,10 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sqflite/sqlite_api.dart';
 
-// TODO: salvare nel db il recupero fra le ripetute
-// TODO: salvare nel db il numero di ripetute (quando ci sonon le ripetizioni)
-// TODO: salvare nel db il recupero fra le serie (solo next)
-
 List<Allenamento> allenamenti = <Allenamento>[];
 final List<String> weekdays = dateTimeSymbolMap()['it'].WEEKDAYS;
 final List<String> shortWeekDays = dateTimeSymbolMap()['it'].SHORTWEEKDAYS;
@@ -199,7 +195,7 @@ class _TrainingRouteState extends State<TrainingRoute> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 40),
                             child: Text(
-                              a.descrizione ?? 'nessuna descrizione',
+                              a.descrizione == null || a.descrizione.isEmpty ? 'nessuna descrizione' : a.descrizione,
                               style: Theme.of(context).textTheme.overline,
                               textAlign: TextAlign.justify,
                             ),
@@ -255,6 +251,8 @@ class TrainingInfoRoute extends StatefulWidget {
   @override
   _TrainingInfoRouteState createState() => _TrainingInfoRouteState();
 }
+
+// TODO: program  training without plan, in a single date
 
 class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
   bool editTitle = false;
@@ -329,6 +327,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                     child: TextField(
                       controller: _descriptionController,
                       maxLines: 1000,
+                      autofocus: false,
                       decoration: InputDecoration(
                         hintText: 'inserisci la descrizione (opzionale)',
                       ),

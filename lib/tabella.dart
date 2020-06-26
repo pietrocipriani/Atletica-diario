@@ -130,7 +130,7 @@ class Week {
             ),
           ),
     );
-    plans.firstWhere((plan) => plan.id == raw['id']).weeks.add(this);
+    plans.firstWhere((plan) => plan.id == raw['id'], orElse: () => null,)?.weeks?.add(this);
   }
   Week.copy(Week week)
       : this.repeat = week.repeat,

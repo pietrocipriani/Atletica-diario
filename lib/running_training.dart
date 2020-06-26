@@ -126,7 +126,6 @@ class _RunningTrainingState extends State<RunningTraining>
     super.dispose();
   }
 
-  // TODO: gestire quando sono finite le ripetute
   @override
   Widget build(BuildContext context) {
     double remainingTime = recuperoStartTime == null || rec == null
