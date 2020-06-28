@@ -1,9 +1,9 @@
-import 'package:Atletica/custom_expansion_tile.dart';
-import 'package:Atletica/database.dart';
-import 'package:Atletica/duration_picker.dart';
-import 'package:Atletica/main.dart';
-import 'package:Atletica/recupero.dart';
-import 'package:Atletica/ripetuta.dart';
+import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:Atletica/persistence/database.dart';
+import 'package:Atletica/global_widgets/duration_picker.dart';
+import 'package:Atletica/recupero/recupero.dart';
+import 'package:Atletica/ripetuta/ripetuta.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -31,15 +31,15 @@ class Allenamento {
     this.descrizione = raw['description'];
   }
 
-  Ripetuta ripetutaFromIndex (int index) {
+  Ripetuta ripetutaFromIndex(int index) {
     for (Serie s in serie)
       for (int i = 0; i < s.ripetizioni; i++)
         for (Ripetuta r in s.ripetute)
-          for (int j = 0; j < r.ripetizioni; j++)
-            if (--index < 0) return r;
+          for (int j = 0; j < r.ripetizioni; j++) if (--index < 0) return r;
     return null;
   }
-  int recuperoFromIndex (int index) {
+
+  int recuperoFromIndex(int index) {
     index--;
     if (index < 0) return null;
     for (Serie s in serie)
@@ -50,11 +50,16 @@ class Allenamento {
               if (j == r.ripetizioni) {
                 if (r == s.ripetute.last) {
                   if (i == s.ripetizioni) {
-                    if (s == serie.last) return null;
-                    else return s.nextRecupero.recupero;
-                  } else return s.recupero;
-                } else return r.nextRecupero.recupero;
-              } else return r.recupero;
+                    if (s == serie.last)
+                      return null;
+                    else
+                      return s.nextRecupero.recupero;
+                  } else
+                    return s.recupero;
+                } else
+                  return r.nextRecupero.recupero;
+              } else
+                return r.recupero;
             }
     return null;
   }
@@ -175,10 +180,10 @@ class _TrainingRouteState extends State<TrainingRoute> {
                       },
                       confirmDismiss: (direction) async {
                         if (direction == DismissDirection.startToEnd)
-                          return await showDialog<bool>(
-                              context: context,
-                              builder: (context) =>
-                                  deleteConfirmDialog(context, a.name));
+                          return await showDeleteConfirmDialog(
+                            context: context,
+                            name: a.name,
+                          );
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -195,7 +200,9 @@ class _TrainingRouteState extends State<TrainingRoute> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 40),
                             child: Text(
-                              a.descrizione == null || a.descrizione.isEmpty ? 'nessuna descrizione' : a.descrizione,
+                              a.descrizione == null || a.descrizione.isEmpty
+                                  ? 'nessuna descrizione'
+                                  : a.descrizione,
                               style: Theme.of(context).textTheme.overline,
                               textAlign: TextAlign.justify,
                             ),
@@ -356,12 +363,11 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                         yield Dismissible(
                           key: ValueKey(serie),
                           direction: DismissDirection.startToEnd,
-                          confirmDismiss: (d) async => await showDialog(
+                          confirmDismiss: (d) async =>
+                              await showDeleteConfirmDialog(
                             context: context,
-                            builder: (context) => deleteConfirmDialog(
-                              context,
-                              'serie #${widget.allenamento.serie.indexOf(serie) + 1}',
-                            ),
+                            name:
+                                'serie #${widget.allenamento.serie.indexOf(serie) + 1}',
                           ),
                           onDismissed: (direction) {
                             db.delete('Series',
@@ -406,7 +412,9 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                           }()
                                               .toList());
                                       for (Ripetuta rip in serie.ripetute.where(
-                                          (rip) => rip != serie.ripetute.last && rip.nextRecupero != null))
+                                          (rip) =>
+                                              rip != serie.ripetute.last &&
+                                              rip.nextRecupero != null))
                                         yield CompositedTransformFollower(
                                           showWhenUnlinked: false,
                                           link: rip.link,

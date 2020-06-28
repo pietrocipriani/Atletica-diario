@@ -1,17 +1,17 @@
-import 'package:Atletica/allenamento.dart';
-import 'package:Atletica/animated_text.dart';
-import 'package:Atletica/atleta.dart';
-import 'package:Atletica/auth.dart';
-import 'package:Atletica/database.dart';
-import 'package:Atletica/running_training.dart';
-import 'package:Atletica/shedule.dart';
-import 'package:Atletica/tabella.dart';
+import 'package:Atletica/athlete/athletes_route.dart';
+import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/schedule/schedule_route.dart';
+import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/global_widgets/animated_text.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/database.dart';
+import 'package:Atletica/running_training/running_training.dart';
+import 'package:Atletica/plan/tabella.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:intl/intl_standalone.dart';
 import 'package:mdi/mdi.dart';
 import 'package:package_info/package_info.dart';
 import 'package:vibration/vibration.dart';
@@ -477,42 +477,18 @@ class _BottomAppBar extends StatelessWidget {
   }
 }
 
-AlertDialog deleteConfirmDialog(BuildContext context, String name) {
-  return AlertDialog(
-    title: Text('Conferma eliminazione'),
-    content: RichText(
-      text: TextSpan(
-          text: 'Sei sicuro di voler eliminare ',
-          style: Theme.of(context).textTheme.bodyText2,
-          children: [
-            TextSpan(
-              text: name,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextSpan(
-              text: '? Una volta cancellato non sarà più recuperabile!',
-            )
-          ]),
-      textAlign: TextAlign.justify,
-    ),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-    ),
-    actions: <Widget>[
-      FlatButton(
-        onPressed: () => Navigator.pop(context, false),
-        child: Text(
-          'Annulla',
-          style: TextStyle(color: Colors.grey),
-        ),
-      ),
-      FlatButton(
-        onPressed: () => Navigator.pop(context, true),
-        child: Text(
-          'Elimina',
-          style: TextStyle(color: Colors.red),
-        ),
-      ),
-    ],
-  );
+/// conventional (useless) function for italian words
+/// ``` dart
+/// // this returns 'allenamento'
+/// singularPlural('allenament', 'o', 'i', 1);
+/// // this returns 'allenamenti'
+/// singularPlural('allenament', 'o', 'i', 2);
+/// 
+/// // this...:
+/// singularPlural('allenament', 'o', 'i', count);
+/// // ...is equal to:
+/// 'allenament${count == 1 ? 'o', 'i'}'
+/// ```
+String singularPlural (String root, String singular, String plural, int count) {
+  return '$root${count == 1 ? singular : plural}';
 }

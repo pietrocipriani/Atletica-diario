@@ -1,61 +1,27 @@
-import 'package:Atletica/allenamento.dart';
-import 'package:Atletica/atleta.dart';
-import 'package:Atletica/tabella.dart';
+import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/schedule/athletes_picker.dart';
+import 'package:Atletica/schedule/schedule_widgets/plan_schedule_widget.dart';
+import 'package:Atletica/schedule/schedule_widgets/schedule_widget.dart';
+import 'package:Atletica/schedule/schedule_widgets/training_schedule_widget.dart';
+import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/plan/tabella.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:mdi/mdi.dart';
 
-List<Schedule> schedules = <Schedule>[
-  /*PlanSchedule(plans.first,
-      date: DateTime.now(),
-      to: DateTime.now().add(Duration(days: 30)),
-      athletes: groups.first.atleti),
-  TrainingSchedule(allenamenti.first,
-      date: DateTime.now(),
-      athletes: groups.last.atleti
-          .followedBy(groups.first.atleti.getRange(0, 2))
-          .toList())*/
-];
-
-class ScheduleRoute extends StatefulWidget {
-  @override
-  _ScheduleRouteState createState() => _ScheduleRouteState();
-}
-
-class _ScheduleRouteState extends State<ScheduleRoute> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('PROGRAMMI'),
-      ),
-      body: Column(
-        children: schedules
-            .map(
-              (schedule) => Dismissible(
-                key: ValueKey(schedule),
-                child: schedule.build(context),
-                onDismissed: (d) => schedules.remove(schedule),
-              ),
-            )
-            .toList(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          if (await Schedule.fromDialog(context)) setState(() {});
-        },
-        child: Icon(Icons.add),
-      ),
-    );
-  }
-}
+List<Schedule> schedules = <Schedule>[];
 
 abstract class Schedule<T extends dynamic> {
+  ScheduleWidget<Schedule<T>> widget;
   T work;
   DateTime date;
   List<Atleta> athletes;
 
-  Schedule(this.work, {this.date, this.athletes = const <Atleta>[]});
+  Schedule(
+    this.work, {
+    this.date,
+    this.athletes = const <Atleta>[],
+  });
 
   static Future<bool> fromDialog(BuildContext context) {
     PlanSchedule plan =
@@ -138,93 +104,14 @@ abstract class Schedule<T extends dynamic> {
         .where((atleta) => gs.every((group) => !group.atleti.contains(atleta)));
     return gs.map((g) => g.name).followedBy(atls.map((a) => a.name)).join(', ');
   }
-
-  Widget get leading;
-
-  Widget subtitle(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        text: formattedDate,
-        children: [
-          TextSpan(
-            text: ' per ',
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-          TextSpan(text: joinAthletes)
-        ],
-        style: Theme.of(context).textTheme.overline.copyWith(
-              color: Theme.of(context).primaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-    );
-  }
-
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(work.name),
-      subtitle: subtitle(context),
-      leading: leading,
-    );
-  }
-
-  String get formattedDate => DateFormat.MMMMd('it').format(date).toString();
 }
 
 class PlanSchedule extends Schedule<Tabella> {
   DateTime to;
 
   PlanSchedule(Tabella plan, {DateTime date, this.to, List<Atleta> athletes})
-      : super(plan, date: date, athletes: athletes ?? <Atleta>[]);
-
-  @override
-  String get formattedDate =>
-      'dal ${super.formattedDate} al ${DateFormat.yMMMMd('it').format(to)}';
-
-  @override
-  Widget subtitle(BuildContext context) {
-    TextStyle base =
-        TextStyle(color: Colors.black, fontWeight: FontWeight.normal);
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(text: 'dal ', style: base),
-          TextSpan(text: DateFormat.MMMMd('it').format(date)),
-          if (to != null) TextSpan(text: ' al ', style: base),
-          if (to != null) TextSpan(text: DateFormat.MMMMd('it').format(to)),
-          TextSpan(text: ' per ', style: base),
-          TextSpan(text: joinAthletes)
-        ],
-        style: Theme.of(context).textTheme.overline.copyWith(
-              color: Theme.of(context).primaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (date.isAfter(DateTime.now())) return super.build(context);
-    return Column(
-      children: <Widget>[
-        super.build(context),
-        Container(
-          height: 1,
-          child: LinearProgressIndicator(
-            backgroundColor: Colors.transparent,
-            value: to == null
-                ? 0
-                : DateTime.now().difference(date).inDays /
-                    to.difference(date).inDays,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-          ),
-        )
-      ],
-    );
+      : super(plan, date: date, athletes: athletes ?? <Atleta>[]) {
+    widget = PlanScheduleWidget(schedule: this);
   }
 
   Widget dialogContent(BuildContext context) {
@@ -296,14 +183,13 @@ class PlanSchedule extends Schedule<Tabella> {
       );
     });
   }
-
-  @override
-  Widget get leading => Icon(Mdi.table, color: Colors.black);
 }
 
 class TrainingSchedule extends Schedule<Allenamento> {
   TrainingSchedule(Allenamento training, {DateTime date, List<Atleta> athletes})
-      : super(training, date: date, athletes: athletes ?? <Atleta>[]);
+      : super(training, date: date, athletes: athletes ?? <Atleta>[]) {
+    widget = TrainingScheduleWidget(schedule: this);
+  }
 
   Widget dialogContent(BuildContext context) {
     if (allenamenti.isEmpty)
@@ -346,65 +232,12 @@ class TrainingSchedule extends Schedule<Allenamento> {
               ),
             ],
           ),
-          AthletesPicker(athletes,
-              onChanged: (atls) => setState(() => athletes = atls))
+          AthletesPicker(
+            athletes,
+            onChanged: (atls) => setState(() => athletes = atls),
+          )
         ],
       );
     });
-  }
-
-  @override
-  Widget get leading => Icon(Icons.fitness_center, color: Colors.black);
-}
-
-class AthletesPicker extends StatelessWidget {
-  final List<Atleta> athletes;
-  final void Function(List<Atleta> athletes) onChanged;
-
-  AthletesPicker(this.athletes, {@required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> children = () sync* {
-      for (Group g in groups) {
-        yield Row(
-          children: <Widget>[
-            Checkbox(
-                value: g.atleti.every((a) => athletes.contains(a)),
-                onChanged: (v) {
-                  if (v)
-                    g.atleti
-                        .where((a) => !athletes.contains(a))
-                        .forEach((a) => athletes.add(a));
-                  else
-                    g.atleti.forEach((a) => athletes.remove(a));
-                  onChanged(athletes);
-                }),
-            Text(g.name)
-          ],
-        );
-        for (Atleta a in g.atleti) {
-          yield Row(
-            children: <Widget>[
-              SizedBox(width: 40),
-              Checkbox(
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  value: athletes.contains(a),
-                  onChanged: (v) {
-                    if (v)
-                      athletes.add(a);
-                    else
-                      athletes.remove(a);
-                    onChanged(athletes);
-                  }),
-              Text(a.name),
-            ],
-          );
-        }
-      }
-    }()
-        .toList();
-
-    return Column(children: children);
   }
 }

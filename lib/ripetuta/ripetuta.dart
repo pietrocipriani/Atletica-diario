@@ -1,7 +1,7 @@
-import 'package:Atletica/allenamento.dart';
-import 'package:Atletica/database.dart';
-import 'package:Atletica/duration_picker.dart';
-import 'package:Atletica/recupero.dart';
+import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/persistence/database.dart';
+import 'package:Atletica/global_widgets/duration_picker.dart';
+import 'package:Atletica/recupero/recupero.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';

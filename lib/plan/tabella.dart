@@ -1,7 +1,7 @@
-import 'package:Atletica/allenamento.dart';
-import 'package:Atletica/custom_expansion_tile.dart';
-import 'package:Atletica/database.dart';
-import 'package:Atletica/main.dart';
+import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:Atletica/persistence/database.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -131,7 +131,13 @@ class Week {
             ),
           ),
     );
-    plans.firstWhere((plan) => plan.id == raw['id'], orElse: () => null,)?.weeks?.add(this);
+    plans
+        .firstWhere(
+          (plan) => plan.id == raw['id'],
+          orElse: () => null,
+        )
+        ?.weeks
+        ?.add(this);
   }
   Week.copy(Week week)
       : this.repeat = week.repeat,
@@ -327,10 +333,9 @@ class _PlansRouteState extends State<PlansRoute>
                     if (await plan.modify(context: context)) setState(() {});
                     return false;
                   }
-                  return await showDialog(
+                  return await showDeleteConfirmDialog(
                     context: context,
-                    builder: (context) =>
-                        deleteConfirmDialog(context, plan.name),
+                    name: plan.name,
                   );
                 },
                 onDismissed: (direction) {
@@ -392,10 +397,10 @@ class _PlansRouteState extends State<PlansRoute>
                           ),
                           direction: DismissDirection.startToEnd,
                           confirmDismiss: (direction) async {
-                            return await showDialog(
+                            return await showDeleteConfirmDialog(
                               context: context,
-                              builder: (context) => deleteConfirmDialog(context,
-                                  'settimana #${plan.weeks.indexOf(week) + 1}'),
+                              name:
+                                  'settimana #${plan.weeks.indexOf(week) + 1}',
                             );
                           },
                           onDismissed: (direction) =>

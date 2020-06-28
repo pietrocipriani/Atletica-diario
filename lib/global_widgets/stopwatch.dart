@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'running_training.dart' as rt;
+import 'package:Atletica/running_training/running_training.dart' as rt;
 
 class StopWatch extends StatefulWidget {
   final rt.TickerProvider ticker;

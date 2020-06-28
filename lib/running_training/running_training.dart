@@ -1,13 +1,13 @@
-import 'package:Atletica/alert_point.dart';
-import 'package:Atletica/allenamento.dart';
-import 'package:Atletica/atleta.dart';
-import 'package:Atletica/link_line.dart';
-import 'package:Atletica/ripetuta.dart';
-import 'package:Atletica/stopwatch.dart';
+import 'package:Atletica/global_widgets/alert_point.dart';
+import 'package:Atletica/main.dart';
+import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/global_widgets/link_line.dart';
+import 'package:Atletica/ripetuta/ripetuta.dart';
+import 'package:Atletica/global_widgets/stopwatch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:vibration/vibration.dart';
-import 'main.dart';
 
 final int kCriticRemainingTime = 10;
 

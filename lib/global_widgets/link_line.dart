@@ -1,5 +1,6 @@
-import 'package:Atletica/atleta.dart';
-import 'package:Atletica/ripetuta.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/ripetuta/ripetuta.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 

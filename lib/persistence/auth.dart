@@ -62,7 +62,7 @@ class CoachRequest {
         } else*/
         subscription.cancel();
         await _set(null, null, root: user._reverseRequest);
-        user.coach = null;
+        if (user.coach == this) user.coach = null;
       }
       callback?.call(event);
     });
@@ -93,7 +93,11 @@ class FirebaseUserHelper {
   set coach (dynamic coach) {
     assert (coach == null || coach is BasicUser || coach is CoachRequest);
     //print (StackTrace.current);
-    if (coach == null) print ('coach = null');
+    if (coach == _coach) return;
+    if (coach == null) {
+      print ('coach = null');
+      print (StackTrace.current);
+    }
     else print ('coach = ${coach.uid}');
     if (_coach != null && _coach is CoachRequest) _coach.subscription?.cancel();
     _coach = coach;
@@ -123,10 +127,8 @@ class FirebaseUserHelper {
         uid == coach ||
         (this.coach != null && this.coach is BasicUser)) return null;
     print(this.coach);
-    if (this.coach != null) {
+    if (this.coach != null)
       await _set(uid, null, root: _coachRequests);
-      this.coach = null;
-    }
 
     bool ok = await _set('coach', coach, root: _reverseRequest);
     if (ok) {
@@ -150,12 +152,11 @@ class FirebaseUserHelper {
     }
     coachUid = await _get('coach', root: _reverseRequest);
     if (coachUid == null) return;
-    coach = CoachRequest(this, coachUid);
     if (await _get(uid, root: _coachRequests) == null) {
       await _set(null, null, root: _reverseRequest);
-      this.coach = null;
       return;
     }
+    coach = CoachRequest(this, coachUid);
     coach.waitForResponse(onValue: onValue);
   }
 
@@ -288,5 +289,10 @@ class Callback<T> {
 
   void call(T arg) {
     if (active) f?.call(arg);
+  }
+
+  Callback<T> get stopListening {
+    active = false;
+    return this;
   }
 }

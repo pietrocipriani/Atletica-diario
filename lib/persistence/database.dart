@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:Atletica/allenamento.dart';
-import 'package:Atletica/atleta.dart';
-import 'package:Atletica/ripetuta.dart';
-import 'package:Atletica/tabella.dart';
+import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/ripetuta/ripetuta.dart';
+import 'package:Atletica/plan/tabella.dart';
 import 'package:sqflite/sqflite.dart';
 
 Database db;
