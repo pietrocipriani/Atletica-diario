@@ -17,13 +17,12 @@ AlertDialog _deleteConfirmDialog({
   @required BuildContext context,
   @required String name,
 }) {
-  final TextStyle overline = Theme.of(context).textTheme.overline;
   final TextStyle bold = TextStyle(fontWeight: FontWeight.bold);
 
   final Widget content = RichText(
     text: TextSpan(
         text: 'Sei sicuro di voler eliminare ',
-        style: overline,
+        style: TextStyle(color: Colors.black),
         children: [
           TextSpan(text: name, style: bold),
           TextSpan(text: '? Una volta cancellato non sarà più recuperabile!'),

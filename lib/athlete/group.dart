@@ -30,9 +30,10 @@ class Group {
     @required String name,
     Tabella tabella,
     DateTime started,
-  }) async {  // TODO: add also plan and startTime
+  }) async {
+    // TODO: add also plan and startTime
     final int id = await db.insert('Groups', {'name': name});
-    final Group g = Group(id: id, name: null);
+    final Group g = Group(id: id, name: name);
     groups.add(g);
     return g;
   }
@@ -40,12 +41,14 @@ class Group {
   /// deletes `this` group both from `db` and `groups`
   /// if useless (`atleti` is empty).
   /// If `batch` is provided, it is used instead of `db`
-  FutureOr<void> delete ({Batch batch}) {
-    if (atleti.isNotEmpty) return null;
-    groups.remove(this);
+  FutureOr<bool> delete({Batch batch, bool removeFromList = true}) {
+    if (atleti.isNotEmpty) return false;
+    if (removeFromList) groups.remove(this);
     if (batch == null)
-      return db.delete('Groups', where: 'id = ?', whereArgs: [id]);
-    batch.delete('Groups', where: 'id = ?', whereArgs: [id]);
+      db.delete('Groups', where: 'id = ?', whereArgs: [id]);
+    else
+      batch.delete('Groups', where: 'id = ?', whereArgs: [id]);
+    return true;
   }
 }
 

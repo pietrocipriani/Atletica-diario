@@ -1,16 +1,16 @@
 import 'package:Atletica/athlete/athletes_route.dart';
-import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/home/home_page.dart';
 import 'package:Atletica/schedule/schedule_route.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/animated_text.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/database.dart';
-import 'package:Atletica/running_training/running_training.dart';
 import 'package:Atletica/plan/tabella.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mdi/mdi.dart';
 import 'package:package_info/package_info.dart';
@@ -43,9 +43,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Atletica',
       theme: ThemeData(
-        primarySwatch: Colors.amber,
-      ),
+          primarySwatch: Colors.amber,
+          dialogTheme: DialogTheme(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)))),
       home: MyHomePage(),
+      supportedLocales: [Locale('it')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }
@@ -57,86 +65,9 @@ class MyHomePage extends StatefulWidget {
   MyHomePageState createState() => MyHomePageState();
 }
 
-final List<RunningTraining> runningTrainings = <RunningTraining>[];
-List<Map<String, dynamic>> _routes(void Function(void Function()) setState) => [
-      {
-        'icon': Icons.schedule,
-        'route': ScheduleRoute(),
-        'setState': null,
-        'tooltip':
-            'programma gli allenamenti per uno specifico gruppo di atleti',
-      },
-      {
-        'icon': Icons.directions_run,
-        'route': AthletesRoute(),
-        'hasNotice': () => user?.requests?.isNotEmpty ?? false,
-        'setState': setState,
-        'tooltip': 'gestisci i tuoi atleti',
-      },
-      {
-        'icon': Mdi.table,
-        'route': PlansRoute(),
-        'setState': null,
-        'tooltip': 'gestisci i programmi di lavoro',
-      },
-      {
-        'icon': Icons.fitness_center,
-        'route': TrainingRoute(),
-        'setState': setState,
-        'tooltip': 'gestisci gli allenamenti',
-      }
-    ];
-
 class MyHomePageState extends State<MyHomePage> {
-  GlobalKey<ScaffoldState> _scaffold = GlobalKey<ScaffoldState>();
-
-  MyHomePageState() {
-    _trainingsErrorSnackBar = _createSnackBar(true);
-    _athletesErrorSnackBar = _createSnackBar(false);
-    _bgDecoration = BoxDecoration(
-      image: DecorationImage(
-        image: _bg,
-        colorFilter: ColorFilter.mode(
-          Colors.grey[100],
-          BlendMode.srcIn,
-        ),
-      ),
-    );
-    _fab = FloatingActionButton(
-      onPressed: () async {
-        if (allenamenti.isEmpty ||
-            groups.every((group) => group.atleti.isEmpty))
-          _scaffold.currentState.showSnackBar(_snackBar);
-        else {
-          Iterable<RunningTraining> result =
-              await RunningTraining.fromDialog(context: context);
-          if (result != null) setState(() => runningTrainings.addAll(result));
-        }
-      },
-      tooltip: 'inizia un allenamento non programmato',
-      child: Icon(Icons.play_arrow),
-    );
-    _routesBnb = _routes(setState);
-  }
 
   Image _icon = Image.asset('assets/icon.png', width: 64, height: 64);
-  AssetImage _bg = AssetImage('assets/speed.png');
-
-  SnackBar _trainingsErrorSnackBar, _athletesErrorSnackBar;
-  SnackBar get _snackBar =>
-      allenamenti.isEmpty ? _trainingsErrorSnackBar : _athletesErrorSnackBar;
-
-  FloatingActionButton _fab;
-  List<Map<String, dynamic>> _routesBnb;
-
-  BoxDecoration _bgDecoration;
-
-  void _startRoute(
-      {@required Widget route, void Function(void Function()) setState}) async {
-    await Navigator.push(
-        context, MaterialPageRoute(builder: (context) => route));
-    setState?.call(() {});
-  }
 
   void _showAboutDialog() {
     final Widget Function(IconData icon, String label) row = (icon, label) {
@@ -342,24 +273,6 @@ class MyHomePageState extends State<MyHomePage> {
     callback?.active = false;
   }
 
-  SnackBar _createSnackBar(bool t) => SnackBar(
-        content: Text('nessun ${t ? 'allenamento' : 'atleta'} disponibile'),
-        action: SnackBarAction(
-          label: 'CREA',
-          onPressed: () => _startRoute(
-              route: t ? TrainingRoute() : AthletesRoute(), setState: setState),
-        ),
-        duration: Duration(seconds: 8),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: Colors.red,
-            width: 2,
-          ),
-        ),
-      );
-
   final Callback<Event> callback = Callback<Event>();
 
   @override
@@ -401,77 +314,91 @@ class MyHomePageState extends State<MyHomePage> {
         ),
       ],
     );
-    Widget content = runningTrainings.isNotEmpty
-        ? SingleChildScrollView(child: Column(children: runningTrainings))
-        : Text('Nessun allenamento in programma per oggi!');
-    content = Container(
-        alignment:
-            runningTrainings.isEmpty ? Alignment.center : Alignment.topCenter,
-        decoration: _bgDecoration,
-        child: content);
 
     return Scaffold(
-      key: _scaffold,
       appBar: appBar,
-      body: content,
-      floatingActionButton: _fab,
+      body: HomePageWidget(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      bottomNavigationBar:
-          _BottomAppBar(startRoute: _startRoute, routes: _routesBnb),
+      bottomNavigationBar: _BottomAppBar(setState: setState),
     );
   }
 }
 
 class _BottomAppBar extends StatelessWidget {
-  final Row routes;
+  final void Function(void Function()) setState;
 
-  _BottomAppBar(
-      {@required
-          void Function(
-                  {@required Widget route,
-                  void Function(void Function()) setState})
-              startRoute,
-      @required
-          List<Map<String, dynamic>> routes})
-      : this.routes = Row(
-          children: routes
-              .map((route) => IconButton(
-                    icon: Stack(
-                      overflow: Overflow.visible,
-                      children: <Widget>[
-                        Positioned(
-                          child: Icon(route['icon'], color: Colors.black12),
-                          left: 3,
-                          top: 3,
-                        ),
-                        Icon(route['icon']),
-                        if (route['hasNotice']?.call() ?? false)
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.red,
-                              ),
-                            ),
-                          )
-                      ],
-                    ),
-                    onPressed: () => startRoute(
-                        route: route['route'], setState: route['setState']),
-                  ))
-              .toList(),
-        );
+  _BottomAppBar({@required this.setState});
+
+  Widget _sectionBtn({
+    @required BuildContext context,
+    @required IconData icon,
+    @required Widget route,
+    bool notify = false,
+    bool onPop = false,
+    String tooltip,
+  }) =>
+      IconButton(
+        tooltip: tooltip,
+        icon: Stack(
+          alignment: Alignment.topRight,
+          overflow: Overflow.visible,
+          children: <Widget>[
+            Positioned(
+              child: Icon(icon, color: Colors.black12),
+              left: 3,
+              top: 3,
+            ),
+            Icon(icon, color: Colors.black),
+            if (notify)
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              )
+          ],
+        ),
+        onPressed: () => startRoute(
+          context: context,
+          route: route,
+          setState: onPop ? setState : null,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      child: routes,
-      notchMargin: 8,
-      shape: CircularNotchedRectangle(),
+      child: Row(children: [
+        _sectionBtn(
+          context: context,
+          icon: Icons.schedule,
+          route: ScheduleRoute(),
+          onPop: true,
+          tooltip:
+              'programma gli allenamenti per uno specifico gruppo di atleti',
+        ),
+        _sectionBtn(
+          context: context,
+          icon: Icons.directions_run,
+          route: AthletesRoute(),
+          notify: user?.requests?.isNotEmpty ?? false,
+          tooltip: 'gestisci i tuoi atleti'
+        ),
+        _sectionBtn(
+          context: context,
+          icon: Mdi.table,
+          route: PlansRoute(),
+          tooltip: 'gestisci i programmi di lavoro'
+        ),
+        _sectionBtn(
+          context: context,
+          icon: Icons.fitness_center,
+          route: TrainingRoute(),
+          tooltip: 'gestisci gli allenamenti'
+        ),
+      ]),
       color: Theme.of(context).primaryColor,
     );
   }
@@ -483,12 +410,22 @@ class _BottomAppBar extends StatelessWidget {
 /// singularPlural('allenament', 'o', 'i', 1);
 /// // this returns 'allenamenti'
 /// singularPlural('allenament', 'o', 'i', 2);
-/// 
+///
 /// // this...:
 /// singularPlural('allenament', 'o', 'i', count);
 /// // ...is equal to:
 /// 'allenament${count == 1 ? 'o', 'i'}'
 /// ```
-String singularPlural (String root, String singular, String plural, int count) {
+String singularPlural(String root, String singular, String plural, int count) {
   return '$root${count == 1 ? singular : plural}';
+}
+
+/// a conventional function for starting a `route` with given `context`
+/// and an optional `setState(() {})` if the ui can change after the pop
+void startRoute(
+    {@required BuildContext context,
+    @required Widget route,
+    void Function(void Function()) setState}) async {
+  await Navigator.push(context, MaterialPageRoute(builder: (context) => route));
+  setState?.call(() {});
 }

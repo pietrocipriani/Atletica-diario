@@ -149,7 +149,9 @@ Widget dialog({@required BuildContext context, Atleta atleta, String name}) {
                     );
 
                   final Batch b = db.batch();
-                  groups.forEach((group) => group.delete());
+                  groups.removeWhere(
+                    (group) => group.delete(batch: b, removeFromList: false),
+                  );
                   b.commit();
                   Navigator.pop(context, true);
                 },

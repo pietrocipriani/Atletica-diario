@@ -8,48 +8,67 @@ class AthletesPicker extends StatelessWidget {
 
   AthletesPicker(this.athletes, {@required this.onChanged});
 
+  Function(Atleta a) _f(bool s) => s ? athletes.add : athletes.remove;
+  Iterable<Atleta> _modified(Group g, bool s) =>
+      g.atleti.where((a) => athletes.contains(a) != s);
+
   @override
   Widget build(BuildContext context) {
-    List<Widget> children = () sync* {
-      for (Group g in groups) {
-        yield Row(
-          children: <Widget>[
-            Checkbox(
-                value: g.atleti.every((a) => athletes.contains(a)),
-                onChanged: (v) {
-                  if (v)
-                    g.atleti
-                        .where((a) => !athletes.contains(a))
-                        .forEach((a) => athletes.add(a));
-                  else
-                    g.atleti.forEach((a) => athletes.remove(a));
-                  onChanged(athletes);
-                }),
-            Text(g.name)
-          ],
-        );
-        for (Atleta a in g.atleti) {
-          yield Row(
-            children: <Widget>[
-              SizedBox(width: 40),
-              Checkbox(
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  value: athletes.contains(a),
-                  onChanged: (v) {
-                    if (v)
-                      athletes.add(a);
-                    else
-                      athletes.remove(a);
-                    onChanged(athletes);
-                  }),
-              Text(a.name),
-            ],
-          );
-        }
-      }
-    }()
-        .toList();
+    List<Widget> children = [];
+    for (Group g in groups) {
+      children.add(_LabeledCheckBox(
+        state: g.atleti.every((a) => athletes.contains(a)),
+        label: g.name,
+        onChanged: (s) {
+          _modified(g, s).forEach((a) => _f(s)(a));
+          onChanged(athletes);
+        },
+      ));
+      for (Atleta a in g.atleti)
+        children.add(_LabeledCheckBox(
+          state: athletes.contains(a),
+          label: a.name,
+          onChanged: (s) {
+            _f(s)(a);
+            onChanged(athletes);
+          },
+          padding: 1,
+        ));
+    }
 
     return Column(children: children);
+  }
+}
+
+class _LabeledCheckBox extends StatelessWidget {
+  final bool state;
+  final String label;
+  final int padding;
+  final void Function(bool newState) onChanged;
+
+  _LabeledCheckBox({
+    @required this.state,
+    @required this.label,
+    this.onChanged,
+    this.padding = 0,
+  }) : assert(padding >= 0);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!state),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: <Widget>[
+          SizedBox(width: 40.0 * padding),
+          Checkbox(
+            value: state,
+            onChanged: onChanged,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          Text(label),
+        ],
+      ),
+    );
   }
 }

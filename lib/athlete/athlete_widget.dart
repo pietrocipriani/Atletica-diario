@@ -1,5 +1,6 @@
 import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:Atletica/main.dart';
 import 'package:flutter/material.dart';
@@ -34,18 +35,6 @@ class AthleteWidget extends StatelessWidget {
       subtitle: Text(group.name, style: overlineBoldPrimaryDark),
       trailing: trailing,
     );
-    final Widget deleteBackground = Container(
-      color: Theme.of(context).primaryColorLight,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.only(left: 16),
-      child: Icon(Icons.delete),
-    );
-    final Widget modifyBackground = Container(
-      color: Colors.lightGreen[200],
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.only(right: 16),
-      child: Icon(Icons.edit),
-    );
 
     Future<bool> confirmDismiss(DismissDirection dir) async {
       if (dir == DismissDirection.startToEnd)
@@ -61,11 +50,9 @@ class AthleteWidget extends StatelessWidget {
       }
     }
 
-    return Dismissible(
+    return CustomDismissible(
       key: ValueKey(atleta),
       child: child,
-      background: deleteBackground,
-      secondaryBackground: modifyBackground,
       onDismissed: (dir) => atleta.delete(),
       confirmDismiss: confirmDismiss,
     );

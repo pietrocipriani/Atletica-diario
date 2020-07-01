@@ -1,8 +1,9 @@
 import 'package:Atletica/global_widgets/alert_point.dart';
+import 'package:Atletica/global_widgets/link_line/link_line.dart';
 import 'package:Atletica/main.dart';
+import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/global_widgets/link_line.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
 import 'package:Atletica/global_widgets/stopwatch.dart';
 import 'package:flutter/material.dart';
@@ -10,68 +11,58 @@ import 'package:flutter/scheduler.dart';
 import 'package:vibration/vibration.dart';
 
 final int kCriticRemainingTime = 10;
+final List<RunningTraining> runningTrainings = <RunningTraining>[];
+
+bool _alreadyInserted(Schedule schedule) =>
+    runningTrainings.any((rt) => rt.schedule == schedule);
+
+void updateFromSchedules() {
+  runningTrainings.removeWhere((rt) => !schedules.contains(rt.schedule));
+  schedules.forEach((schedule) {
+    if (_alreadyInserted(schedule)) return;
+    final RunningTraining rt = RunningTraining.fromSchedule(schedule);
+    if (rt != null) runningTrainings.add(rt);
+  });
+}
 
 class RunningTraining extends StatefulWidget {
+  final Schedule schedule;
   final Allenamento allenamento;
 
-  RunningTraining({@required this.allenamento});
-  static Future<Iterable<RunningTraining>> fromDialog(
-      {@required BuildContext context}) {
-    List<Allenamento> trainings = <Allenamento>[];
-    return showDialog<Iterable<RunningTraining>>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          scrollable: true,
-          title: Text('INIZIA ALLENAMENTO'),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: Column(
-            children: allenamenti
-                .map(
-                  (training) => CheckboxListTile(
-                    value: trainings.contains(training),
-                    onChanged: (value) {
-                      if (value)
-                        trainings.add(training);
-                      else
-                        trainings.remove(training);
-                      setState(() {});
-                    },
-                    title: Text(training.name),
-                  ),
-                )
-                .toList(),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Annulla',
-              ),
-            ),
-            FlatButton(
-              onPressed: trainings.isEmpty
-                  ? null
-                  : () {
-                      Navigator.pop(
-                        context,
-                        trainings.map(
-                          (training) => RunningTraining(allenamento: training),
-                        ),
-                      );
-                    },
-              child: Text('Inizia!'),
-            ),
-          ],
-        ),
-      ),
-    );
+  RunningTraining(this.schedule, this.allenamento)
+      : assert(allenamento != null);
+
+  static RunningTraining fromSchedule(final Schedule schedule) {
+    Allenamento training = schedule.todayTraining;
+    if (training == null) return null;
+    return RunningTraining(schedule, training);
   }
+
+  bool get expired => schedule.todayTraining != allenamento;
 
   @override
   _RunningTrainingState createState() => _RunningTrainingState();
 }
+
+final Path play = Path()
+  ..moveTo(20, 20)
+  ..lineTo(20, 80)
+  ..lineTo(80, 50)
+  ..close();
+final Path stop = Path()
+  ..moveTo(20, 20)
+  ..lineTo(20, 80)
+  ..lineTo(80, 80)
+  ..lineTo(80, 20)
+  ..close();
+final Path lap = Path()
+  ..moveTo(50, 50)
+  ..addOval(
+    Rect.fromCenter(center: const Offset(0, 0), width: 60, height: 60),
+  )
+  ..relativeLineTo(0, -25)
+  ..moveTo(40, 15)
+  ..lineTo(60, 15);
 
 class _RunningTrainingState extends State<RunningTraining>
     with SingleTickerProviderStateMixin {
@@ -113,6 +104,8 @@ class _RunningTrainingState extends State<RunningTraining>
 
     if (rip == null) {
       runningTrainings.remove(widget);
+      if (widget.schedule is TrainingSchedule)
+        schedules.remove(widget.schedule);
       context.findAncestorStateOfType<MyHomePageState>().setState(() {});
     } else {
       results[rip] = <Atleta, double>{};
@@ -213,7 +206,7 @@ class _RunningTrainingState extends State<RunningTraining>
                 ],
               ),
             ),
-            trailing: IconButton(
+            /*trailing: IconButton(
               icon: Icon(Icons.skip_next),
               onPressed: remainingTime == null || remainingTime < 0
                   ? () {
@@ -225,7 +218,7 @@ class _RunningTrainingState extends State<RunningTraining>
                   : null,
               disabledColor: Colors.black12,
               color: Colors.black,
-            ),
+            ),*/
           ),
           Container(
             height: 1,
@@ -258,6 +251,7 @@ class _RunningTrainingState extends State<RunningTraining>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
+          scrollable: showResults ? true : false,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text('CRONOMETRO'),
@@ -265,6 +259,7 @@ class _RunningTrainingState extends State<RunningTraining>
               ? LinkLine(
                   results: rawResults,
                   rip: rip,
+                  athletes: widget.schedule.athletes,
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
@@ -318,7 +313,8 @@ class _RunningTrainingState extends State<RunningTraining>
                           padding: const EdgeInsets.all(16),
                           onPressed: tickerProvider.ticker?.isActive ?? false
                               ? () {
-                                  if (canVibrate) Vibration.vibrate(duration: 200);
+                                  if (canVibrate)
+                                    Vibration.vibrate(duration: 200);
                                   tickerProvider.ticker.stop();
                                   showResults = true;
                                   rawResults.add(
