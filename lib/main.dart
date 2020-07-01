@@ -1,4 +1,6 @@
 import 'package:Atletica/athlete/athletes_route.dart';
+import 'package:Atletica/global_widgets/mode_selector_route.dart';
+import 'package:Atletica/global_widgets/splash_screen.dart';
 import 'package:Atletica/home/home_page.dart';
 import 'package:Atletica/schedule/schedule_route.dart';
 import 'package:Atletica/training/allenamento.dart';
@@ -9,6 +11,7 @@ import 'package:Atletica/plan/tabella.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -43,11 +46,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Atletica',
       theme: ThemeData(
-          primarySwatch: Colors.amber,
-          dialogTheme: DialogTheme(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)))),
-      home: MyHomePage(),
+        primarySwatch: Colors.amber,
+        dialogTheme: DialogTheme(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        buttonTheme: ButtonThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
+      home: SplashScreen(),
       supportedLocales: [Locale('it')],
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
@@ -66,7 +77,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-
   Image _icon = Image.asset('assets/icon.png', width: 64, height: 64);
 
   void _showAboutDialog() {
@@ -279,11 +289,7 @@ class MyHomePageState extends State<MyHomePage> {
   void initState() {
     initializeDateFormatting('it');
     callback.f = (evt) => setState(() {});
-    if (user == null)
-      login(context: context).then((value) {
-        user.requestCallbacks.add(callback);
-        setState(() {});
-      });
+    user.requestCallbacks.add(callback);
     super.initState();
   }
 
@@ -295,6 +301,10 @@ class MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (user.role == null)
+      WidgetsBinding.instance.addPostFrameCallback(
+        (d) => showModeSelectorRoute(context: context),
+      );
     final AppBar appBar = AppBar(
       title: Text('Atletica'),
       actions: <Widget>[
@@ -380,24 +390,21 @@ class _BottomAppBar extends StatelessWidget {
               'programma gli allenamenti per uno specifico gruppo di atleti',
         ),
         _sectionBtn(
-          context: context,
-          icon: Icons.directions_run,
-          route: AthletesRoute(),
-          notify: user?.requests?.isNotEmpty ?? false,
-          tooltip: 'gestisci i tuoi atleti'
-        ),
+            context: context,
+            icon: Icons.directions_run,
+            route: AthletesRoute(),
+            notify: user?.requests?.isNotEmpty ?? false,
+            tooltip: 'gestisci i tuoi atleti'),
         _sectionBtn(
-          context: context,
-          icon: Mdi.table,
-          route: PlansRoute(),
-          tooltip: 'gestisci i programmi di lavoro'
-        ),
+            context: context,
+            icon: Mdi.table,
+            route: PlansRoute(),
+            tooltip: 'gestisci i programmi di lavoro'),
         _sectionBtn(
-          context: context,
-          icon: Icons.fitness_center,
-          route: TrainingRoute(),
-          tooltip: 'gestisci gli allenamenti'
-        ),
+            context: context,
+            icon: Icons.fitness_center,
+            route: TrainingRoute(),
+            tooltip: 'gestisci gli allenamenti'),
       ]),
       color: Theme.of(context).primaryColor,
     );
