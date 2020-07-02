@@ -71,7 +71,7 @@ class PlanSchedule extends Schedule<Tabella> {
     int week = bareToday.difference(bareStart).inDays;
     if (week < 0) return null;
     week = (week ~/ 7) % work.weeks.length;
-    return work.weeks[week].trainings[bareToday.weekday];
+    return allenamenti[work.weeks[week].trainings[bareToday.weekday]];
   }
 }
 

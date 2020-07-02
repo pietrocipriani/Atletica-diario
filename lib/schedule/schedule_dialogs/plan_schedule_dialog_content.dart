@@ -49,7 +49,7 @@ class PlanScheduleDialogContent extends StatelessWidget {
         DropdownButton<Tabella>(
           value: schedule.work,
           isExpanded: true,
-          items: plans
+          items: plans.values
               .map((plan) => DropdownMenuItem<Tabella>(
                     value: plan,
                     child: Text(plan.name),

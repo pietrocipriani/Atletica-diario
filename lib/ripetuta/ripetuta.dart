@@ -26,7 +26,7 @@ class Ripetuta {
     nextRecupero ??= Recupero();
     recupero ??= Recupero();
   }
-  Ripetuta.parse(Map<String, dynamic> raw) {
+  Ripetuta.parse(Map raw) {
     template = raw['template'];
     target = raw['target'];
     recupero = Recupero(raw['recupero']);
@@ -39,7 +39,7 @@ class Ripetuta {
         'target': target,
         'recupero': recupero.recupero,
         'times': ripetizioni,
-        'recuperoNext': nextRecupero
+        'recuperoNext': nextRecupero.recupero
       };
 
   static Future<Ripetuta> fromDialog({@required BuildContext context}) async {

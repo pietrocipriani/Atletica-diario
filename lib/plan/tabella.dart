@@ -1,6 +1,7 @@
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,9 +9,8 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:sqflite/sqlite_api.dart';
 
-List<Tabella> plans = <Tabella>[];
+final Map<DocumentReference, Tabella> plans = <DocumentReference, Tabella>{};
 
 List<String> itMonths = dateTimeSymbolMap()['it'].MONTHS;
 
@@ -22,7 +22,9 @@ class Tabella {
   Tabella.parse(DocumentSnapshot raw)
       : reference = raw.reference,
         name = raw['name'],
-        weeks = raw['weeks'].map((raw) => Week.parse(raw)).toList();
+        weeks = raw['weeks'].map<Week>((raw) => Week.parse(raw)).toList() {
+    plans[reference] = this;
+  }
 
   static Future<bool> fromDialog({@required BuildContext context}) {
     return showDialog<bool>(
@@ -36,7 +38,7 @@ class Tabella {
 
   Future<void> update({String name, List<Week> weeks}) => reference.updateData({
         'name': name ?? this.name,
-        'weeks': (weeks ?? this.weeks).map((week) => week.asMap)
+        'weeks': (weeks ?? this.weeks).map((week) => week.asMap).toList()
       });
 
   Future<bool> modify({@required BuildContext context}) {
@@ -53,7 +55,8 @@ class Tabella {
     String Function([String]) validator = ([s]) {
       s ??= name ?? '';
       if (s.isEmpty) return 'inserire il nome';
-      if (plans.any((p) => p != plan && p.name == s)) return 'nome già in uso';
+      if (plans.values.any((p) => p != plan && p.name == s))
+        return 'nome già in uso';
       return null;
     };
 
@@ -112,7 +115,7 @@ class Week {
   Week({this.repeat = 1, this.trainings}) {
     trainings ??= <int, DocumentReference>{};
   }
-  Week.parse(Map<String, dynamic> raw) {
+  Week.parse(Map raw) {
     // TODO: repeat
     trainings = raw.map((key, value) => MapEntry(int.tryParse(key), value));
   }
@@ -262,11 +265,14 @@ class Week {
   @override
   String toString([bool extended = false]) {
     if (!extended)
-      return trainings?.values?.where((t) => t != null)?.join(', ') ??
+      return trainings?.values
+              ?.where((t) => t != null)
+              ?.map((a) => allenamenti[a])
+              ?.join(', ') ??
           'nessun allenamento';
     return () sync* {
       for (int i = 0; i < weekdays.length; i++)
-        yield '${weekdays[i]}: ${allenamenti[i + 1] ?? 'riposo'}';
+        yield '${weekdays[i]}: ${allenamenti[trainings[i]] ?? 'riposo'}';
     }()
         .join('\n');
   }
@@ -279,6 +285,21 @@ class PlansRoute extends StatefulWidget {
 
 class _PlansRouteState extends State<PlansRoute>
     with SingleTickerProviderStateMixin {
+  final Callback callback = Callback();
+
+  @override
+  void initState() {
+    callback.f = (_) => setState(() {});
+    CoachHelper.onPlansCallbacks.add(callback);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    CoachHelper.onPlansCallbacks.remove(callback.stopListening);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -292,10 +313,10 @@ class _PlansRouteState extends State<PlansRoute>
         child: Icon(Icons.add),
       ),
       body: ListView(
-        children: plans
+        children: plans.values
             .map(
               (plan) => CustomDismissible(
-                key: ValueKey(plan),
+                key: ValueKey(plan.reference),
                 confirmDismiss: (direction) async {
                   if (direction == DismissDirection.endToStart) {
                     if (await plan.modify(context: context)) setState(() {});
@@ -332,14 +353,8 @@ class _PlansRouteState extends State<PlansRoute>
                   title: plan.name,
                   children: plan.weeks
                       .map(
-                        (week) => Dismissible(
+                        (week) => CustomDismissible(
                           key: ValueKey(week),
-                          background: Container(
-                            alignment: Alignment.centerLeft,
-                            padding: const EdgeInsets.only(left: 16),
-                            color: Theme.of(context).primaryColorLight,
-                            child: Icon(Icons.delete),
-                          ),
                           direction: DismissDirection.startToEnd,
                           confirmDismiss: (direction) async {
                             return await showDeleteConfirmDialog(
@@ -348,8 +363,10 @@ class _PlansRouteState extends State<PlansRoute>
                                   'settimana #${plan.weeks.indexOf(week) + 1}',
                             );
                           },
-                          onDismissed: (direction) =>
-                              setState(() => plan.weeks.remove(week)),
+                          onDismissed: (direction) {
+                            setState(() => plan.weeks.remove(week));
+                            plan.update();
+                          },
                           child: CustomExpansionTile(
                             title: 'settimana #${plan.weeks.indexOf(week) + 1}',
                             subtitle: Text(
@@ -404,12 +421,13 @@ class _PlansRouteState extends State<PlansRoute>
                                 .toList(),
                             trailing: IconButton(
                               icon: Icon(Icons.content_copy),
-                              onPressed: () => setState(
-                                () => plan.weeks.insert(
+                              onPressed: () {
+                                plan.weeks.insert(
                                   plan.weeks.indexOf(week),
                                   Week.copy(week),
-                                ),
-                              ),
+                                );
+                                plan.update();
+                              },
                             ),
                             leading: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -427,6 +445,7 @@ class _PlansRouteState extends State<PlansRoute>
                                             plan.weeks.insert(index - 1,
                                                 plan.weeks.removeAt(index));
                                           });
+                                          plan.update();
                                         },
                                 ),
                                 GestureDetector(
@@ -442,6 +461,7 @@ class _PlansRouteState extends State<PlansRoute>
                                             plan.weeks.insert(index - 1,
                                                 plan.weeks.removeAt(index));
                                           });
+                                          plan.update();
                                         },
                                 ),
                               ],

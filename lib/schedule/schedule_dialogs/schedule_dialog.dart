@@ -35,7 +35,7 @@ Widget _typeBtn({
 Future<bool> showScheduleDialog({@required BuildContext context}) {
   final List<Schedule> schedulesList = <Schedule>[
     PlanSchedule(
-      plans.isEmpty ? null : plans.first,
+      plans.isEmpty ? null : plans.values.first,
       date: DateTime.now().add(
         Duration(days: 7 - (DateTime.now().weekday - DateTime.monday) % 7),
       ),

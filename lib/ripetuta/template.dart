@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
-Map<String, Template> templates;
+Map<String, Template> templates = <String, Template>{};
 
 class SimpleTemplate {
   final String name;
@@ -22,17 +22,20 @@ class SimpleTemplate {
   }
 
   SimpleTemplate({@required this.name, this.tipologia, this.lastTarget});
+
+  @override
+  String toString() => name;
 }
 
 class Template extends SimpleTemplate {
-  final DocumentReference reference;
+  Template.parse(DocumentSnapshot raw)
+      : this(name: raw.documentID, lastTarget: raw['lastTarget']);
 
-  Template.from(DocumentSnapshot raw)
-      : reference = raw.reference,
-        super(
-          name: raw.documentID,
+  Template({@required String name, double lastTarget})
+      : super(
+          name: name,
+          lastTarget: lastTarget,
           tipologia: Tipologia.corsaDist,
-          lastTarget: raw['lastTarget'],
         ) {
     templates[name] = this;
   }

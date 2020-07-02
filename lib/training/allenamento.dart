@@ -3,6 +3,7 @@ import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:Atletica/global_widgets/duration_picker.dart';
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/recupero/recupero.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,7 +29,7 @@ class Allenamento {
         reference = raw.reference,
         name = raw['name'],
         descrizione = raw['description'],
-        serie = raw['serie']?.map((raw) => Serie.parse(raw))?.toList() ??
+        serie = raw['serie']?.map<Serie>((raw) => Serie.parse(raw))?.toList() ??
             <Serie>[] {
     allenamenti[reference] = this;
   }
@@ -142,17 +143,19 @@ class Serie {
     nextRecupero ??= Recupero();
     if (ripetute != null) this.ripetute.addAll(ripetute);
   }
-  Serie.parse(Map<String, dynamic> raw) {
+  Serie.parse(Map raw) {
     recupero = Recupero(raw['recupero'] ?? 3 * 60);
     nextRecupero = Recupero(raw['recuperoNext'] ?? 3 * 60);
     ripetizioni = raw['times'];
-    ripetute = raw['ripetute']?.map((raw) => Ripetuta.parse(raw))?.toList() ??
+    ripetute = raw['ripetute']
+            ?.map<Ripetuta>((raw) => Ripetuta.parse(raw))
+            ?.toList() ??
         <Ripetuta>[];
   }
 
   Map<String, dynamic> get asMap => {
-        'recuperoNext': nextRecupero,
-        'recupero': recupero,
+        'recuperoNext': nextRecupero.recupero,
+        'recupero': recupero.recupero,
         'times': ripetizioni,
         'ripetute': ripetute.map((rip) => rip.asMap).toList()
       };
@@ -168,6 +171,21 @@ class TrainingRoute extends StatefulWidget {
 }
 
 class _TrainingRouteState extends State<TrainingRoute> {
+  final Callback callback = Callback();
+
+  @override
+  void initState() {
+    callback.f = (_) => setState(() {});
+    CoachHelper.onTrainingCallbacks.add(callback);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    CoachHelper.onTrainingCallbacks.remove(callback.stopListening);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

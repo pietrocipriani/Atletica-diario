@@ -75,6 +75,12 @@ class Atleta {
     final Group current = groups.firstWhere(
       (group) => group.atleti.contains(this),
     );
+    if (groupName == null) {
+      if (current == null) return;
+      current.atleti.remove(this);
+      if (current.atleti.isEmpty) groups.remove(current);
+      return;
+    }
     Group newGroup = groups.firstWhere(
       (group) => group.name == groupName,
       orElse: () => null,
@@ -83,7 +89,7 @@ class Atleta {
     if (current == newGroup) return;
     if (current != null) {
       current.atleti.remove(this);
-      if (current.atleti.isEmpty ?? false) groups.remove(current);
+      if (current.atleti.isEmpty) groups.remove(current);
     }
     newGroup.atleti.add(this);
   }
