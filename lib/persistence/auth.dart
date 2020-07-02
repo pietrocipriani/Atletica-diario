@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -12,10 +13,20 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 GoogleSignIn _googleSignIn = GoogleSignIn(signInOption: SignInOption.standard);
 FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-GoogleSignInAccount _user;
+GoogleSignInAccount _guser;
 GoogleSignInAuthentication _auth;
 
-dynamic user;
+dynamic _user;
+set user(dynamic user) {
+  assert(user == null || user is FirebaseUser || user is FirebaseUserHelper);
+  _user = user;
+}
+
+bool get hasRole => _user != null && _user is FirebaseUserHelper;
+FirebaseUserHelper get user => hasRole ? _user : null;
+AthleteHelper get userA => _user is AthleteHelper ? _user : null;
+CoachHelper get userC => _user is CoachHelper ? _user : null;
+dynamic get rawUser => _user;
 
 abstract class FirebaseUserHelper {
   final FirebaseUser user;
@@ -37,12 +48,16 @@ class CoachRequest {
 
   CoachRequest(this.user, this.request) {
     subscription = request.snapshots().listen((snapshot) {
-      if (snapshot.data == null) {
-        if (user.coach == this) user.coach = null;
-        onResponseCallbacks.forEach((callback) => callback.call(null));
-      }
+      if (snapshot.data == null) if (user.coach == this) user.coach = null;
+      callAll();
     });
   }
+
+  static void callAll() => onResponseCallbacks.forEach(
+        (callback) => callback.call(null),
+      );
+
+  Future<void> deleteRequest() => request.delete();
 }
 
 class BasicUser {
@@ -59,26 +74,22 @@ class BasicUser {
         email = data.value['email'];
 }
 
-FirebaseDatabase _database = FirebaseDatabase.instance
-  ..setPersistenceEnabled(true);
-DatabaseReference _reference = _database.reference();
-
 Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
   user = await _firebaseAuth.currentUser();
-  if (user != null) {
+  if (rawUser != null) {
     await initFirestore();
     yield 1;
     return;
   }
   do {
-    _user =
+    _guser =
         await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
-    if (_user == null) await requestLoginDialog(context: context);
-  } while (_user == null);
+    if (_guser == null) await requestLoginDialog(context: context);
+  } while (_guser == null);
   yield 1 / N;
-  _auth = await _user.authentication;
+  _auth = await _guser.authentication;
   yield 2 / N;
   user = (await _firebaseAuth.signInWithCredential(
     GoogleAuthProvider.getCredential(
@@ -88,7 +99,7 @@ Stream<double> login({@required BuildContext context}) async* {
   ))
       .user;
   yield 3 / N;
-  assert(user != null);
+  assert(rawUser != null);
   await initFirestore();
   yield N / N;
 }

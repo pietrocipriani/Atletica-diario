@@ -2,6 +2,7 @@ import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/global_widgets/link_line/athlete_link_line_widget.dart';
 import 'package:Atletica/global_widgets/link_line/result_link_line_widget.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
+import 'package:Atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 
 class Keys {
@@ -109,8 +110,9 @@ class _LinkLineState extends State<LinkLine> {
                             .forEach((a, keys) => keys.result ??= result.key);
                       setState(() {});
                     },
-                    targetFormatter:
-                        widget.rip.template.tipologia.targetFormatter,
+                    targetFormatter: templates[widget.rip.template]
+                        .tipologia
+                        .targetFormatter,
                     isSpecial: result.result.isNaN ||
                         result == widget.results[widget.results.length - 2],
                   ),

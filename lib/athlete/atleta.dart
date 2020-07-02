@@ -2,71 +2,66 @@ import 'dart:async';
 
 import 'package:Atletica/athlete/athlete_dialog.dart';
 import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/persistence/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqlite_api.dart';
 
 class Atleta {
-  final int id;
+  /// `reference` is the reference for [coaches/coachUid/athletes/uid]
+  final DocumentReference reference;
+  final String uid;
   String name;
   List<Allenamento> allenamenti = <Allenamento>[];
 
-  Atleta(this.id, this.name);
-  Atleta.parse(Map<String, dynamic> raw) : id = raw['id'] {
-    name = raw['name'];
-    groups.firstWhere((group) => group.id == raw['workGroup']).atleti.add(this);
+  bool dismissed = false;
+
+  Atleta.parse(DocumentSnapshot raw)
+      : reference = raw.reference,
+        uid = raw.documentID {
+    name = raw['nickname'];
+    Group g = groups.firstWhere(
+      (group) => group.name == raw['group'],
+      orElse: () => null,
+    );
+    if (g == null) groups.add(g = Group(name: raw['group']));
+    g.atleti.add(this);
+    lastGroup = g;
+  }
+  static Atleta find(String uid) {
+    for (Group g in groups)
+      for (Atleta a in g.atleti) if (a.uid == uid) return a;
+    return null;
   }
 
   static Future<bool> fromDialog(
-      {@required BuildContext context, String name}) {
+      {@required BuildContext context, BasicUser user}) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => dialog(context: context, name: name),
+      builder: (context) => dialog(context: context, user: user),
     );
   }
 
-  static Future<Atleta> createSaveAddReturn({
-    @required String name,
-    @required Group group,
+  static Future<void> create({
+    @required String uid,
+    @required String nickname,
+    @required String group,
   }) async {
-    final int id = await db.insert('Athletes', {
-      'name': name,
-      'workGroup': group.id,
+    return userC.coachReference.collection('athletes').document(uid).setData({
+      'user': firestore.collection('users').document(uid),
+      'nickname': nickname,
+      'group': group
     });
-    final Atleta atleta = Atleta(id, name);
-    group.atleti.add(atleta);
-    return atleta;
   }
 
-  Future<void> update({@required String name, @required Group group}) async {
-    this.name = name;
-    if (!group.atleti.contains(this)) {
-      final currentGroup =
-          groups.firstWhere((group) => group.atleti.contains(this));
-      currentGroup.atleti.remove(this);
-      group.atleti.add(this);
-    }
-    await db.update(
-      'Athletes',
-      {'name': name, 'workGroup': group.id},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
+  Future<void> update({@required String nickname, @required String group}) =>
+      reference.updateData({'nickname': nickname, 'group': group});
 
-  /// deleted `this` Atleta from both `db` and `currentGroup.atleti`.
-  /// If `batch` is provided, it is used instead of `db`
-  FutureOr<void> delete({Batch batch}) {
-    final Group g = groups.firstWhere((group) => group.atleti.remove(this));
-    bool shouldCommit = false;
-    if (batch == null) {
-      batch = db.batch();
-      shouldCommit = true;
-    }
-    batch.delete('Athletes', where: 'id = ?', whereArgs: [id]);
-    g.delete(batch: batch);
-    if (shouldCommit) batch.commit();
+  /// deleted `this` Atleta from `firestore`.
+  Future<void> delete() {
+    dismissed = true;
+    return reference.delete();
   }
 
   Future<bool> modify({@required BuildContext context}) {
@@ -74,5 +69,22 @@ class Atleta {
       context: context,
       builder: (context) => dialog(context: context, atleta: this),
     );
+  }
+
+  void localMigration(String groupName) {
+    final Group current = groups.firstWhere(
+      (group) => group.atleti.contains(this),
+    );
+    Group newGroup = groups.firstWhere(
+      (group) => group.name == groupName,
+      orElse: () => null,
+    );
+    if (newGroup == null) groups.add(newGroup = Group(name: groupName));
+    if (current == newGroup) return;
+    if (current != null) {
+      current.atleti.remove(this);
+      if (current.atleti.isEmpty ?? false) groups.remove(current);
+    }
+    newGroup.atleti.add(this);
   }
 }

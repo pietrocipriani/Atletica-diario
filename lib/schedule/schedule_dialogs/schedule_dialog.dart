@@ -41,7 +41,7 @@ Future<bool> showScheduleDialog({@required BuildContext context}) {
       ),
     ),
     TrainingSchedule(
-      allenamenti.isEmpty ? null : allenamenti.first,
+      allenamenti.isEmpty ? null : allenamenti.values.first,
       date: DateTime.now(),
     )
   ];

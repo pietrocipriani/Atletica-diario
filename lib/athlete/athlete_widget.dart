@@ -22,6 +22,8 @@ class AthleteWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (atleta.dismissed) return Container();
+
     final int trainingsCount = atleta.allenamenti.length;
     final Widget trailing = Column(children: <Widget>[
       Text('$trainingsCount', style: Theme.of(context).textTheme.headline5),

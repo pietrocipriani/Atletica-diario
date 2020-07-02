@@ -1,6 +1,7 @@
 import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/persistence/database.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqlite_api.dart';
 
@@ -34,7 +35,8 @@ bool _shouldRemoveGroup(Group group, Group selectedGroup, Atleta atleta) {
           (group.atleti.length == 1 && group.atleti.first == atleta));
 }
 
-Widget dialog({@required BuildContext context, Atleta atleta, String name}) {
+Widget dialog({@required BuildContext context, Atleta atleta, BasicUser user}) {
+  assert((atleta == null) != (user == null));
   final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1;
   final TextStyle overline = Theme.of(context).textTheme.overline;
   final TextStyle overlineLineThrough = overline.copyWith(
@@ -44,7 +46,7 @@ Widget dialog({@required BuildContext context, Atleta atleta, String name}) {
   bool isNew = atleta == null;
   final String mode = isNew ? 'Aggiungi' : 'Modifica';
   final TextEditingController controller =
-      TextEditingController(text: atleta?.name ?? name);
+      TextEditingController(text: isNew ? user.name : atleta.name);
 
   final FocusNode addGroupNode = FocusNode();
   Group selectedGroup = _selectedGroup(atleta);
@@ -134,25 +136,18 @@ Widget dialog({@required BuildContext context, Atleta atleta, String name}) {
                       groupValidator(groupController.text) != null)
               ? null
               : () async {
-                  lastGroup = selectedGroup ??= await Group.createSaveAddReturn(
-                    name: groupController.text,
-                  );
+                  String group = selectedGroup?.name ?? groupController.text;
                   if (isNew)
-                    await Atleta.createSaveAddReturn(
-                      name: controller.text,
-                      group: selectedGroup,
+                    await Atleta.create(
+                      uid: user.uid,
+                      nickname: controller.text,
+                      group: group,
                     );
                   else
                     atleta.update(
-                      name: controller.text,
-                      group: selectedGroup,
+                      nickname: controller.text,
+                      group: group,
                     );
-
-                  final Batch b = db.batch();
-                  groups.removeWhere(
-                    (group) => group.delete(batch: b, removeFromList: false),
-                  );
-                  b.commit();
                   Navigator.pop(context, true);
                 },
           child: Text(mode),

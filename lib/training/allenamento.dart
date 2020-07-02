@@ -1,35 +1,44 @@
+import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/persistence/database.dart';
 import 'package:Atletica/global_widgets/duration_picker.dart';
+import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/recupero/recupero.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:sqflite/sqlite_api.dart';
 
-List<Allenamento> allenamenti = <Allenamento>[];
+final Map<DocumentReference, Allenamento> allenamenti =
+    <DocumentReference, Allenamento>{};
 final List<String> weekdays = dateTimeSymbolMap()['it'].WEEKDAYS;
 final List<String> shortWeekDays = dateTimeSymbolMap()['it'].SHORTWEEKDAYS;
 
 class Allenamento {
-  final int id;
+  final DocumentReference reference;
   String name, descrizione;
   List<Serie> serie = <Serie>[];
 
-  Allenamento(
-      {@required this.id,
-      @required this.name,
-      this.descrizione,
-      Iterable<Serie> serie})
-      : assert(name != null) {
-    if (serie != null) this.serie.addAll(serie);
+  bool waitingForChanges = false;
+  bool dismissed = false;
+
+  Allenamento.parse(DocumentSnapshot raw)
+      : assert(raw != null && raw['name'] != null),
+        reference = raw.reference,
+        name = raw['name'],
+        descrizione = raw['description'],
+        serie = raw['serie']?.map((raw) => Serie.parse(raw))?.toList() ??
+            <Serie>[] {
+    allenamenti[reference] = this;
   }
-  Allenamento.parse(Map<String, dynamic> raw) : this.id = raw['id'] {
-    this.name = raw['name'];
-    this.descrizione = raw['description'];
-  }
+
+  static Future<void> create() =>
+      userC.coachReference.collection('trainings').add({
+        'name': 'training #${allenamenti.length + 1}',
+        'description': null,
+        'serie': []
+      });
 
   Ripetuta ripetutaFromIndex(int index) {
     for (Serie s in serie)
@@ -39,7 +48,21 @@ class Allenamento {
     return null;
   }
 
-  int recuperoFromIndex(int index) {
+  Future<void> delete() {
+    dismissed = true;
+    return reference.delete();
+  }
+
+  Future<void> save() {
+    waitingForChanges = true;
+    return reference.setData({
+      'name': name,
+      'description': descrizione,
+      'serie': serie.map((serie) => serie.asMap).toList()
+    });
+  }
+
+  Recupero recuperoFromIndex(int index) {
     index--;
     if (index < 0) return null;
     for (Serie s in serie)
@@ -53,11 +76,11 @@ class Allenamento {
                     if (s == serie.last)
                       return null;
                     else
-                      return s.nextRecupero.recupero;
+                      return s.nextRecupero;
                   } else
                     return s.recupero;
                 } else
-                  return r.nextRecupero.recupero;
+                  return r.nextRecupero;
               } else
                 return r.recupero;
             }
@@ -101,35 +124,38 @@ class Allenamento {
 }
 
 class Serie {
-  final int id;
   List<Ripetuta> ripetute = <Ripetuta>[];
 
   final LayerLink link = LayerLink();
 
-  /// `recupero` in secondi
-  int recupero;
-  Recupero nextRecupero;
+  Recupero nextRecupero, recupero;
 
   /// `ripetizioni` quante volte ripetere la stessa `Serie` di fila
   int ripetizioni;
 
   Serie(
-      {@required this.id,
-      Iterable<Ripetuta> ripetute,
-      this.recupero = 3 * 60,
+      {Iterable<Ripetuta> ripetute,
+      this.recupero,
       this.ripetizioni = 1,
       this.nextRecupero}) {
+    recupero ??= Recupero();
+    nextRecupero ??= Recupero();
     if (ripetute != null) this.ripetute.addAll(ripetute);
   }
-  Serie.parse(Map<String, dynamic> raw) : this.id = raw['id'] {
-    recupero = raw['recupero'];
-    nextRecupero = Recupero(raw['recuperoNext']);
+  Serie.parse(Map<String, dynamic> raw) {
+    recupero = Recupero(raw['recupero'] ?? 3 * 60);
+    nextRecupero = Recupero(raw['recuperoNext'] ?? 3 * 60);
     ripetizioni = raw['times'];
-    allenamenti
-        .firstWhere((allenamento) => allenamento.id == raw['allenamento'])
-        .serie
-        .add(this);
+    ripetute = raw['ripetute']?.map((raw) => Ripetuta.parse(raw))?.toList() ??
+        <Ripetuta>[];
   }
+
+  Map<String, dynamic> get asMap => {
+        'recuperoNext': nextRecupero,
+        'recupero': recupero,
+        'times': ripetizioni,
+        'ripetute': ripetute.map((rip) => rip.asMap).toList()
+      };
 
   int get ripetuteCount {
     return ripetute.fold(0, (sum, rip) => sum + rip.ripetizioni) * ripetizioni;
@@ -149,49 +175,24 @@ class _TrainingRouteState extends State<TrainingRoute> {
       body: allenamenti.isEmpty
           ? Center(child: Text('non hai creato ancora nessun allenamento'))
           : ListView(
-              children: allenamenti
+              children: allenamenti.values
+                  .where((a) => !a.dismissed)
                   .map(
-                    (a) => Dismissible(
+                    (a) => CustomDismissible(
                       key: ValueKey(a),
-                      background: Container(
-                        alignment: Alignment.centerLeft,
-                        color: Theme.of(context).primaryColorLight,
-                        padding: const EdgeInsets.only(left: 16),
-                        child: Icon(Icons.delete),
-                      ),
-                      secondaryBackground: Container(
-                        alignment: Alignment.centerRight,
-                        color: Colors.lightGreen[200],
-                        padding: const EdgeInsets.only(right: 16),
-                        child: Icon(Icons.edit),
-                      ),
-                      onDismissed: (direction) {
-                        setState(() => allenamenti.remove(a));
-                        Batch b = db.batch();
-                        b.delete('Ripetute',
-                            where:
-                                'serie IN (SELECT id FROM Series WHERE allenamento = ?)',
-                            whereArgs: [a.id]);
-                        b.delete('Series',
-                            where: 'allenamento = ?', whereArgs: [a.id]);
-                        b.delete('Trainings',
-                            where: 'id = ?', whereArgs: [a.id]);
-                        b.commit();
-                      },
+                      onDismissed: (direction) => a.delete(),
                       confirmDismiss: (direction) async {
                         if (direction == DismissDirection.startToEnd)
                           return await showDeleteConfirmDialog(
                             context: context,
                             name: a.name,
                           );
-                        await Navigator.push(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                TrainingInfoRoute(allenamento: a),
-                          ),
-                        );
-                        setState(() {});
+                              builder: (context) =>
+                                  TrainingInfoRoute(allenamento: a)),
+                        ).then((value) => a.save());
                         return false;
                       },
                       child: CustomExpansionTile(
@@ -228,22 +229,7 @@ class _TrainingRouteState extends State<TrainingRoute> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final int id = await db.insert('Trainings', {
-            'name': 'training #${allenamenti.length + 1}',
-          });
-          Allenamento allenamento = Allenamento(
-            id: id,
-            name: 'training #${allenamenti.length + 1}',
-          );
-          setState(() => allenamenti.add(allenamento));
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TrainingInfoRoute(
-                allenamento: allenamento,
-              ),
-            ),
-          );
+          await Allenamento.create();
           setState(() {});
         },
         child: Icon(Icons.add),
@@ -295,18 +281,10 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                     })),
           IconButton(
             icon: Icon(editTitle ? Icons.check : Icons.edit),
-            onPressed: () {
-              db.update(
-                'Trainings',
-                {'name': _titleController.text},
-                where: 'id = ?',
-                whereArgs: [widget.allenamento.id],
-              );
-              setState(() {
-                editTitle = !editTitle;
-                widget.allenamento.name = _titleController.text;
-              });
-            },
+            onPressed: () => setState(() {
+              editTitle = !editTitle;
+              widget.allenamento.name = _titleController.text;
+            }),
           ),
         ],
       ),
@@ -326,7 +304,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                     color: Theme.of(context).primaryColorDark,
                   ),
                   onPressed: () => setState(
-                      () => collapsedDescription = !collapsedDescription),
+                    () => collapsedDescription = !collapsedDescription,
+                  ),
                 ),
                 Expanded(
                   child: Padding(
@@ -338,15 +317,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                       decoration: InputDecoration(
                         hintText: 'inserisci la descrizione (opzionale)',
                       ),
-                      onChanged: (text) {
-                        db.update(
-                          'Trainings',
-                          {'description': text},
-                          where: 'id = ?',
-                          whereArgs: [widget.allenamento.id],
-                        );
-                        widget.allenamento.descrizione = text;
-                      },
+                      onChanged: (text) =>
+                          widget.allenamento.descrizione = text,
                     ),
                   ),
                 ),
@@ -360,28 +332,16 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                   yield Column(
                     children: () sync* {
                       for (Serie serie in widget.allenamento.serie) {
-                        yield Dismissible(
+                        yield CustomDismissible(
                           key: ValueKey(serie),
                           direction: DismissDirection.startToEnd,
-                          confirmDismiss: (d) async =>
-                              await showDeleteConfirmDialog(
+                          confirmDismiss: (d) => showDeleteConfirmDialog(
                             context: context,
                             name:
                                 'serie #${widget.allenamento.serie.indexOf(serie) + 1}',
                           ),
-                          onDismissed: (direction) {
-                            db.delete('Series',
-                                where: 'id = ?', whereArgs: [serie.id]);
-                            setState(() {
-                              widget.allenamento.serie.remove(serie);
-                            });
-                          },
-                          background: Container(
-                            alignment: Alignment.centerLeft,
-                            color: Theme.of(context).primaryColorLight,
-                            child: Icon(Icons.delete),
-                            padding: const EdgeInsets.only(left: 16),
-                          ),
+                          onDismissed: (direction) => setState(
+                              () => widget.allenamento.serie.remove(serie)),
                           child: CustomExpansionTile(
                             children: [
                               if (serie.ripetute.isNotEmpty)
@@ -418,19 +378,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                         yield CompositedTransformFollower(
                                           showWhenUnlinked: false,
                                           link: rip.link,
-                                          child: rip.nextRecupero.widget(
-                                            context,
-                                            setState,
-                                            onChanged: () => db.update(
-                                              'Ripetute',
-                                              {
-                                                'recuperoNext':
-                                                    rip.nextRecupero.recupero
-                                              },
-                                              where: 'id = ?',
-                                              whereArgs: [rip.id],
-                                            ),
-                                          ),
+                                          child: rip.nextRecupero
+                                              .widget(context, setState),
                                           offset: const Offset(0, -16),
                                         );
                                     }()
@@ -463,21 +412,16 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                       ),
                                       onPressed: serie.ripetizioni > 1
                                           ? () async {
-                                              serie.recupero =
-                                                  (await showDurationDialog(
+                                              final Duration duration =
+                                                  await showDurationDialog(
                                                 context,
                                                 Duration(
-                                                  seconds: serie.recupero,
-                                                ),
-                                              ))
-                                                      .inSeconds;
-                                              db.update(
-                                                'Series',
-                                                {'recupero': serie.recupero},
-                                                where: 'id = ?',
-                                                whereArgs: [serie.id],
+                                                    seconds: serie
+                                                        .recupero.recupero),
                                               );
-                                              setState(() {});
+                                              if (duration == null) return;
+                                              setState(() => serie.recupero =
+                                                  Recupero(duration.inSeconds));
                                             }
                                           : null,
                                       disabledColor: Colors.grey[300],
@@ -485,7 +429,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                     ),
                                     if (serie.ripetizioni > 1)
                                       Text(
-                                        '${serie.recupero ~/ 60}:${(serie.recupero % 60).toString().padLeft(2, '0')}',
+                                        serie.recupero.toString(),
                                         style: Theme.of(context)
                                             .textTheme
                                             .overline,
@@ -498,11 +442,10 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                     color: Colors.black,
                                   ),
                                   onPressed: () async {
-                                    await Ripetuta.fromDialog(
-                                      context: context,
-                                      serie: serie,
-                                    );
-                                    setState(() {});
+                                    Ripetuta rip = await Ripetuta.fromDialog(
+                                        context: context);
+                                    if (rip == null) return;
+                                    setState(() => serie.ripetute.add(rip));
                                   },
                                 ),
                               ],
@@ -527,19 +470,6 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                                 widget.allenamento.serie
                                                     .removeAt(index),
                                               );
-                                              Batch b = db.batch();
-                                              b.update('Series',
-                                                  {'position': index - 1},
-                                                  where: 'id = ?',
-                                                  whereArgs: [serie.id]);
-                                              b.update(
-                                                  'Series', {'position': index},
-                                                  where: 'id = ?',
-                                                  whereArgs: [
-                                                    widget.allenamento
-                                                        .serie[index].id
-                                                  ]);
-                                              b.commit();
                                               setState(() {});
                                             },
                                       child: Icon(
@@ -564,19 +494,6 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                                 widget.allenamento.serie
                                                     .removeAt(index),
                                               );
-                                              Batch b = db.batch();
-                                              b.update('Series',
-                                                  {'position': index + 1},
-                                                  where: 'id = ?',
-                                                  whereArgs: [serie.id]);
-                                              b.update(
-                                                  'Series', {'position': index},
-                                                  where: 'id = ?',
-                                                  whereArgs: [
-                                                    widget.allenamento
-                                                        .serie[index].id
-                                                  ]);
-                                              b.commit();
                                               setState(() {});
                                             },
                                       child: Icon(
@@ -592,22 +509,10 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    db.update(
-                                      'Series',
-                                      {'times': serie.ripetizioni % 10 + 1},
-                                      where: 'id = ?',
-                                      whereArgs: [serie.id],
-                                    );
                                     setState(() => serie.ripetizioni =
                                         serie.ripetizioni % 10 + 1);
                                   },
                                   onLongPress: () {
-                                    db.update(
-                                      'Series',
-                                      {'times': 1},
-                                      where: 'id = ?',
-                                      whereArgs: [serie.id],
-                                    );
                                     setState(() => serie.ripetizioni = 1);
                                   },
                                   child: Row(
@@ -660,16 +565,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                     yield CompositedTransformFollower(
                       link: serie.link,
                       showWhenUnlinked: false,
-                      child: serie.nextRecupero.widget(
-                        context,
-                        setState,
-                        onChanged: () => db.update(
-                          'Series',
-                          {'recuperoNext': serie.nextRecupero.recupero},
-                          where: 'id = ?',
-                          whereArgs: [serie.id],
-                        ),
-                      ),
+                      child: serie.nextRecupero.widget(context, setState),
                       offset: const Offset(0, -16),
                     );
                 }()
@@ -680,22 +576,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          int id = await db.insert('Series', {
-            'allenamento': widget.allenamento.id,
-            'position': widget.allenamento.serie.length,
-            'recupero': 3 * 60,
-            'times': 1,
-            'recuperoNext': 3 * 60
-          });
-          setState(
-            () {
-              widget.allenamento.serie.add(
-                Serie(id: id, nextRecupero: Recupero(3 * 60)),
-              );
-            },
-          );
-        },
+        onPressed: () => setState(() => widget.allenamento.serie.add(Serie())),
         child: Icon(Icons.add),
       ),
     );

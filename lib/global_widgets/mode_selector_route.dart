@@ -1,3 +1,5 @@
+import 'package:Atletica/athlete_role/main.dart';
+import 'package:Atletica/coach_role/main.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -16,63 +18,83 @@ Future<void> showModeSelectorRoute({@required BuildContext context}) =>
 class ModeSelectorRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        Expanded(
-          child: DottedBorder(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Text(
-                  'in modalità allenatore puoi creare e programmare gli allenamenti, gestire i tuoi atleti e inserire i risultati.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.overline,
+    return Padding(
+      padding: MediaQuery.of(context).padding,
+      child: Scaffold(
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DottedBorder(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      Text(
+                        'in modalità allenatore puoi creare e programmare gli allenamenti, gestire i tuoi atleti e inserire i risultati.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.overline,
+                      ),
+                      RaisedButton(
+                        onPressed: () async {
+                          await setRole('coach');
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CoachMainPage(),
+                            ),
+                          );
+                        },
+                        child: Text('ALLENATORE'),
+                      ),
+                    ],
+                  ),
+                  borderType: BorderType.RRect,
+                  radius: Radius.circular(20),
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.grey,
+                  dashPattern: [6, 4],
                 ),
-                RaisedButton(
-                  onPressed: () async {
-                    await setRole('coach');
-                    Navigator.pop(context);
-                  },
-                  child: Text('ALLENATORE'),
-                ),
-              ],
+              ),
             ),
-            borderType: BorderType.RRect,
-            radius: Radius.circular(20),
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey,
-            dashPattern: [6, 4],
-          ),
-        ),
-        const SizedBox(height: 8,),
-        Expanded(
-          child: DottedBorder(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Text(
-                  'in modalità atleta puoi visualizzare gli allenamenti condivisi dal tuo allenatore e inserire i tuoi risultati.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.overline,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DottedBorder(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      Text(
+                        'in modalità atleta puoi visualizzare gli allenamenti condivisi dal tuo allenatore e inserire i tuoi risultati.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.overline,
+                      ),
+                      RaisedButton(
+                        onPressed: () async {
+                          await setRole('athlete');
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AthleteMainPage(),
+                            ),
+                          );
+                        },
+                        child: Text('ATLETA'),
+                      ),
+                    ],
+                  ),
+                  borderType: BorderType.RRect,
+                  radius: Radius.circular(20),
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.grey,
+                  dashPattern: [6, 4],
                 ),
-                RaisedButton(
-                  onPressed: () async {
-                    await setRole('athlete');
-                    Navigator.pop(context);
-                  },
-                  child: Text('ATLETA'),
-                ),
-              ],
+              ),
             ),
-            borderType: BorderType.RRect,
-            radius: Radius.circular(20),
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey,
-            dashPattern: [6, 4],
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

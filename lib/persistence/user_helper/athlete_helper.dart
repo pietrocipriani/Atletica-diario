@@ -11,7 +11,6 @@ class AthleteHelper extends FirebaseUserHelper {
 
   set coach(dynamic coach) {
     assert(coach == null || coach is BasicUser || coach is CoachRequest);
-    //print (StackTrace.current);
     if (coach == _coach) return;
     if (_coach != null && _coach is CoachRequest) _coach.subscription?.cancel();
     _coach = coach;
@@ -31,18 +30,19 @@ class AthleteHelper extends FirebaseUserHelper {
     await _getCoach();
   }
 
-  Future<bool> requestCoach({@required DocumentReference coach}) async {
+  Future<bool> requestCoach({@required String uid}) async {
+    final DocumentReference coach = firestore.collection('users').document(uid);
     final DocumentReference request =
         firestore.collection('requests').document();
-    if (coach == null || userReference == coach) return false;
+    if (uid == null || userReference == coach) return false;
     final WriteBatch batch = firestore.batch();
-    if (this.coach != null) batch.delete(this.coach);
+    if (this.coach != null) this.coach.deleteRequest();
 
     batch.updateData(userReference, {'coach': request});
     await request.setData({'coach': coach, 'athlete': userReference});
     this.coach = CoachRequest(this, request);
 
-    batch.commit();
+    await batch.commit();
     return true;
   }
 

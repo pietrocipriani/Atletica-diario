@@ -1,203 +1,52 @@
+import 'package:Atletica/global_widgets/custom_dismissible.dart';
+import 'package:Atletica/ripetuta/template.dart';
 import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/persistence/database.dart';
 import 'package:Atletica/global_widgets/duration_picker.dart';
 import 'package:Atletica/recupero/recupero.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:mdi/mdi.dart';
-
-List<Template> templates;
-
-class Template {
-  final int id;
-  String name;
-  Tipologia tipologia;
-  double lastTarget;
-  String get formattedTarget {
-    if (lastTarget == null) return null;
-    return '${tipologia.targetFormatter(lastTarget)} ${tipologia.targetSuffix ?? ''}';
-  }
-
-  Template(
-      {@required this.id,
-      @required this.name,
-      @required this.tipologia,
-      this.lastTarget});
-  Template.from(Map<String, dynamic> raw) : this.id = raw['id'] {
-    name = raw['name'];
-    tipologia = Tipologia.values
-        .firstWhere((tipologia) => tipologia.name == raw['tipologia']);
-    lastTarget = raw['lastTarget'];
-  }
-  Template.copy({@required this.id, @required Template other}) {
-    name = other.name;
-    tipologia = other.tipologia;
-    lastTarget = other.lastTarget;
-  }
-
-  Map<String, dynamic> get asMap => {
-        'name': name,
-        'tipologia': tipologia.name,
-        'lastTarget': lastTarget,
-        'lastRecupero': null, // TODO
-      };
-}
-
-class RegularExpressions {
-  static final RegExp time =
-      RegExp("^\\s*\\d+\\s*('([0-5]?\\d\\s*\"\\s*\\d?\\d?)?|\"\\d?\\d?)\\s*\$");
-  static final RegExp integer = RegExp(r'^\d+$');
-  static final RegExp real = RegExp(r'^\d+(.\d+)?$');
-}
-
-Template getTemplate(String name) => templates.firstWhere(
-      (template) => template?.name == name,
-      orElse: () => null,
-    );
-bool hasTemplate(String name) => templates.any(
-      (template) => template?.name == name,
-    );
-
-class Tipologia {
-  final String name;
-  final Widget Function({Color color}) icon;
-  final Function(double value) targetFormatter;
-  final RegExp targetValidator;
-  final String targetScheme;
-  final String targetSuffix;
-  final double Function(String target) targetParser;
-
-  Tipologia({
-    @required this.name,
-    @required this.icon,
-    @required this.targetFormatter,
-    @required this.targetValidator,
-    @required this.targetScheme,
-    @required this.targetParser,
-    this.targetSuffix,
-  });
-
-  static List<Tipologia> values = [
-    corsaDist,
-    corsaTemp,
-    palestra,
-    esercizi,
-  ];
-
-  static final Tipologia corsaDist = Tipologia(
-    name: 'corsa',
-    icon: ({color = Colors.black}) => Icon(
-      Icons.directions_run,
-      color: color,
-    ),
-    targetFormatter: (target) => target == null
-        ? ''
-        : (target >= 60 ? "${target ~/ 60}'" : '') +
-            '${(target.truncate() % 60).toString().padLeft(target >= 60 ? 2 : 1, '0')}"' +
-            (target < 60 || target != target.truncate()
-                ? ((target * 100).round() % 100).toString().padLeft(2, '0')
-                : ''),
-    targetValidator: RegularExpressions.time,
-    targetScheme: "es: 1' 20\"50",
-    targetParser: (target) {
-      String match = RegExp(r"\d+\s*'").stringMatch(target) ?? "0'";
-      int min = int.tryParse(match?.substring(0, match.length - 1)) ?? 0;
-      match = RegExp(r'\d+\s*"\s*\d?\d?').stringMatch(target) ?? '0"';
-      int sec = int.tryParse(match.split('"')[0]) ?? 0;
-      int cent = int.tryParse(match.split('"')[1]) ?? 0;
-      return min * 60 + sec + cent / 100;
-    },
-  );
-  static final Tipologia corsaTemp = Tipologia(
-    name: 'corsa a tempo',
-    icon: ({color = Colors.black}) => Stack(
-      alignment: Alignment.center,
-      overflow: Overflow.visible,
-      children: <Widget>[
-        Icon(
-          Icons.directions_run,
-          color: color,
-        ),
-        Positioned(
-          right: -3,
-          bottom: -3,
-          child: Icon(
-            Icons.timer,
-            size: 10,
-            color: color,
-          ),
-        ),
-      ],
-    ),
-    targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: RegularExpressions.integer,
-    targetScheme: 'es: 5000 m',
-    targetSuffix: 'm',
-    targetParser: (target) => double.parse(target),
-  );
-  static final Tipologia palestra = Tipologia(
-    name: 'palestra',
-    icon: ({color = Colors.black}) => Icon(
-      Mdi.weightLifter,
-      color: color,
-    ),
-    targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: RegularExpressions.integer,
-    targetScheme: 'es: 40 kg',
-    targetSuffix: 'kg',
-    targetParser: (target) => double.parse(target),
-  );
-  static final Tipologia esercizi = Tipologia(
-    name: 'esercizi',
-    icon: ({color = Colors.black}) => Icon(Mdi.yoga, color: color),
-    targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: RegularExpressions.integer,
-    targetScheme: 'es: 20x',
-    targetSuffix: 'x',
-    targetParser: (target) => double.parse(target),
-  );
-}
 
 class Ripetuta {
-  final int id;
   final LayerLink link = LayerLink();
 
-  Template template;
+  String template;
 
   /// `target` int secondi per `Tipologia.corsaDist`, in metri per `Tipologia.salto, Tipologia.lancio`, in metri per `Tipologia.corsaTemp`
   double target;
 
-  int recupero, ripetizioni;
-  Recupero nextRecupero;
+  int ripetizioni;
+  Recupero nextRecupero, recupero;
 
   Ripetuta(
-      {@required this.id,
-      @required this.template,
-      this.recupero = 3 * 60,
-      this.nextRecupero,
+      {@required this.template,
+      this.target,
       this.ripetizioni = 1,
-      this.target});
-  Ripetuta.parse(Map<String, dynamic> raw) : this.id = raw['id'] {
-    template =
-        templates.firstWhere((template) => template.id == raw['template']);
+      this.nextRecupero,
+      this.recupero}) {
+    nextRecupero ??= Recupero();
+    recupero ??= Recupero();
+  }
+  Ripetuta.parse(Map<String, dynamic> raw) {
+    template = raw['template'];
     target = raw['target'];
-    recupero = raw['recupero'];
+    recupero = Recupero(raw['recupero']);
     ripetizioni = raw['times'];
     nextRecupero = Recupero(raw['recuperoNext']);
-    allenamenti
-        .firstWhere((allenamento) => allenamento.id == raw['allenamento'])
-        .serie
-        .firstWhere((serie) => serie.id == raw['serie'])
-        .ripetute
-        .add(this);
   }
 
-  static Future<bool> fromDialog(
-      {@required BuildContext context, @required Serie serie}) async {
-    Template template;
+  Map<String, dynamic> get asMap => {
+        'template': template,
+        'target': target,
+        'recupero': recupero.recupero,
+        'times': ripetizioni,
+        'recuperoNext': nextRecupero
+      };
+
+  static Future<Ripetuta> fromDialog({@required BuildContext context}) async {
+    SimpleTemplate template;
     TextEditingController controller = TextEditingController();
     double target;
-    return showDialog<bool>(
+    return showDialog<Ripetuta>(
       barrierDismissible: false,
       context: context,
       builder: (context) => StatefulBuilder(
@@ -208,10 +57,10 @@ class Ripetuta {
           title: Text('RIPETUTA'),
           content: Column(
             children: <Widget>[
-              AutoCompleteTextField<String>(
+              AutoCompleteTextField<Template>(
                 itemSubmitted: (value) {
                   setState(() {
-                    template = getTemplate(value);
+                    template = value;
                     target = template.lastTarget;
                   });
                 },
@@ -219,28 +68,26 @@ class Ripetuta {
                 clearOnSubmit: false,
                 key: GlobalKey(),
                 textSubmitted: (value) {
-                  bool dist = RegExp(r'\d+\s*[mM][\s$]').hasMatch(value);
+                  /*bool dist = RegExp(r'\d+\s*[mM][\s$]').hasMatch(value);
                   bool temp =
-                      RegExp(r'\d+\s*(mins?)||(h(ours?)?)').hasMatch(value);
+                      RegExp(r'\d+\s*(mins?)||(h(ours?)?)').hasMatch(value);*/
 
-                  template = getTemplate(value) ??
-                      Template(
-                        id: null,
+                  template = templates[value] ??
+                      SimpleTemplate(
                         name: value,
-                        tipologia: dist
-                            ? Tipologia.corsaDist
-                            : temp ? Tipologia.corsaTemp : null,
+                        tipologia: Tipologia.corsaDist,
                       );
                   setState(() => target = template.lastTarget);
                 },
-                suggestions:
-                    templates.map<String>((template) => template.name).toList(),
+                suggestions: templates.values
+                    .where((template) => template != null)
+                    .toList(),
                 itemBuilder: (context, suggestion) => Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RichText(
                     text: TextSpan(
-                      text: suggestion.substring(
-                          0, suggestion.indexOf(controller.text)),
+                      text: suggestion.name.substring(
+                          0, suggestion.name.indexOf(controller.text)),
                       style: TextStyle(
                         color: Colors.black,
                       ),
@@ -252,8 +99,8 @@ class Ripetuta {
                           ),
                         ),
                         TextSpan(
-                          text: suggestion.substring(
-                              suggestion.indexOf(controller.text) +
+                          text: suggestion.name.substring(
+                              suggestion.name.indexOf(controller.text) +
                                   controller.text.length),
                         ),
                       ],
@@ -261,14 +108,16 @@ class Ripetuta {
                   ),
                 ),
                 itemSorter: (a, b) {
-                  if (a.startsWith(controller.text) ==
-                      b.startsWith(controller.text)) return a.compareTo(b);
-                  if (a.startsWith(controller.text)) return -1;
+                  if (a.name.startsWith(controller.text) ==
+                      b.name.startsWith(controller.text))
+                    return a.name.compareTo(b.name);
+                  if (a.name.startsWith(controller.text)) return -1;
                   return 1;
                 },
-                itemFilter: (suggestion, query) => suggestion.contains(query),
+                itemFilter: (suggestion, query) =>
+                    suggestion.name.contains(query),
               ),
-              if (template != null)
+              /*if (template != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: Stack(
@@ -280,7 +129,7 @@ class Ripetuta {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: templates.contains(template)
+                            color: templates.containsValue(template)
                                 ? Colors.red
                                 : Theme.of(context).primaryColor,
                             width: 2,
@@ -351,7 +200,7 @@ class Ripetuta {
                       ),
                     ],
                   ),
-                ),
+                ),*/
               if (template != null)
                 TextFormField(
                   controller:
@@ -362,7 +211,6 @@ class Ripetuta {
                   ),
                   autovalidate: true,
                   validator: (value) {
-                    //print ('match("$value"): ${template.tipologia.targetValidator.hasMatch(value)}');
                     if (template.tipologia.targetValidator.hasMatch(value))
                       return null;
                     return template.tipologia.targetScheme;
@@ -382,34 +230,19 @@ class Ripetuta {
               child: Text('Annulla'),
             ),
             FlatButton(
-              onPressed: template == null ? null : () async {
-                if (!templates.contains(template)) {
-                  template = Template.copy(
-                    id: await db.insert('Templates', template.asMap),
-                    other: template,
-                  );
-                  templates.add(template);
-                }
-                template.lastTarget = target;
-                db.update('Templates', {'lastTarget': target},
-                    where: 'id = ?', whereArgs: [template.id]);
+              onPressed: template == null
+                  ? null
+                  : () async {
+                      template.lastTarget = target ?? template.lastTarget;
+                      await template.create();
 
-                serie.ripetute.add(Ripetuta(
-                  id: await db.insert('Ripetute', {
-                    'template': template.id,
-                    'serie': serie.id,
-                    'position': serie.ripetute.length,
-                    'target': target,
-                  }),
-                  template: template,
-                  nextRecupero: Recupero(3 * 60),
-                  target: target,
-                ));
-                Navigator.pop(
-                  context,
-                  true,
-                );
-              },
+                      final Ripetuta ripetuta = Ripetuta(
+                        template: template.name,
+                        target: target,
+                      );
+
+                      Navigator.pop(context, ripetuta);
+                    },
               child: Text('Conferma'),
             ),
           ],
@@ -418,26 +251,15 @@ class Ripetuta {
     );
   }
 
-  Widget widget(BuildContext context, void Function(void Function()) setState,
-          {@required Serie serie}) =>
-      Dismissible(
+  Widget widget(
+    BuildContext context,
+    void Function(void Function()) setState, {
+    @required Serie serie,
+  }) =>
+      CustomDismissible(
         key: ValueKey(this),
         direction: DismissDirection.startToEnd,
-        onDismissed: (direction) {
-          db.delete(
-            'Ripetute',
-            where: 'id = ?',
-            whereArgs: [id],
-          );
-          setState(() {
-            serie.ripetute.remove(this);
-          });
-        },
-        background: Container(
-            color: Theme.of(context).primaryColorLight,
-            padding: const EdgeInsets.only(left: 16),
-            alignment: Alignment.centerLeft,
-            child: Icon(Icons.delete)),
+        onDismissed: (direction) => setState(() => serie.ripetute.remove(this)),
         child: Container(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: ListTile(
@@ -482,32 +304,14 @@ class Ripetuta {
                   ],
                 ),
                 InkWell(
-                  onTap: () {
-                    setState(() => ripetizioni = ripetizioni % 20 + 1);
-                    db.update(
-                      'Ripetute',
-                      {'times': ripetizioni},
-                      where: 'id = ?',
-                      whereArgs: [id],
-                    );
-                  },
-                  onLongPress: () {
-                    db.update(
-                      'Ripetute',
-                      {'times': 1},
-                      where: 'id = ?',
-                      whereArgs: [id],
-                    );
-                    setState(() => ripetizioni = 1);
-                  },
+                  onTap: () =>
+                      setState(() => ripetizioni = ripetizioni % 20 + 1),
+                  onLongPress: () => setState(() => ripetizioni = 1),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Text(
-                        'x',
-                        style: Theme.of(context).textTheme.overline,
-                      ),
+                      Text('x', style: Theme.of(context).textTheme.overline),
                       Text(
                         ripetizioni.toString(),
                         style: Theme.of(context).textTheme.headline5.copyWith(
@@ -524,23 +328,25 @@ class Ripetuta {
                 ),
               ],
             ),
-            title: Text(template.name),
+            title: Text(template),
             subtitle: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text(
-                  template.tipologia.name,
-                  style: Theme.of(context).textTheme.overline.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColorDark,
-                      ),
-                ),
-                Text(
-                  template.tipologia.targetFormatter(target),
-                  style: Theme.of(context).textTheme.overline.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                )
+                if (templates[template] != null)
+                  Text(
+                    templates[template].tipologia.name,
+                    style: Theme.of(context).textTheme.overline.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColorDark,
+                        ),
+                  ),
+                if (templates[template] != null)
+                  Text(
+                    templates[template].tipologia.targetFormatter(target),
+                    style: Theme.of(context).textTheme.overline.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  )
               ],
             ),
             trailing: Stack(
@@ -550,13 +356,13 @@ class Ripetuta {
                   icon: Icon(Icons.timer),
                   onPressed: ripetizioni > 1
                       ? () async {
-                          recupero = (await showDurationDialog(
-                                      context, Duration(seconds: recupero)))
-                                  ?.inSeconds ??
-                              recupero;
-                          db.update('Ripetute', {'recupero': recupero},
-                              where: 'id = ?', whereArgs: [id]);
-                          setState(() {});
+                          final Duration duration = await showDurationDialog(
+                            context,
+                            Duration(seconds: recupero.recupero),
+                          );
+                          if (duration == null) return;
+                          setState(
+                              () => recupero = Recupero(duration.inSeconds));
                         }
                       : null,
                   color: Colors.black,
@@ -564,7 +370,7 @@ class Ripetuta {
                 ),
                 if (ripetizioni > 1)
                   Text(
-                    '${recupero ~/ 60}:${(recupero % 60).toString().padLeft(2, '0')}',
+                    recupero.toString(),
                     style: Theme.of(context).textTheme.overline,
                   ),
               ],
@@ -573,17 +379,3 @@ class Ripetuta {
         ),
       );
 }
-
-/* 
-
-\d+'
-\d+'[0-5][0-9]"
-\d+'[0-5][0-9]"\d
-\d+'[0-5][0-9]"\d\d
-\d+"
-\d+"\d
-\d+"\d\d
-
-^\s*\d+\s*('([0-5]?\d\s*"\s*\d?\d?)?|"\d?\d?)\s*$
-
-*/

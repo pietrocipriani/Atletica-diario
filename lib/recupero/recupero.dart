@@ -6,13 +6,16 @@ import 'package:flutter/material.dart';
 class Recupero {
   int _recupero;
 
-  Recupero(this._recupero) : assert(_recupero >= 0);
+  Recupero([this._recupero = 3*60]) : assert(_recupero >= 0);
   int get recupero => _recupero;
   set recupero(int recupero) {
     if (recupero < 0)
       throw ArgumentError('Il recupero non può essere negativo');
     _recupero = recupero;
   }
+
+  @override
+  String toString () => '${_recupero ~/ 60}:${(_recupero % 60).toString().padLeft(2, '0')}';
 
   Widget widget(BuildContext context, void Function(void Function()) setState,
           {FutureOr<void> Function() onChanged}) =>

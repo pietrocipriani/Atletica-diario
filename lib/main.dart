@@ -1,17 +1,11 @@
-import 'package:Atletica/athlete/athletes_route.dart';
 import 'package:Atletica/global_widgets/mode_selector_route.dart';
 import 'package:Atletica/global_widgets/splash_screen.dart';
 import 'package:Atletica/home/home_page.dart';
-import 'package:Atletica/schedule/schedule_route.dart';
-import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/animated_text.dart';
 import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/database.dart';
-import 'package:Atletica/plan/tabella.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -33,7 +27,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   packageInfo = await PackageInfo.fromPlatform();
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
-  await init();
   canVibrate = await Vibration.hasVibrator();
   vibrationAmplitude = await Vibration.hasAmplitudeControl();
   vibrationCustomPattern = await Vibration.hasCustomVibrationsSupport();
@@ -152,8 +145,8 @@ class MyHomePageState extends State<MyHomePage> {
       builder: (context) => StatefulBuilder(builder: (context, setState) {
         if (callback == null) {
           callback = Callback((evt) => setState(() {}));
-          if (user.coach is CoachRequest)
-            user.coach.waitForResponse(onValue: callback);
+          if (userA.coach is CoachRequest)
+            userA.coach.waitForResponse(onValue: callback);
         }
         return AlertDialog(
           shape:
@@ -201,7 +194,7 @@ class MyHomePageState extends State<MyHomePage> {
               SizedBox(
                 height: 10,
               ),
-              if (user?.coach == null || user.coach is CoachRequest)
+              if (userA?.coach == null || userA.coach is CoachRequest)
                 RichText(
                   text: TextSpan(
                       text:
@@ -226,7 +219,7 @@ class MyHomePageState extends State<MyHomePage> {
                       ]),
                   textAlign: TextAlign.justify,
                 ),
-              user.coach == null
+              userA.coach == null
                   ? Row(
                       children: <Widget>[
                         Expanded(
@@ -241,9 +234,8 @@ class MyHomePageState extends State<MyHomePage> {
                         IconButton(
                           icon: Icon(Icons.send),
                           onPressed: coachController.text.isNotEmpty
-                              ? () => user.requestCoach(
-                                    coach: coachController.text,
-                                    onValue: callback,
+                              ? () => userA.requestCoach(
+                                    uid: coachController.text,
                                   )
                               : null,
                         )
@@ -289,124 +281,25 @@ class MyHomePageState extends State<MyHomePage> {
   void initState() {
     initializeDateFormatting('it');
     callback.f = (evt) => setState(() {});
-    user.requestCallbacks.add(callback);
     super.initState();
   }
 
   @override
   void dispose() {
-    user?.requestCallbacks?.remove(callback..active = false);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (user.role == null)
+    if (!hasRole)
       WidgetsBinding.instance.addPostFrameCallback(
         (d) => showModeSelectorRoute(context: context),
       );
-    final AppBar appBar = AppBar(
-      title: Text('Atletica'),
-      actions: <Widget>[
-        IconButton(
-          icon: user == null
-              ? Icon(Icons.account_circle)
-              : ClipOval(
-                  child: Image.network(user.user.photoUrl ?? '',
-                      errorBuilder: (context, exception, stack) =>
-                          Icon(Icons.account_circle))),
-          color: Colors.black,
-          onPressed: _showProfileDialog,
-        ),
-        IconButton(
-          icon: Icon(Icons.info_outline),
-          onPressed: _showAboutDialog,
-        ),
-      ],
-    );
 
     return Scaffold(
-      appBar: appBar,
       body: HomePageWidget(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      bottomNavigationBar: _BottomAppBar(setState: setState),
-    );
-  }
-}
-
-class _BottomAppBar extends StatelessWidget {
-  final void Function(void Function()) setState;
-
-  _BottomAppBar({@required this.setState});
-
-  Widget _sectionBtn({
-    @required BuildContext context,
-    @required IconData icon,
-    @required Widget route,
-    bool notify = false,
-    bool onPop = false,
-    String tooltip,
-  }) =>
-      IconButton(
-        tooltip: tooltip,
-        icon: Stack(
-          alignment: Alignment.topRight,
-          overflow: Overflow.visible,
-          children: <Widget>[
-            Positioned(
-              child: Icon(icon, color: Colors.black12),
-              left: 3,
-              top: 3,
-            ),
-            Icon(icon, color: Colors.black),
-            if (notify)
-              Container(
-                width: 5,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              )
-          ],
-        ),
-        onPressed: () => startRoute(
-          context: context,
-          route: route,
-          setState: onPop ? setState : null,
-        ),
-      );
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomAppBar(
-      child: Row(children: [
-        _sectionBtn(
-          context: context,
-          icon: Icons.schedule,
-          route: ScheduleRoute(),
-          onPop: true,
-          tooltip:
-              'programma gli allenamenti per uno specifico gruppo di atleti',
-        ),
-        _sectionBtn(
-            context: context,
-            icon: Icons.directions_run,
-            route: AthletesRoute(),
-            notify: user?.requests?.isNotEmpty ?? false,
-            tooltip: 'gestisci i tuoi atleti'),
-        _sectionBtn(
-            context: context,
-            icon: Mdi.table,
-            route: PlansRoute(),
-            tooltip: 'gestisci i programmi di lavoro'),
-        _sectionBtn(
-            context: context,
-            icon: Icons.fitness_center,
-            route: TrainingRoute(),
-            tooltip: 'gestisci gli allenamenti'),
-      ]),
-      color: Theme.of(context).primaryColor,
+      
     );
   }
 }

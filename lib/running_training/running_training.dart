@@ -1,6 +1,7 @@
 import 'package:Atletica/global_widgets/alert_point.dart';
 import 'package:Atletica/global_widgets/link_line/link_line.dart';
 import 'package:Atletica/main.dart';
+import 'package:Atletica/ripetuta/template.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/athlete/atleta.dart';
@@ -95,7 +96,7 @@ class _RunningTrainingState extends State<RunningTraining>
 
   void _next() {
     rip = widget.allenamento.ripetutaFromIndex(current);
-    rec = widget.allenamento.recuperoFromIndex(current++);
+    rec = widget.allenamento.recuperoFromIndex(current++)?.recupero;
     _overtimeNotified = _criticNotified = false;
 
     if (rec == null || rec < 10)
@@ -194,13 +195,15 @@ class _RunningTrainingState extends State<RunningTraining>
                     .copyWith(color: Theme.of(context).primaryColorDark),
                 children: [
                   TextSpan(
-                    text: rip?.template?.name ?? 'nulla',
+                    text: rip?.template ?? 'nulla',
                     style: TextStyle(fontWeight: FontWeight.w900),
                   ),
                   if (rip?.target != null) TextSpan(text: ' in '),
                   if (rip?.target != null)
                     TextSpan(
-                      text: rip.template.tipologia.targetFormatter(rip.target),
+                      text: templates[rip.template]
+                          .tipologia
+                          .targetFormatter(rip.target),
                       style: TextStyle(fontWeight: FontWeight.w900),
                     ),
                 ],

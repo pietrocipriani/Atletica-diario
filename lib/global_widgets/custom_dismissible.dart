@@ -8,6 +8,7 @@ class CustomDismissible extends StatelessWidget {
   final Future<bool> Function(DismissDirection) confirmDismiss;
   final void Function(DismissDirection) onDismissed;
   final void Function() onResize;
+  final DismissDirection direction;
 
   CustomDismissible({
     @required this.key,
@@ -19,6 +20,7 @@ class CustomDismissible extends StatelessWidget {
     this.confirmDismiss,
     this.onDismissed,
     this.onResize,
+    this.direction = DismissDirection.horizontal,
   });
 
   @override
@@ -38,6 +40,7 @@ class CustomDismissible extends StatelessWidget {
         padding: const EdgeInsets.only(right: 16),
         child: Icon(secondBackgroundIcon ?? Icons.edit),
       ),
+      direction: direction,
       confirmDismiss: confirmDismiss,
       onDismissed: onDismissed,
       onResize: onResize,

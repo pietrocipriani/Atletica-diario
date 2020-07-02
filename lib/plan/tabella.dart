@@ -1,7 +1,9 @@
+import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/persistence/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,22 +15,14 @@ List<Tabella> plans = <Tabella>[];
 List<String> itMonths = dateTimeSymbolMap()['it'].MONTHS;
 
 class Tabella {
-  final int id;
+  final DocumentReference reference;
   String name;
   List<Week> weeks = <Week>[];
 
-  List<int> months;
-
-  Tabella(
-      {@required this.id,
-      @required this.name,
-      Iterable<Week> weeks,
-      this.months}) {
-    if (weeks != null) this.weeks.addAll(weeks);
-  }
-  Tabella.parse(Map<String, dynamic> raw) : this.id = raw['id'] {
-    this.name = raw['name'];
-  }
+  Tabella.parse(DocumentSnapshot raw)
+      : reference = raw.reference,
+        name = raw['name'],
+        weeks = raw['weeks'].map((raw) => Week.parse(raw)).toList();
 
   static Future<bool> fromDialog({@required BuildContext context}) {
     return showDialog<bool>(
@@ -36,6 +30,14 @@ class Tabella {
       builder: (context) => _dialog(context),
     );
   }
+
+  static Future<void> create({@required String name}) =>
+      userC.coachReference.collection('plans').add({'name': name, 'weeks': []});
+
+  Future<void> update({String name, List<Week> weeks}) => reference.updateData({
+        'name': name ?? this.name,
+        'weeks': (weeks ?? this.weeks).map((week) => week.asMap)
+      });
 
   Future<bool> modify({@required BuildContext context}) {
     return showDialog<bool>(
@@ -85,19 +87,10 @@ class Tabella {
             onPressed: validator() != null
                 ? null
                 : () async {
-                    if (isNew) {
-                      plan = Tabella(
-                        id: await db.insert('Plans', {'name': name}),
-                        name: name,
-                      );
-                      plans.add(plan);
-                    } else
-                      db.update(
-                        'Plans',
-                        {'name': plan.name = name},
-                        where: 'id = ?',
-                        whereArgs: [plan.id],
-                      );
+                    if (isNew)
+                      Tabella.create(name: name);
+                    else
+                      plan.update(name: name);
                     Navigator.pop(context, true);
                   },
             child: Text(
@@ -113,44 +106,30 @@ class Tabella {
 class Week {
   /// `null` per ripeterlo indefinitamente
   int repeat;
-  Map<int, Allenamento>
-      trainings; // TODO: implementare giorni con allenamenti multipli
+  Map<int, DocumentReference> trainings;
+  // TODO: implementare giorni con allenamenti multipli
 
   Week({this.repeat = 1, this.trainings}) {
-    trainings ??= <int, Allenamento>{};
+    trainings ??= <int, DocumentReference>{};
   }
   Week.parse(Map<String, dynamic> raw) {
-    trainings = Map.fromEntries(
-      raw.entries.where((entry) => shortWeekDays.contains(entry.key)).map(
-            (entry) => MapEntry(
-              shortWeekDays.indexOf(entry.key),
-              allenamenti.firstWhere(
-                (allenamento) => allenamento.id == entry.value,
-                orElse: () => null,
-              ),
-            ),
-          ),
-    );
-    plans
-        .firstWhere(
-          (plan) => plan.id == raw['id'],
-          orElse: () => null,
-        )
-        ?.weeks
-        ?.add(this);
+    // TODO: repeat
+    trainings = raw.map((key, value) => MapEntry(int.tryParse(key), value));
   }
   Week.copy(Week week)
       : this.repeat = week.repeat,
         this.trainings = Map.from(week.trainings);
+
+  Map<String, dynamic> get asMap =>
+      trainings.map((key, value) => MapEntry(key.toString(), value));
 
   static Iterable<Widget> days(
       {@required BuildContext context,
       @required Week week,
       @required void Function(void Function()) setState}) sync* {
     final TextStyle overline = Theme.of(context).textTheme.overline;
-    final Widget Function(BuildContext context, int weekday, bool over)
-        builder = (context, weekday, over) {
-      return week.trainings[weekday]?.chip(
+    Widget builder(BuildContext context, int weekday, bool over) {
+      return allenamenti[week.trainings[weekday]]?.chip(
               context: context,
               onDelete: () => setState(() => week.trainings[weekday] = null)) ??
           Padding(
@@ -167,7 +146,8 @@ class Week {
               ),
             ),
           );
-    };
+    }
+
     for (int i = 0; i < weekdays.length; i += 2) {
       bool single = i + 1 >= weekdays.length;
       yield Row(
@@ -205,7 +185,8 @@ class Week {
                       List<dynamic> rejectedData) =>
                   builder(context, (i + 1) % 7, candidateData.isNotEmpty),
               onAccept: (allenamento) => setState(
-                () => week.trainings[(i + 1) % weekdays.length] = allenamento,
+                () => week.trainings[(i + 1) % weekdays.length] =
+                    allenamento.reference,
               ),
             ),
           ),
@@ -219,7 +200,7 @@ class Week {
                         builder(context, (i + 2) % 7, candidateData.isNotEmpty),
                     onAccept: (allenamento) => setState(
                       () => week.trainings[(i + 2) % weekdays.length] =
-                          allenamento,
+                          allenamento.reference,
                     ),
                   ),
           ),
@@ -249,7 +230,7 @@ class Week {
             Wrap(
               alignment: WrapAlignment.start,
               crossAxisAlignment: WrapCrossAlignment.start,
-              children: allenamenti
+              children: allenamenti.values
                   .map(
                     (allenamento) => Draggable<Allenamento>(
                       maxSimultaneousDrags: 1,
@@ -313,21 +294,8 @@ class _PlansRouteState extends State<PlansRoute>
       body: ListView(
         children: plans
             .map(
-              (plan) => Dismissible(
-                direction: DismissDirection.horizontal,
+              (plan) => CustomDismissible(
                 key: ValueKey(plan),
-                background: Container(
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(left: 16),
-                  color: Theme.of(context).primaryColorLight,
-                  child: Icon(Icons.delete),
-                ),
-                secondaryBackground: Container(
-                  alignment: Alignment.centerRight,
-                  padding: EdgeInsets.only(right: 16),
-                  color: Colors.lightGreen[200],
-                  child: Icon(Icons.edit),
-                ),
                 confirmDismiss: (direction) async {
                   if (direction == DismissDirection.endToStart) {
                     if (await plan.modify(context: context)) setState(() {});
@@ -338,27 +306,14 @@ class _PlansRouteState extends State<PlansRoute>
                     name: plan.name,
                   );
                 },
-                onDismissed: (direction) {
-                  plans.remove(plan);
-                  Batch b = db.batch();
-                  b.delete('Weeks', where: 'plan = ?', whereArgs: [plan.id]);
-                  b.delete('Plans', where: 'id = ?', whereArgs: [plan.id]);
-                  b.commit();
-                },
+                onDismissed: (direction) => plan.reference.delete(),
                 child: CustomExpansionTile(
                   trailing: IconButton(
-                    icon: Icon(Icons.add_circle),
+                    icon: Icon(Icons.add_circle, color: Colors.black),
                     onPressed: () async {
                       Week week = await Week.fromDialog(context);
-                      db.insert(
-                        'Weeks',
-                        {'plan': plan.id, 'position': plan.weeks.length}
-                          ..addEntries(week.trainings.entries.map(
-                            (e) => MapEntry(shortWeekDays[e.key], e.value.id),
-                          )),
-                      );
                       plan.weeks.add(week);
-                      setState(() {});
+                      plan.update();
                     },
                   ),
                   leading: Column(
@@ -375,16 +330,6 @@ class _PlansRouteState extends State<PlansRoute>
                     ],
                   ),
                   title: plan.name,
-                  subtitle: plan.months == null
-                      ? null
-                      : Text(
-                          plan.months
-                              .map((month) => itMonths[month - 1])
-                              .join(', '),
-                          style: Theme.of(context).textTheme.overline.copyWith(
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                        ),
                   children: plan.weeks
                       .map(
                         (week) => Dismissible(
@@ -436,7 +381,8 @@ class _PlansRouteState extends State<PlansRoute>
                                         ),
                                       ),
                                       Text(
-                                        week.trainings[(i + 1) % 7]?.name ??
+                                        allenamenti[week.trainings[(i + 1) % 7]]
+                                                ?.name ??
                                             'riposo',
                                         style: Theme.of(context)
                                             .textTheme

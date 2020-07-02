@@ -23,9 +23,8 @@ class TrainingScheduleDialogContent extends StatelessWidget {
           ),
           Container(
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Theme.of(context).primaryColor)
-            ),
+                shape: BoxShape.circle,
+                border: Border.all(color: Theme.of(context).primaryColor)),
             child: IconButton(
               icon: Icon(Icons.add),
               onPressed: () async {
@@ -45,7 +44,7 @@ class TrainingScheduleDialogContent extends StatelessWidget {
         DropdownButton<Allenamento>(
           value: schedule.work,
           isExpanded: true,
-          items: allenamenti
+          items: allenamenti.values
               .map(
                 (allenamento) => DropdownMenuItem<Allenamento>(
                   value: allenamento,

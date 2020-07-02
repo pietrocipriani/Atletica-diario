@@ -1,6 +1,8 @@
 import 'package:Atletica/global_widgets/mode_selector_route.dart';
-import 'package:Atletica/main.dart';
+import 'package:Atletica/coach_role/main.dart';
+import 'package:Atletica/athlete_role/main.dart';
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -28,7 +30,11 @@ class SplashScreen extends StatelessWidget {
                     (d) => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MyHomePage(),
+                        builder: (context) {
+                          if (user == null) return ModeSelectorRoute();
+                          if (user is CoachHelper) return CoachMainPage();
+                          return AthleteMainPage();
+                        },
                       ),
                     ),
                   );
