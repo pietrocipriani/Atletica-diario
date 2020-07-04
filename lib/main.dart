@@ -137,7 +137,7 @@ class MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _showProfileDialog() async {
+  /*void _showProfileDialog() async {
     TextEditingController coachController = TextEditingController();
     Callback<Event> callback;
     await showDialog(
@@ -273,7 +273,7 @@ class MyHomePageState extends State<MyHomePage> {
       }),
     );
     callback?.active = false;
-  }
+  }*/
 
   final Callback<Event> callback = Callback<Event>();
 

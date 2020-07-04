@@ -2,7 +2,6 @@ import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/athlete_snapshot.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/plan_snapshot.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/request_snapshot.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/template_snapshot.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,7 +16,8 @@ class CoachHelper extends FirebaseUserHelper {
 
   final DocumentReference coachReference;
 
-  final Map<String, BasicUser> requests = <String, BasicUser>{};
+  final Map<DocumentReference, BasicUser> requests =
+      <DocumentReference, Request>{};
 
   static void callAll<T>(List<Callback<T>> callbacks, [T value]) =>
       callbacks.forEach((callback) => callback.call(value));
@@ -53,13 +53,6 @@ class CoachHelper extends FirebaseUserHelper {
         .snapshots()
         .listen((snap) => listener(snap, templateSnapshot));
 
-    firestore
-        .collection('requests')
-        .where('coach', isEqualTo: userReference)
-        .snapshots()
-        .listen((snap) async {
-      if (await listener(snap, requestSnapshot)) requestsCallAll();
-    });
     coachReference.collection('athletes').snapshots().listen((snap) async {
       if (await listener(snap, athleteSnapshot)) athletesCallAll();
     });
@@ -74,14 +67,14 @@ class CoachHelper extends FirebaseUserHelper {
   /// `athleteUser` is the reference to [users/uid]
   /// `name` is the nickname displayed
   Future<void> addAthlete(
-    DocumentReference athleteUser,
+    DocumentReference athlete,
     String nickname,
     String group,
   ) {
     return coachReference
         .collection('athletes')
-        .document(athleteUser.documentID)
-        .setData({'user': athleteUser, 'nickname': nickname, 'group': group});
+        .document(athlete.documentID)
+        .setData({'user': athlete, 'nickname': nickname, 'group': group});
   }
 
   Future<void> acceptRequest(
@@ -89,9 +82,8 @@ class CoachHelper extends FirebaseUserHelper {
     String nickname,
     String group,
   ) async {
-    final DocumentReference athlete = (await request.get()).data['athlete'];
-    refuseRequest(request);
-    await addAthlete(athlete, nickname, group);
+    await refuseRequest(request);
+    await request.updateData({'nickname': nickname, 'group': group});
   }
 
   Future<void> refuseRequest(DocumentReference request) async {

@@ -2,7 +2,6 @@ import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 Firestore firestore = Firestore.instance;
 
@@ -16,10 +15,7 @@ Future<void> initFirestore() async {
   final DocumentSnapshot snapshot = await userDoc.get();
   if (snapshot.data == null) {
     final WriteBatch batch = firestore.batch();
-    batch.setData(
-      userDoc,
-      {'name': rawUser.displayName, 'email': rawUser.email},
-    );
+    batch.setData(userDoc, {'name': rawUser.displayName});
     batch.setData(
       firestore.collection('coaches').document(rawUser.uid),
       {'user': userDoc},

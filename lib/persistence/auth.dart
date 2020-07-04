@@ -40,38 +40,22 @@ abstract class FirebaseUserHelper {
         email = user.email;
 }
 
-class CoachRequest {
-  static final List<Callback> onResponseCallbacks = <Callback>[];
-  final AthleteHelper user;
-  final DocumentReference request;
-  StreamSubscription<DocumentSnapshot> subscription;
-
-  CoachRequest(this.user, this.request) {
-    subscription = request.snapshots().listen((snapshot) {
-      if (snapshot.data == null) if (user.coach == this) user.coach = null;
-      callAll();
-    });
-  }
-
-  static void callAll() => onResponseCallbacks.forEach(
-        (callback) => callback.call(null),
-      );
-
-  Future<void> deleteRequest() => request.delete();
-}
-
 class BasicUser {
   final String uid;
-  String name, email;
-  BasicUser({@required this.uid, this.name, this.email});
+  String name;
+  BasicUser({@required this.uid, this.name});
   BasicUser.parse(Map<String, dynamic> raw)
       : uid = raw['uid'],
-        name = raw['name'],
-        email = raw['email'];
-  BasicUser.snapshot(DataSnapshot data)
-      : uid = data.key,
-        name = data.value['name'],
-        email = data.value['email'];
+        name = raw['name'];
+  BasicUser.snapshot(DocumentSnapshot snap)
+      : uid = snap.documentID,
+        name = snap['name'];
+}
+
+class Request extends BasicUser {
+  final DocumentReference reference;
+  Request({@required this.reference, @required String uid, String name})
+      : super(uid: uid, name: name);
 }
 
 Stream<double> login({@required BuildContext context}) async* {

@@ -1,9 +1,7 @@
 import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/athlete/group.dart';
 import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqlite_api.dart';
 
 String _validator(String value, Atleta atleta, bool isNew) {
   if (value == null || value.isEmpty) return 'inserire il nome';
@@ -35,7 +33,7 @@ bool _shouldRemoveGroup(Group group, Group selectedGroup, Atleta atleta) {
           (group.atleti.length == 1 && group.atleti.first == atleta));
 }
 
-Widget dialog({@required BuildContext context, Atleta atleta, BasicUser user}) {
+Widget dialog({@required BuildContext context, Atleta atleta, Request user}) {
   assert((atleta == null) != (user == null));
   final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1;
   final TextStyle overline = Theme.of(context).textTheme.overline;
@@ -139,7 +137,7 @@ Widget dialog({@required BuildContext context, Atleta atleta, BasicUser user}) {
                   String group = selectedGroup?.name ?? groupController.text;
                   if (isNew)
                     await Atleta.create(
-                      uid: user.uid,
+                      request: user.reference,
                       nickname: controller.text,
                       group: group,
                     );

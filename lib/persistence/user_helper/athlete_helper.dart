@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,18 +7,35 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AthleteHelper extends FirebaseUserHelper {
-  final DocumentReference athleteReference;
-  dynamic _coach;
-  String role;
+  static List<Callback> onCoachChanged = <Callback>[];
+  void coachCallAll() => onCoachChanged.forEach((c) => c.call(null));
 
-  set coach(dynamic coach) {
-    assert(coach == null || coach is BasicUser || coach is CoachRequest);
-    if (coach == _coach) return;
-    if (_coach != null && _coach is CoachRequest) _coach.subscription?.cancel();
-    _coach = coach;
+  final DocumentReference athleteReference;
+
+  DocumentReference _athleteCoachReference;
+  StreamSubscription<DocumentSnapshot> _requestSubscription;
+  DocumentReference get athleteCoachReference => _athleteCoachReference;
+  set athleteCoachReference(DocumentReference reference) {
+    if (reference == _athleteCoachReference) return;
+    _requestSubscription?.cancel();
+    _athleteCoachReference = reference;
+    _requestSubscription = reference.snapshots().listen((snap) {
+      if (snap.data == null)
+        athleteReference.updateData({'coach': null});
+      else {
+        accepted = snap['nickname'] != null && snap['group'] != null;
+        coachCallAll();
+      }
+    });
   }
 
-  get coach => _coach;
+  DocumentReference get coach => _athleteCoachReference?.parent()?.parent();
+
+  bool accepted = false;
+
+  bool get hasCoach => accepted;
+  bool get hasRequest => coach != null && !accepted;
+  bool get needsRequest => coach == null;
 
   AthleteHelper({
     @required FirebaseUser user,
@@ -27,36 +46,34 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   void _init() async {
-    await _getCoach();
+    athleteReference.snapshots().listen((snap) async {
+      athleteCoachReference = snap['coach'];
+      final DocumentSnapshot athleteCoachSnapshot =
+          await athleteCoachReference?.get();
+      accepted = athleteCoachSnapshot?.data != null &&
+          athleteCoachSnapshot['nickname'] != null &&
+          athleteCoachSnapshot['group'] != null;
+      coachCallAll();
+    });
   }
 
   Future<bool> requestCoach({@required String uid}) async {
-    final DocumentReference coach = firestore.collection('users').document(uid);
-    final DocumentReference request =
-        firestore.collection('requests').document();
-    if (uid == null || userReference == coach) return false;
+    if (uid == null || uid == user.uid) return false;
+    final DocumentReference request = firestore
+        .collection('coaches')
+        .document(uid)
+        .collection('athletes')
+        .document(user.uid);
+    if (athleteCoachReference == request) return false;
     final WriteBatch batch = firestore.batch();
-    if (this.coach != null) this.coach.deleteRequest();
 
-    batch.updateData(userReference, {'coach': request});
-    await request.setData({'coach': coach, 'athlete': userReference});
-    this.coach = CoachRequest(this, request);
+    if (athleteCoachReference != null) batch.delete(athleteCoachReference);
+    batch.updateData(athleteReference, {'coach': request});
+    batch.setData(request, {'athlete': athleteReference}, merge: true);
 
     await batch.commit();
     return true;
   }
 
-  Future<void> _getCoach() async {
-    DocumentReference coach = (await athleteReference.get()).data['coach'];
-    if (coach == null || !(await coach.get()).exists) {
-      this.coach = null;
-      return;
-    }
-
-    if (coach.parent().id == 'requests') {
-      this.coach = CoachRequest(this, coach);
-      return;
-    }
-    this.coach = coach;
-  }
+  Future<void> deleteCoachSubscription() => athleteCoachReference?.delete();
 }

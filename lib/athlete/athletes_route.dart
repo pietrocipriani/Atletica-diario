@@ -7,6 +7,7 @@ import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -51,21 +52,13 @@ class _AthletesRouteState extends State<AthletesRoute> {
     );
   }
 
-  Widget _requestWidget(String requestId, BasicUser request) {
+  Widget _requestWidget(DocumentReference requestRef, BasicUser request) {
     final Widget title = Text(request.name, style: _subtitle1Bold);
-    final Widget subtitle =
-        Text(request.email, style: _overlineBoldPrimaryDark);
 
-    final Widget content = ListTile(
-      leading: _requestIcon,
-      title: title,
-      subtitle: subtitle,
-    );
+    final Widget content = ListTile(leading: _requestIcon, title: title);
     final FutureOr<void> Function(DismissDirection dir) onDismissed =
         (direction) async {
-      await userC.refuseRequest(
-        firestore.collection('requests').document(requestId),
-      );
+      await userC.refuseRequest(requestRef);
     };
     final Future<bool> Function(DismissDirection dir) confirmDismiss =
         (dir) async {

@@ -44,15 +44,11 @@ class Atleta {
   }
 
   static Future<void> create({
-    @required String uid,
+    @required DocumentReference request,
     @required String nickname,
     @required String group,
   }) async {
-    return userC.coachReference.collection('athletes').document(uid).setData({
-      'user': firestore.collection('users').document(uid),
-      'nickname': nickname,
-      'group': group
-    });
+    return request.updateData({'nickname': nickname, 'group': group});
   }
 
   Future<void> update({@required String nickname, @required String group}) =>

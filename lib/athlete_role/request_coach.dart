@@ -1,5 +1,6 @@
 import 'package:Atletica/global_widgets/animated_text.dart';
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:flutter/material.dart';
 
 class RequestCoachRoute extends StatefulWidget {
@@ -14,13 +15,13 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
   @override
   void initState() {
     callback.f = (_) => setState(() {});
-    CoachRequest.onResponseCallbacks.add(callback);
+    AthleteHelper.onCoachChanged.add(callback);
     super.initState();
   }
 
   @override
   void dispose() {
-    CoachRequest.onResponseCallbacks.remove(callback.stopListening);
+    AthleteHelper.onCoachChanged.remove(callback.stopListening);
     super.dispose();
   }
 
@@ -28,12 +29,11 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
 
   @override
   Widget build(BuildContext context) {
-    if (userA.coach is BasicUser)
+    if (userA.hasCoach)
       WidgetsBinding.instance
           .addPostFrameCallback((_) => Navigator.pop(context));
     return WillPopScope(
-      onWillPop: () => Future.value(
-          false), // TODO: check if it block also code pop (not only ui interaction)
+      onWillPop: () => Future.value(false),
       child: Padding(
         padding: MediaQuery.of(context).padding,
         child: Material(
@@ -47,7 +47,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
-                userA.coach == null
+                userA.needsRequest
                     ? TextField(
                         controller: controller,
                         decoration: InputDecoration(
@@ -71,12 +71,12 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                       ),
                 const SizedBox(height: 10),
                 RaisedButton.icon(
-                  onPressed: userA.coach == null
+                  onPressed: userA.needsRequest
                       ? _hasText
                           ? () => userA.requestCoach(uid: controller.text)
                           : null
-                      : userA.coach is CoachRequest
-                          ? () => userA.coach.deleteRequest()
+                      : userA.hasRequest
+                          ? () => userA.deleteCoachSubscription()
                           : null,
                   label: Text(userA.coach == null ? 'invia' : 'cancella'),
                   icon: Icon(userA.coach == null ? Icons.send : Icons.clear),
