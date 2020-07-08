@@ -18,8 +18,10 @@ bool _alreadyInserted(Schedule schedule) =>
     runningTrainings.any((rt) => rt.schedule == schedule);
 
 void updateFromSchedules() {
-  runningTrainings.removeWhere((rt) => !schedules.contains(rt.schedule));
-  schedules.forEach((schedule) {
+  runningTrainings.removeWhere((rt) =>
+      !schedules.containsKey(rt.schedule.reference) ||
+      rt.schedule.athletes.isEmpty);
+  schedules.values.where((s) => s.athletes.isNotEmpty).forEach((schedule) {
     if (_alreadyInserted(schedule)) return;
     final RunningTraining rt = RunningTraining.fromSchedule(schedule);
     if (rt != null) runningTrainings.add(rt);
@@ -78,8 +80,8 @@ class _RunningTrainingState extends State<RunningTraining>
   Ripetuta rip;
   int rec;
 
-  Map<Ripetuta, Map<Atleta, double>> results =
-      <Ripetuta, Map<Atleta, double>>{};
+  Map<Ripetuta, Map<Athlete, double>> results =
+      <Ripetuta, Map<Athlete, double>>{};
 
   @override
   void initState() {
@@ -88,7 +90,7 @@ class _RunningTrainingState extends State<RunningTraining>
     _opacityAnim = Tween<double>(begin: 1, end: 0).animate(_controller);
     _sizeAnimation = Tween<double>(begin: 1, end: 2).animate(_controller);
     _next();
-    results[rip] = <Atleta, double>{};
+    results[rip] = <Athlete, double>{};
     t = Ticker((elapsed) => setState(() {}));
     t.start();
     super.initState();
@@ -109,7 +111,7 @@ class _RunningTrainingState extends State<RunningTraining>
         schedules.remove(widget.schedule);
       context.findAncestorStateOfType<MyHomePageState>().setState(() {});
     } else {
-      results[rip] = <Atleta, double>{};
+      results[rip] = <Athlete, double>{};
     }
   }
 
@@ -337,7 +339,7 @@ class _RunningTrainingState extends State<RunningTraining>
                                             MyHomePageState>()
                                         .setState(() {});
                                   } else {
-                                    this.results[rip] = <Atleta, double>{};
+                                    this.results[rip] = <Athlete, double>{};
                                   }
                                 }
                               : null,

@@ -1,6 +1,4 @@
-import 'package:Atletica/plan/tabella.dart';
 import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
 
 Widget _typeBtn({
@@ -33,21 +31,13 @@ Widget _typeBtn({
 }
 
 Future<bool> showScheduleDialog({@required BuildContext context}) {
-  final List<Schedule> schedulesList = <Schedule>[
-    PlanSchedule(
-      plans.isEmpty ? null : plans.values.first,
-      date: DateTime.now().add(
-        Duration(days: 7 - (DateTime.now().weekday - DateTime.monday) % 7),
-      ),
-    ),
-    TrainingSchedule(
-      allenamenti.isEmpty ? null : allenamenti.values.first,
-      date: DateTime.now(),
-    )
-  ];
-  Schedule schedule = schedules.isEmpty || schedules.first is PlanSchedule
-      ? schedulesList.first
-      : schedulesList.last;
+  final Map<String, Schedule> schedulesList = <String, Schedule>{
+    'Piano': PlanSchedule(),
+    'Allenamento': TrainingSchedule(),
+  };
+  Schedule schedule = schedules.isEmpty || schedules.values.last is PlanSchedule
+      ? schedulesList['Piano']
+      : schedulesList['Allenamento'];
   return showDialog<bool>(
     context: context,
     builder: (context) => StatefulBuilder(
@@ -56,22 +46,16 @@ Future<bool> showScheduleDialog({@required BuildContext context}) {
         title: Text('Aggiungi'),
         scrollable: true,
         content: Column(children: <Widget>[
-          Row(children: <Widget>[
-            _typeBtn(
-              context: context,
-              text: 'Piano',
-              type: schedule,
-              value: schedulesList.first,
-              onChanged: (s) => setState(() => schedule = s),
-            ),
-            _typeBtn(
-              context: context,
-              text: 'Allenamento',
-              type: schedule,
-              value: schedulesList.last,
-              onChanged: (s) => setState(() => schedule = s),
-            ),
-          ]),
+          Row(
+            children: schedulesList.entries.map(
+              (entry) => _typeBtn(
+                  context: context,
+                  text: entry.key,
+                  type: schedule,
+                  value: entry.value,
+                  onChanged: (s) => setState(() => schedule = s)),
+            ).toList(),
+          ),
           schedule.content(context: context, onChanged: () => setState(() {})),
         ]),
         actions: <Widget>[
@@ -82,7 +66,7 @@ Future<bool> showScheduleDialog({@required BuildContext context}) {
           FlatButton(
             onPressed: schedule.isOk
                 ? () {
-                    schedules.add(schedule);
+                    schedule.create();
                     Navigator.pop(context, true);
                   }
                 : null,

@@ -21,12 +21,12 @@ class Result {
 class LinkLine extends StatefulWidget {
   final List<Result> results;
   final Ripetuta rip;
-  final Map<Atleta, Keys> links;
+  final Map<Athlete, Keys> links;
 
   LinkLine(
       {@required List<double> results,
       @required this.rip,
-      @required Iterable<Atleta> athletes})
+      @required Iterable<Athlete> athletes})
       : links =
             Map.fromEntries(athletes.map((atleta) => MapEntry(atleta, Keys()))),
         this.results = results.map((result) => Result(result)).toList();
@@ -64,7 +64,7 @@ class _LinkLineState extends State<LinkLine> {
                       atleta: atleta,
                       selected: selected,
                       onTap: (a) {
-                        if (selected == null || selected is Atleta)
+                        if (selected == null || selected is Athlete)
                           selected = selected == a ? null : a;
                         else {
                           widget.links[a].result = selected.key;

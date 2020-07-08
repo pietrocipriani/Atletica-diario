@@ -1,15 +1,12 @@
 import 'package:Atletica/global_widgets/mode_selector_route.dart';
 import 'package:Atletica/global_widgets/splash_screen.dart';
 import 'package:Atletica/home/home_page.dart';
-import 'package:Atletica/global_widgets/animated_text.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:mdi/mdi.dart';
 import 'package:package_info/package_info.dart';
 import 'package:vibration/vibration.dart';
 
@@ -70,9 +67,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  Image _icon = Image.asset('assets/icon.png', width: 64, height: 64);
+  //Image _icon = Image.asset('assets/icon.png', width: 64, height: 64);
 
-  void _showAboutDialog() {
+  /*void _showAboutDialog() {
     final Widget Function(IconData icon, String label) row = (icon, label) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -135,7 +132,7 @@ class MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
-  }
+  }*/
 
   /*void _showProfileDialog() async {
     TextEditingController coachController = TextEditingController();
@@ -299,7 +296,6 @@ class MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: HomePageWidget(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      
     );
   }
 }

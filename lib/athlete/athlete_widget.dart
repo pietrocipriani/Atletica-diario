@@ -1,20 +1,17 @@
 import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/group.dart';
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:Atletica/main.dart';
 import 'package:flutter/material.dart';
 
 class AthleteWidget extends StatelessWidget {
-  final Atleta atleta;
-  final Group group;
+  final Athlete atleta;
   final TextStyle subtitle1Bold, overlineBoldPrimaryDark;
   final void Function() onModified;
 
   AthleteWidget({
     Key key,
     @required this.atleta,
-    @required this.group,
     @required this.subtitle1Bold,
     @required this.overlineBoldPrimaryDark,
     this.onModified,
@@ -34,7 +31,7 @@ class AthleteWidget extends StatelessWidget {
     ]);
     final Widget child = ListTile(
       title: Text(atleta.name, style: subtitle1Bold),
-      subtitle: Text(group.name, style: overlineBoldPrimaryDark),
+      subtitle: Text(atleta.group, style: overlineBoldPrimaryDark),
       trailing: trailing,
     );
 

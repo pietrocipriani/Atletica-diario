@@ -56,7 +56,7 @@ class PlanScheduleDialogContent extends StatelessWidget {
                   ))
               .toList(),
           onChanged: (plan) {
-            schedule.work = plan;
+            schedule.workRef = plan.reference;
             onChanged();
           },
         ),

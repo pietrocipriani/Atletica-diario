@@ -19,7 +19,7 @@ class AthleteHelper extends FirebaseUserHelper {
     if (reference == _athleteCoachReference) return;
     _requestSubscription?.cancel();
     _athleteCoachReference = reference;
-    _requestSubscription = reference.snapshots().listen((snap) {
+    _requestSubscription = reference?.snapshots()?.listen((snap) {
       if (snap.data == null)
         athleteReference.updateData({'coach': null});
       else {

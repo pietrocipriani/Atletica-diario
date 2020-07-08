@@ -2,59 +2,47 @@ import 'dart:async';
 
 import 'package:Atletica/athlete/athlete_dialog.dart';
 import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class Atleta {
-  /// `reference` is the reference for [coaches/coachUid/athletes/uid]
+class Athlete {
+  /// `reference` is the reference for [coaches/$coachUid/athletes/$id]
   final DocumentReference reference;
-  final String uid;
-  String name;
+  final String realName;
+  String name, _group;
+  String get group => _group;
+  set group(String group) => lastGroup = (_group = group) ?? lastGroup;
   List<Allenamento> allenamenti = <Allenamento>[];
+
+  bool get isRequest => name == null || group == null;
+  bool get isAthlete => name != null && group != null;
 
   bool dismissed = false;
 
-  Atleta.parse(DocumentSnapshot raw)
+  /// `raw` is the snapshot for [coaches/$coachUid/athletes/$id]
+  /// `user` is the snapshot for [coaches/$coachUid/athletes/$id/athlete -> /user]
+  Athlete.parse({DocumentSnapshot raw, DocumentSnapshot user})
       : reference = raw.reference,
-        uid = raw.documentID {
+        realName = user['name'] {
     name = raw['nickname'];
-    Group g = groups.firstWhere(
-      (group) => group.name == raw['group'],
-      orElse: () => null,
-    );
-    if (g == null) groups.add(g = Group(name: raw['group']));
-    g.atleti.add(this);
-    lastGroup = g;
-  }
-  static Atleta find(String uid) {
-    for (Group g in groups)
-      for (Atleta a in g.atleti) if (a.uid == uid) return a;
-    return null;
+    group = raw['group'];
   }
 
   static Future<bool> fromDialog(
-      {@required BuildContext context, BasicUser user}) {
+      {@required BuildContext context, Athlete request}) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => dialog(context: context, user: user),
+      builder: (context) => dialog(context: context, atleta: request),
     );
   }
 
-  static Future<void> create({
-    @required DocumentReference request,
-    @required String nickname,
-    @required String group,
-  }) async {
-    return request.updateData({'nickname': nickname, 'group': group});
-  }
+  //static Future<void> create({})
 
   Future<void> update({@required String nickname, @required String group}) =>
       reference.updateData({'nickname': nickname, 'group': group});
 
-  /// deleted `this` Atleta from `firestore`.
+  /// deleted `this` Athlete from `firestore`.
   Future<void> delete() {
     dismissed = true;
     return reference.delete();
@@ -65,28 +53,5 @@ class Atleta {
       context: context,
       builder: (context) => dialog(context: context, atleta: this),
     );
-  }
-
-  void localMigration(String groupName) {
-    final Group current = groups.firstWhere(
-      (group) => group.atleti.contains(this),
-    );
-    if (groupName == null) {
-      if (current == null) return;
-      current.atleti.remove(this);
-      if (current.atleti.isEmpty) groups.remove(current);
-      return;
-    }
-    Group newGroup = groups.firstWhere(
-      (group) => group.name == groupName,
-      orElse: () => null,
-    );
-    if (newGroup == null) groups.add(newGroup = Group(name: groupName));
-    if (current == newGroup) return;
-    if (current != null) {
-      current.atleti.remove(this);
-      if (current.atleti.isEmpty) groups.remove(current);
-    }
-    newGroup.atleti.add(this);
   }
 }

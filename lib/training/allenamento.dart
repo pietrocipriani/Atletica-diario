@@ -6,6 +6,7 @@ import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/recupero/recupero.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
+import 'package:Atletica/ripetuta/template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,13 @@ class Allenamento {
     return null;
   }
 
+  Iterable<Ripetuta> get ripetute sync* {
+    for (Serie s in serie)
+      for (int i = 0; i < s.ripetizioni; i++)
+        for (Ripetuta r in s.ripetute)
+          for (int j = 0; j < r.ripetizioni; j++) yield r;
+  }
+
   Future<void> delete() {
     dismissed = true;
     return reference.delete();
@@ -61,6 +69,87 @@ class Allenamento {
       'description': descrizione,
       'serie': serie.map((serie) => serie.asMap).toList()
     });
+  }
+
+  Iterable<Widget> ripetuteAsDescription(BuildContext context) sync* {
+    final TextStyle overline = Theme.of(context).textTheme.overline;
+    final TextStyle overlineB = overline.copyWith(fontWeight: FontWeight.bold);
+    final TextStyle overlineBC =
+        overlineB.copyWith(color: Theme.of(context).primaryColorDark);
+
+    Widget row(Ripetuta rip, Recupero rec) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              alignment: Alignment.centerLeft,
+              child: RichText(
+                text: TextSpan(
+                  text: rip.template,
+                  children: [
+                    if (rip.target != null)
+                      TextSpan(
+                        text: ' in ',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    if (rip.target != null)
+                      TextSpan(
+                        text: templates[rip.template]
+                            .tipologia
+                            .targetFormatter(rip.target),
+                        style: TextStyle(color: Colors.black),
+                      )
+                  ],
+                  style: overlineBC,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            width: 40,
+            height: 1,
+            color: rec != null ? Colors.grey[300] : null,
+          ),
+          Expanded(
+            child: Container(
+              alignment: Alignment.centerRight,
+              child: rec != null
+                  ? RichText(
+                      text: TextSpan(
+                          text: rec.toString(),
+                          style: overlineB,
+                          children: [
+                            TextSpan(
+                              text: ' recupero',
+                              style: TextStyle(fontWeight: FontWeight.normal),
+                            )
+                          ]),
+                    )
+                  : null,
+            ),
+          )
+        ],
+      );
+    }
+
+    for (final Serie s in serie)
+      for (int i = 1; i <= s.ripetizioni; i++)
+        for (final Ripetuta r in s.ripetute)
+          for (int j = 1; j <= r.ripetizioni; j++)
+            yield row(
+                r,
+                j == r.ripetizioni
+                    ? r == s.ripetute.last
+                        ? i == s.ripetizioni
+                            ? s == serie.last ? null : s.nextRecupero
+                            : s.recupero
+                        : r.nextRecupero
+                    : r.recupero);
   }
 
   Recupero recuperoFromIndex(int index) {
@@ -218,12 +307,21 @@ class _TrainingRouteState extends State<TrainingRoute> {
                         children: <Widget>[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 40),
-                            child: Text(
-                              a.descrizione == null || a.descrizione.isEmpty
-                                  ? 'nessuna descrizione'
-                                  : a.descrizione,
-                              style: Theme.of(context).textTheme.overline,
-                              textAlign: TextAlign.justify,
+                            child: Column(
+                              children: <Widget>[
+                                Text(
+                                  a.descrizione == null || a.descrizione.isEmpty
+                                      ? 'nessuna descrizione'
+                                      : a.descrizione,
+                                  style: Theme.of(context).textTheme.overline,
+                                  textAlign: TextAlign.justify,
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                              ]
+                                  .followedBy(a.ripetuteAsDescription(context))
+                                  .toList(),
                             ),
                           )
                         ],

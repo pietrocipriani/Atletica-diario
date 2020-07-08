@@ -13,7 +13,7 @@ abstract class ScheduleWidget<T extends Schedule> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomDismissible(
-      key: ValueKey(schedule),
+      key: ValueKey(schedule.reference),
       child: ListTile(
         title: Text(schedule.work.name),
         subtitle: subtitle(context),

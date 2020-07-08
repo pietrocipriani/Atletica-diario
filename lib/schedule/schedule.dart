@@ -1,4 +1,5 @@
 import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/schedule/schedule_dialogs/plan_schedule_dialog_content.dart';
 import 'package:Atletica/schedule/schedule_dialogs/training_schedule_dialog_content.dart';
 import 'package:Atletica/schedule/schedule_widgets/plan_schedule_widget.dart';
@@ -7,9 +8,14 @@ import 'package:Atletica/schedule/schedule_widgets/training_schedule_widget.dart
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/plan/tabella.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-List<Schedule> schedules = <Schedule>[];
+Map<DocumentReference, Schedule> schedules = <DocumentReference, Schedule>{};
+Iterable<Schedule> get avaiableSchedules =>
+    schedules.values.where((s) => s.athletes.isNotEmpty);
+Iterable<Allenamento> get todayTrainings =>
+    avaiableSchedules.map((s) => s.todayTraining).where((t) => t != null);
 
 DateTime bareDT([DateTime dt]) {
   dt ??= DateTime.now();
@@ -17,21 +23,58 @@ DateTime bareDT([DateTime dt]) {
   return DateTime.utc(dt.year, dt.month, dt.day);
 }
 
-abstract class Schedule<T extends dynamic> {
-  ScheduleWidget<Schedule<T>> widget;
-  T work;
-  DateTime date;
-  List<Atleta> athletes;
+DateTime nextStartOfWeek([DateTime dt]) {
+  dt ??= DateTime.now();
+  dt = bareDT(dt);
+  if (dt.weekday == DateTime.monday) return dt;
+  final int shift = 7 - (dt.weekday - DateTime.monday) % 7;
+  return dt.add(Duration(days: shift));
+}
 
-  Schedule(
-    this.work, {
+abstract class Schedule<T extends dynamic> {
+  final DocumentReference reference;
+  DocumentReference workRef;
+  DateTime date;
+  List<DocumentReference> athletesRefs;
+  Iterable<Athlete> get athletes => athletesRefs
+      .map((r) => userC.rawAthletes[r])
+      .where((a) => a != null)
+      .toList();
+  set athletes(List<Athlete> athletes) =>
+      athletesRefs = athletes.map((a) => a.reference).toList();
+
+  Schedule.parse(DocumentSnapshot snap)
+      : reference = snap.reference,
+        workRef = snap['work'],
+        date = snap['date'].toDate(),
+        athletesRefs = snap['athletes'].cast<DocumentReference>();
+
+  Schedule._(
+    this.reference,
+    this.workRef, {
     this.date,
-    this.athletes = const <Atleta>[],
-  });
+    List<Athlete> athletes = const <Athlete>[],
+  }) : athletesRefs = athletes.map((a) => a.reference).toList();
+
+  T get work;
+
+  static Future<void> _create({
+    @required DocumentReference work,
+    @required DateTime date,
+    @required List<DocumentReference> athletes,
+  }) {
+    return userC.coachReference
+        .collection('schedules')
+        .add({'work': work, 'date': date, 'athletes': athletes});
+  }
+
+  ScheduleWidget<Schedule<T>> get widget;
+
+  Future<void> create();
 
   Allenamento get todayTraining;
 
-  bool get isOk => work != null && date != null && athletes.isNotEmpty;
+  bool get isOk => workRef != null && date != null && athletes.isNotEmpty;
 
   Widget content({
     @required BuildContext context,
@@ -40,13 +83,14 @@ abstract class Schedule<T extends dynamic> {
 
   String get joinAthletes {
     if (athletes == null) return '';
-    Iterable<Group> gs = groups.where(
-      (group) => group.atleti.every(
+    Iterable<Group> gs = Group.groups.where(
+      (group) => group.athletes.every(
         (atleta) => athletes.contains(atleta),
       ),
     );
-    Iterable<Atleta> atls = athletes
-        .where((atleta) => gs.every((group) => !group.atleti.contains(atleta)));
+    Iterable<Athlete> atls = athletes.where(
+      (atleta) => gs.every((group) => !group.athletes.contains(atleta)),
+    );
     return gs.map((g) => g.name).followedBy(atls.map((a) => a.name)).join(', ');
   }
 }
@@ -54,14 +98,40 @@ abstract class Schedule<T extends dynamic> {
 class PlanSchedule extends Schedule<Tabella> {
   DateTime to;
 
-  PlanSchedule(Tabella plan, {DateTime date, this.to, List<Atleta> athletes})
-      : super(plan, date: date, athletes: athletes ?? <Atleta>[]) {
-    widget = PlanScheduleWidget(schedule: this);
-  }
+  PlanSchedule.parse(DocumentSnapshot snap)
+      : assert(snap['work'].parent().id == 'plans'),
+        to = snap['to']?.toDate(),
+        super.parse(snap);
+
+  PlanSchedule({
+    DocumentReference work,
+    DateTime date,
+    this.to,
+    List<Athlete> athletes = const <Athlete>[],
+  }) : super._(
+          null,
+          work ?? (plans.isEmpty ? null : plans.values.first.reference),
+          date: date ?? nextStartOfWeek(),
+          athletes: athletes,
+        );
+
+  @override
+  Tabella get work => plans[workRef];
 
   @override
   Widget content({BuildContext context, void Function() onChanged}) {
     return PlanScheduleDialogContent(onChanged: onChanged, schedule: this);
+  }
+
+  @override
+  Future<void> create() {
+    assert(reference == null);
+    return userC.coachReference.collection('schedules').add({
+      'work': workRef,
+      'date': date,
+      'to': to,
+      'athletes': athletesRefs,
+    });
   }
 
   @override
@@ -73,13 +143,29 @@ class PlanSchedule extends Schedule<Tabella> {
     week = (week ~/ 7) % work.weeks.length;
     return allenamenti[work.weeks[week].trainings[bareToday.weekday]];
   }
+
+  @override
+  ScheduleWidget<Schedule<Tabella>> get widget =>
+      PlanScheduleWidget(schedule: this);
 }
 
 class TrainingSchedule extends Schedule<Allenamento> {
-  TrainingSchedule(Allenamento training, {DateTime date, List<Atleta> athletes})
-      : super(training, date: date, athletes: athletes ?? <Atleta>[]) {
-    widget = TrainingScheduleWidget(schedule: this);
-  }
+  TrainingSchedule.parse(DocumentSnapshot snap) : super.parse(snap);
+
+  TrainingSchedule({
+    DocumentReference work,
+    DateTime date,
+    List<Athlete> athletes = const <Athlete>[],
+  }) : super._(
+          null,
+          work ??
+              (allenamenti.isEmpty ? null : allenamenti.values.first.reference),
+          date: date ?? bareDT(),
+          athletes: athletes,
+        );
+
+  @override
+  Allenamento get work => allenamenti[workRef];
 
   @override
   Widget content({BuildContext context, void Function() onChanged}) {
@@ -87,8 +173,18 @@ class TrainingSchedule extends Schedule<Allenamento> {
   }
 
   @override
-  bool get isOk => super.isOk && !bareDT().isAfter(bareDT(date));
+  Future<void> create() =>
+      Schedule._create(work: workRef, date: date, athletes: athletesRefs);
+
+  @override
+  bool get isOk {
+    return super.isOk && !bareDT().isAfter(bareDT(date));
+  }
 
   @override
   Allenamento get todayTraining => bareDT(date) == bareDT() ? work : null;
+
+  @override
+  ScheduleWidget<Schedule<Allenamento>> get widget =>
+      TrainingScheduleWidget(schedule: this);
 }

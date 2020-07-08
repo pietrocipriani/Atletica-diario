@@ -3,9 +3,9 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
 class AtletaLinkLineWidget extends StatelessWidget {
-  final Atleta atleta;
+  final Athlete atleta;
   final dynamic selected;
-  final void Function(Atleta) onTap, onLongPress;
+  final void Function(Athlete) onTap, onLongPress;
   final void Function(GlobalKey data) onAccept;
 
   AtletaLinkLineWidget({

@@ -3,28 +3,29 @@ import 'package:Atletica/athlete/group.dart';
 import 'package:flutter/material.dart';
 
 class AthletesPicker extends StatelessWidget {
-  final List<Atleta> athletes;
-  final void Function(List<Atleta> athletes) onChanged;
+  final List<Athlete> athletes;
+  final void Function(List<Athlete> athletes) onChanged;
 
   AthletesPicker(this.athletes, {@required this.onChanged});
 
-  Function(Atleta a) _f(bool s) => s ? athletes.add : athletes.remove;
-  Iterable<Atleta> _modified(Group g, bool s) =>
-      g.atleti.where((a) => athletes.contains(a) != s);
+  Function(Athlete a) _f(bool s) => s ? athletes.add : athletes.remove;
+  Iterable<Athlete> _modified(List<Athlete> athletes, bool s) =>
+      athletes.where((a) => this.athletes.contains(a) != s);
 
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [];
-    for (Group g in groups) {
+    for (Group g in Group.groups) {
+      final List<Athlete> gAthletes = g.athletes;
       children.add(_LabeledCheckBox(
-        state: g.atleti.every((a) => athletes.contains(a)),
+        state: gAthletes.every((a) => athletes.contains(a)),
         label: g.name,
         onChanged: (s) {
-          _modified(g, s).forEach((a) => _f(s)(a));
+          _modified(gAthletes, s).forEach((a) => _f(s)(a));
           onChanged(athletes);
         },
       ));
-      for (Atleta a in g.atleti)
+      for (Athlete a in gAthletes)
         children.add(_LabeledCheckBox(
           state: athletes.contains(a),
           label: a.name,

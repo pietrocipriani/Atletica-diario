@@ -1,6 +1,7 @@
 import 'package:Atletica/athlete/athletes_route.dart';
-import 'package:Atletica/athlete/group.dart';
 import 'package:Atletica/main.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/running_training/running_training.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/schedule/schedule_dialogs/schedule_dialog.dart';
@@ -16,17 +17,35 @@ final AppBar _appBar = AppBar(title: Text('PROGRAMMI'));
 class _ScheduleRouteState extends State<ScheduleRoute> {
   GlobalKey<ScaffoldState> _scaffold = GlobalKey();
 
+  final Callback callback = Callback();
+
+  @override
+  void initState() {
+    callback.f = (_) => setState(() {});
+    CoachHelper.onSchedulesCallbacks.add(callback);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    CoachHelper.onSchedulesCallbacks.remove(callback.stopListening);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffold,
       appBar: _appBar,
-      body: Column(
-        children: schedules.map((schedule) => schedule.widget).toList(),
-      ),
+      body: schedules.values.any((s) => s.athletes.isNotEmpty)
+          ? Column(
+              children:
+                  avaiableSchedules.map((schedule) => schedule.widget).toList(),
+            )
+          : Center(child: Text('nessun allenamento creato')),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          if (groups.every((group) => group.atleti.isEmpty))
+          if (userC.athletes.isEmpty)
             _scaffold.currentState.showSnackBar(
               SnackBar(
                 content: Text('nessun atleta disponibile'),

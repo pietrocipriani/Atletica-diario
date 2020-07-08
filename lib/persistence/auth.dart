@@ -6,7 +6,6 @@ import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -107,7 +106,7 @@ Future requestLoginDialog({@required BuildContext context}) {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text('Login'),
       content: Text(
-        'Il login è necessario per il backup dei dati e per la comunicazione Allenatore/Atleta.\nInformazioni come la mail e il nome verranno condivisi solo fra questi ultimi.',
+        'Il login è necessario per il backup dei dati e per la comunicazione Allenatore/Athlete.\nInformazioni come la mail e il nome verranno condivisi solo fra questi ultimi.',
         style: Theme.of(context).textTheme.overline,
       ),
       actions: <Widget>[

@@ -2,12 +2,9 @@ import 'dart:async';
 
 import 'package:Atletica/athlete/athlete_widget.dart';
 import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/group.dart';
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -52,18 +49,18 @@ class _AthletesRouteState extends State<AthletesRoute> {
     );
   }
 
-  Widget _requestWidget(DocumentReference requestRef, BasicUser request) {
-    final Widget title = Text(request.name, style: _subtitle1Bold);
+  Widget _requestWidget(Athlete request) {
+    final Widget title = Text(request.realName, style: _subtitle1Bold);
 
     final Widget content = ListTile(leading: _requestIcon, title: title);
     final FutureOr<void> Function(DismissDirection dir) onDismissed =
         (direction) async {
-      await userC.refuseRequest(requestRef);
+      await userC.refuseRequest(request.reference);
     };
     final Future<bool> Function(DismissDirection dir) confirmDismiss =
         (dir) async {
       if (dir == DismissDirection.startToEnd) return true;
-      return await Atleta.fromDialog(context: context, user: request);
+      return await Athlete.fromDialog(context: context, request: request);
     };
 
     return CustomDismissible(
@@ -90,31 +87,24 @@ class _AthletesRouteState extends State<AthletesRoute> {
         fontWeight: FontWeight.bold, color: Theme.of(context).primaryColorDark);
 
     final bool hasRequests = userC.requests.isNotEmpty;
-    final bool hasAthletes = groups.any((group) => group.atleti.isNotEmpty);
+    final bool hasAthletes = userC.athletes.isNotEmpty;
     final bool hasChildren = hasRequests || hasAthletes;
 
     final List<Widget> children = <Widget>[];
     if (hasRequests) {
       children.add(_subtitle('nuove richieste'));
-      children.addAll(
-        userC.requests.entries.map(
-          (entry) => _requestWidget(entry.key, entry.value),
-        ),
-      );
+      children.addAll(userC.requests.map((request) => _requestWidget(request)));
     }
 
     if (hasAthletes) {
       children.add(_subtitle('i tuoi atleti'));
       children.addAll(
-        groups.expand(
-          (group) => group.atleti.map(
-            (atleta) => AthleteWidget(
-              atleta: atleta,
-              group: group,
-              subtitle1Bold: _subtitle1Bold,
-              overlineBoldPrimaryDark: _overlineBoldPrimaryDark,
-              onModified: () => setState(() {}),
-            ),
+        userC.athletes.map(
+          (atleta) => AthleteWidget(
+            atleta: atleta,
+            subtitle1Bold: _subtitle1Bold,
+            overlineBoldPrimaryDark: _overlineBoldPrimaryDark,
+            onModified: () => setState(() {}),
           ),
         ),
       );

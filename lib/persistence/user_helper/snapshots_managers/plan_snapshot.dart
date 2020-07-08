@@ -1,4 +1,3 @@
-import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/plan/tabella.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
