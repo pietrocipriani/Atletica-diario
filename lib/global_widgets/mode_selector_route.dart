@@ -1,6 +1,6 @@
-import 'package:Atletica/athlete_role/main.dart';
-import 'package:Atletica/coach_role/main.dart';
-import 'package:Atletica/persistence/firestore.dart';
+import 'package:AtleticaCoach/athlete_role/main.dart';
+import 'package:AtleticaCoach/coach_role/main.dart';
+import 'package:AtleticaCoach/persistence/firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -38,7 +38,7 @@ class ModeSelectorRoute extends StatelessWidget {
                       ),
                       RaisedButton(
                         onPressed: () async {
-                          await setRole('coach');
+                          await setRole(COACH_ROLE);
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -72,7 +72,7 @@ class ModeSelectorRoute extends StatelessWidget {
                       ),
                       RaisedButton(
                         onPressed: () async {
-                          await setRole('athlete');
+                          await setRole(ATHLETE_ROLE);
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(

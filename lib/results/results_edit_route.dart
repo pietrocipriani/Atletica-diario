@@ -1,9 +1,8 @@
-import 'package:Atletica/main.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/results/results_edit_dialog.dart';
-import 'package:Atletica/results/simple_training.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/main.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/results/result.dart';
+import 'package:AtleticaCoach/results/results_edit_dialog.dart';
 import 'package:flutter/material.dart';
 
 class ResultsEditRoute extends StatelessWidget {
@@ -16,56 +15,56 @@ class ResultsEditRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('RISULTATI'),
+      ),
       body: ListView(
         children: results.results.keys
-            .map((a) => ListTile(
-                  title: Text(userC.rawAthletes[a].name),
-                  trailing: IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () => showResultsEditDialog(
+            .map((a) => CustomDismissible(
+                  key: ValueKey(hashList([results, a])),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) {
+                    showResultsEditDialog(
                       context,
                       results.results[a],
                       (r) => userC.saveResult(
                         athlete: a,
                         dateIdentifier: _dateIdentifierFormatter(),
                         results: r,
+                        training: results.training.name,
                       ),
+                    );
+                    return Future.value(false);
+                  },
+                  child: ListTile(
+                    title: Text(userC.rawAthletes[a].name),
+                    trailing: StreamBuilder(
+                      stream: userC.resultSnapshots(
+                        athlete: userC.rawAthletes[a],
+                        dateIdentifier: _dateIdentifierFormatter(),
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.data?.data != null) {
+                          results.update(a, snapshot.data['results'].cast<String>());
+                        }
+                        final int count = results.results[a].values
+                            .where((v) => v != null)
+                            .length;
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              '$count/${results.ripetuteCount}',
+                              style: Theme.of(context).textTheme.headline5,
+                            ),
+                            Text(
+                              singularPlural('risultat', 'o', 'i', count),
+                              style: Theme.of(context).textTheme.overline,
+                            )
+                          ],
+                        );
+                      },
                     ),
-                  ),
-                  leading: StreamBuilder<DocumentSnapshot>(
-                    stream: userC.resultSnapshots(
-                      athlete: a,
-                      dateIdentifier: _dateIdentifierFormatter(),
-                    ),
-                    builder: (context, snapshot) {
-                      if (snapshot.data?.data != null) {
-                        final Map<String, dynamic> data = snapshot.data.data;
-                        data.entries.forEach((r) {
-                          final int index = int.tryParse(r.key.substring(0, 3));
-                          if (index == null ||
-                              index < 0 ||
-                              index >= results.training.ripetute.length) return;
-                          final String name = r.key.substring(3);
-                          final SimpleRipetuta rip =
-                              results.training.ripetute[index];
-                          if (rip.name != name) return;
-                          results.results[a][rip] = r.value;
-                        });
-                      }
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            '${snapshot.data == null ? 0 : snapshot.data.data.entries.where((e) => e.value != null).length}/${results.ripetuteCount}',
-                            style: Theme.of(context).textTheme.headline5,
-                          ),
-                          Text(
-                            singularPlural('risultat', 'o', 'i', 0),
-                            style: Theme.of(context).textTheme.overline,
-                          )
-                        ],
-                      );
-                    },
                   ),
                 ))
             .toList(),

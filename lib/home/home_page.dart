@@ -1,11 +1,10 @@
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/results/results_edit_route.dart';
-import 'package:Atletica/results/simple_training.dart';
-import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
+import 'package:AtleticaCoach/results/result.dart';
+import 'package:AtleticaCoach/results/results_edit_route.dart';
+import 'package:AtleticaCoach/results/simple_training.dart';
+import 'package:AtleticaCoach/schedule/schedule.dart';
+import 'package:AtleticaCoach/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
@@ -29,14 +28,17 @@ class _HomePageWidgetState extends State<HomePageWidget> {
 
   final Callback callback = Callback();
 
+  /// must listen `onAthleteCallbacks` because insertion/removal
+  /// can change schedule's disponibility
+  /// ```
+  /// Iterable<Schedule> get avaiableSchedules =>
+  ///   schedules.values.where((s) => s.athletes.isNotEmpty && s.isValid);
+  /// ```
   @override
   void initState() {
     callback.f = (_) => setState(() {});
     CoachHelper.onSchedulesCallbacks.add(callback);
 
-    /// must listen `onAthleteCallbacks` because insertion/removal
-    /// can change schedule's disponibility
-    /// see `avaiableSchedules`
     CoachHelper.onAthleteCallbacks.add(callback);
     super.initState();
   }
@@ -48,9 +50,14 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     super.dispose();
   }
 
-  Widget _todayTrainingWidget(Allenamento a) {
+  Widget _todayTrainingWidget(final Schedule s) {
+    final Allenamento a = s.todayTraining;
+    assert(a != null);
     return ListTile(
-      title: Text(a.name),
+      title: Text(
+        s.todayTraining.name,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       leading: IconButton(
         icon: Icon(Mdi.poll),
         onPressed: () => Navigator.push(
@@ -59,17 +66,24 @@ class _HomePageWidgetState extends State<HomePageWidget> {
               builder: (context) => ResultsEditRoute(
                 Result(
                   training: SimpleTraining.from(a),
-                  athletes: userC.athletes.map((a) => a.reference),
+                  athletes: s.athletesRefs,
                 ),
               ),
             )),
         color: Colors.black,
       ),
-      trailing: IconButton(
+      subtitle: Text(
+        s.joinAthletes,
+        style: Theme.of(context).textTheme.overline.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+      ),
+      /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
         onPressed: () {},
         color: Colors.black,
-      ),
+      ),*/
     );
   }
 

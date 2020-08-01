@@ -1,4 +1,4 @@
-import 'package:Atletica/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
@@ -15,7 +15,7 @@ class SimpleTemplate {
   }
 
   Future<void> create() {
-    return userC.coachReference
+    return user.userReference
         .collection('templates')
         .document(name)
         .setData({'lastTarget': lastTarget});

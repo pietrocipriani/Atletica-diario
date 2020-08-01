@@ -1,5 +1,5 @@
-import 'package:Atletica/athlete_role/request_coach.dart';
-import 'package:Atletica/persistence/auth.dart';
+import 'package:AtleticaCoach/athlete_role/request_coach.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
 import 'package:flutter/material.dart';
 
 class AthleteMainPage extends StatelessWidget {

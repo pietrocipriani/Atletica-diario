@@ -1,13 +1,12 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/firestore.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/athlete_snapshot.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/plan_snapshot.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/schedule_snapshot.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/template_snapshot.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
-import 'package:Atletica/results/simple_training.dart';
-import 'package:Atletica/schedule/schedule.dart';
+import 'package:AtleticaCoach/athlete/atleta.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/firestore.dart';
+import 'package:AtleticaCoach/persistence/user_helper/snapshots_managers/athlete_snapshot.dart';
+import 'package:AtleticaCoach/persistence/user_helper/snapshots_managers/plan_snapshot.dart';
+import 'package:AtleticaCoach/persistence/user_helper/snapshots_managers/schedule_snapshot.dart';
+import 'package:AtleticaCoach/persistence/user_helper/snapshots_managers/template_snapshot.dart';
+import 'package:AtleticaCoach/persistence/user_helper/snapshots_managers/training_snapshot.dart';
+import 'package:AtleticaCoach/results/simple_training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +18,7 @@ class CoachHelper extends FirebaseUserHelper {
   static final List<Callback> onPlansCallbacks = [];
   static final List<Callback> onSchedulesCallbacks = [];
 
-  final DocumentReference coachReference;
-
-  final Map<DocumentReference, Athlete> rawAthletes = {};
+  Map<DocumentReference, Athlete> rawAthletes = {};
   List<Athlete> get requests =>
       List.unmodifiable(rawAthletes.values.where((a) => a.isRequest));
   List<Athlete> get athletes =>
@@ -50,31 +47,39 @@ class CoachHelper extends FirebaseUserHelper {
   CoachHelper({
     @required FirebaseUser user,
     @required DocumentReference userReference,
-  })  : coachReference = firestore.collection('coaches').document(user.uid),
-        super(user: user, userReference: userReference) {
+  }) : super(user: user, userReference: userReference) {
     firestore
         .collection('global')
         .document('templates')
         .get()
         .then((snapshot) => addGlobalTemplates(snapshot));
-    coachReference
+    userReference
         .collection('templates')
         .snapshots()
         .listen((snap) => listener(snap, templateSnapshot));
 
-    coachReference.collection('athletes').snapshots().listen((snap) async {
+    userReference.collection('athletes').snapshots().listen((snap) async {
       if (await listener(snap, athleteSnapshot)) {
+        final List<Athlete> athletes = rawAthletes.values.toList();
+        athletes.sort((a, b) {
+          int compare = 0;
+          if (a.group != null) compare += a.group.compareTo(b.group ?? '') * 4;
+          if (a.name != null) compare += a.name.compareTo(b.name ?? '') * 2;
+          return compare;
+        });
+        rawAthletes = Map.fromIterable(athletes,
+            key: (a) => a.reference, value: (a) => a);
         requestsCallAll();
         athletesCallAll();
       }
     });
-    coachReference.collection('trainings').snapshots().listen((snap) async {
+    userReference.collection('trainings').snapshots().listen((snap) async {
       if (await listener(snap, trainingSnapshot)) trainingsCallAll();
     });
-    coachReference.collection('plans').snapshots().listen((snap) async {
+    userReference.collection('plans').snapshots().listen((snap) async {
       if (await listener(snap, planSnapshot)) plansCallAll();
     });
-    coachReference.collection('schedules').snapshots().listen((snap) async {
+    userReference.collection('schedules').snapshots().listen((snap) async {
       if (await listener(snap, scheduleSnapshot)) schedulesCallAll();
     });
   }
@@ -86,10 +91,10 @@ class CoachHelper extends FirebaseUserHelper {
     String nickname,
     String group,
   ) {
-    return coachReference
+    return userReference
         .collection('athletes')
-        .document(athlete.documentID)
-        .setData({'user': athlete, 'nickname': nickname, 'group': group});
+        .document(athlete?.documentID)
+        .setData({'nickname': nickname, 'group': group});
   }
 
   Future<void> acceptRequest(
@@ -112,26 +117,30 @@ class CoachHelper extends FirebaseUserHelper {
     @required DocumentReference athlete,
     @required String dateIdentifier,
     @required Map<SimpleRipetuta, double> results,
+    @required String training,
   }) async {
-    athlete = (await athlete.get())['athlete'] ?? athlete;
-    athlete.collection('results').document(dateIdentifier).setData(
-          results.entries
-              .toList()
-              .asMap()
-              .map((index, entry) => MapEntry(
-                    index.toString().padLeft(3, '0') + entry.key.name,
-                    entry.value,
-                  ))
-                ..removeWhere((index, value) => value == null),
-          merge: true,
-        );
+    rawAthletes[athlete]
+        .resultsDoc
+        .collection('results')
+        .document(dateIdentifier)
+        .setData({
+      'coach': uid,
+      'training': training,
+      'results':
+          results.entries.map((e) => '${e.key.name}:${e.value}').toList(),
+    }, merge: true);
   }
 
-  Stream<DocumentSnapshot> resultSnapshots({
-    @required DocumentReference athlete,
-    @required String dateIdentifier,
+  Stream resultSnapshots({
+    @required Athlete athlete,
+    String dateIdentifier,
   }) async* {
-    athlete = (await athlete.get())['athlete'] ?? athlete;
-    yield* athlete.collection('results').document(dateIdentifier).snapshots();
+    final DocumentReference ref = athlete.resultsDoc;
+    if (dateIdentifier == null)
+      yield* ref
+          .collection('results')
+          .where('coach', isEqualTo: uid)
+          .snapshots();
+    yield* ref.collection('results').document(dateIdentifier).snapshots();
   }
 }

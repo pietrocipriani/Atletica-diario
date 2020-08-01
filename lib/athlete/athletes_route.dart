@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:Atletica/athlete/athlete_widget.dart';
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:AtleticaCoach/athlete/athlete_widget.dart';
+import 'package:AtleticaCoach/athlete/atleta.dart';
+import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AthletesRoute extends StatefulWidget {
   @override
@@ -19,6 +20,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
   final Callback<Event> _callback = Callback<Event>();
   Icon _requestIcon;
   TextStyle _subtitle1Bold, _overlineBoldPrimaryDark;
+  bool _showUidInfo = false;
 
   @override
   void initState() {
@@ -49,8 +51,32 @@ class _AthletesRouteState extends State<AthletesRoute> {
     );
   }
 
+  Widget get _uidInfo => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: RichText(
+          text: TextSpan(
+            text: 'questo è il tuo ',
+            children: [
+              TextSpan(
+                text: 'userC id',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+              TextSpan(
+                  text:
+                      ', condividilo con i tuoi atleti per sincronizzare i dati. '),
+              TextSpan(
+                text: 'TAP TO COPY',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              )
+            ],
+            style: Theme.of(context).textTheme.overline,
+          ),
+          textAlign: TextAlign.justify,
+        ),
+      );
+
   Widget _requestWidget(Athlete request) {
-    final Widget title = Text(request.realName, style: _subtitle1Bold);
+    final Widget title = Text(request.name, style: _subtitle1Bold);
 
     final Widget content = ListTile(leading: _requestIcon, title: title);
     final FutureOr<void> Function(DismissDirection dir) onDismissed =
@@ -90,7 +116,34 @@ class _AthletesRouteState extends State<AthletesRoute> {
     final bool hasAthletes = userC.athletes.isNotEmpty;
     final bool hasChildren = hasRequests || hasAthletes;
 
-    final List<Widget> children = <Widget>[];
+    final List<Widget> children = <Widget>[
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: Icon(Icons.info),
+            onPressed: () => setState(() => _showUidInfo = !_showUidInfo),
+            color: _showUidInfo
+                ? Theme.of(context).primaryColorDark
+                : Colors.black,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: InkWell(
+              onTap: () => Clipboard.setData(ClipboardData(text: userC.uid)),
+              child: Text(
+                userC.uid,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+          )
+        ],
+      )
+    ];
+    if (_showUidInfo) children.add(_uidInfo);
     if (hasRequests) {
       children.add(_subtitle('nuove richieste'));
       children.addAll(userC.requests.map((request) => _requestWidget(request)));
@@ -111,12 +164,19 @@ class _AthletesRouteState extends State<AthletesRoute> {
     }
 
     final Widget body = hasChildren
-        ? Column(children: children)
-        : Center(child: Text('non hai nessun atleta'));
+        ? ListView(children: children)
+        : Column(
+            children: children
+              ..add(Center(child: Text('non hai nessun atleta'))),
+          );
 
     return Scaffold(
       appBar: _appBar,
       body: body,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Athlete.fromDialog(context: context),
+        child: Icon(Icons.add),
+      ),
     );
   }
 }

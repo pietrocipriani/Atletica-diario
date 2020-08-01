@@ -1,6 +1,6 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/persistence/auth.dart';
+import 'package:AtleticaCoach/athlete/atleta.dart';
+import 'package:AtleticaCoach/athlete/group.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
 import 'package:flutter/material.dart';
 
 String _validator(String value, Athlete atleta, bool isNew) {
@@ -28,17 +28,16 @@ bool _shouldRemoveGroup(Group group, Group selectedGroup, Athlete atleta) {
 Widget dialog({@required BuildContext context, Athlete atleta}) {
   final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1;
   final TextStyle overline = Theme.of(context).textTheme.overline;
-  final TextStyle overlineLineThrough = overline.copyWith(
-    decoration: TextDecoration.lineThrough,
-  );
+  final TextStyle overlineLineThrough =
+      overline.copyWith(decoration: TextDecoration.lineThrough);
 
   bool isNew = atleta == null || atleta.isRequest;
   final String mode = isNew ? 'Aggiungi' : 'Modifica';
   final TextEditingController controller =
-      TextEditingController(text: atleta?.name ?? atleta?.realName);
+      TextEditingController(text: atleta?.name);
 
   final FocusNode addGroupNode = FocusNode();
-  String groupName = atleta?.group ?? lastGroup;
+  final String groupName = atleta?.group ?? lastGroup;
   Group selectedGroup =
       groupName == null ? Group.groups.first : Group(name: groupName);
 
@@ -49,7 +48,7 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
     return _newGroupValidator(value);
   };
 
-  final Widget title = Text('$mode Athlete');
+  final Widget title = Text('$mode Atleta');
   final Widget groupSelectorTitle = Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
     child: Text('seleziona il gruppo:', style: bodyText1),
@@ -128,10 +127,11 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
               ? null
               : () async {
                   String group = selectedGroup?.name ?? groupController.text;
-                  // TODO: create athlete without request
+                  print ('group: $group');
                   if (atleta != null)
                     await atleta.update(
                         nickname: controller.text, group: group);
+                  else Athlete.create(nickname: controller.text, group: group);
                   Navigator.pop(context, true);
                 },
           child: Text(mode),

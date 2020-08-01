@@ -1,12 +1,12 @@
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/global_widgets/duration_picker.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/recupero/recupero.dart';
-import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/global_widgets/custom_expansion_tile.dart';
+import 'package:AtleticaCoach/global_widgets/delete_confirm_dialog.dart';
+import 'package:AtleticaCoach/global_widgets/duration_picker.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
+import 'package:AtleticaCoach/recupero/recupero.dart';
+import 'package:AtleticaCoach/ripetuta/ripetuta.dart';
+import 'package:AtleticaCoach/ripetuta/template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ class Allenamento {
   }
 
   static Future<void> create() =>
-      userC.coachReference.collection('trainings').add({
+      user.userReference.collection('trainings').add({
         'name': 'training #${allenamenti.length + 1}',
         'description': null,
         'serie': []
@@ -360,8 +360,6 @@ class TrainingInfoRoute extends StatefulWidget {
   @override
   _TrainingInfoRouteState createState() => _TrainingInfoRouteState();
 }
-
-// TODO: program  training without plan, in a single date
 
 class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
   bool editTitle = false;

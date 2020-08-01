@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:Atletica/global_widgets/duration_picker.dart';
+import 'package:AtleticaCoach/global_widgets/duration_picker.dart';
 import 'package:flutter/material.dart';
 
 class Recupero {

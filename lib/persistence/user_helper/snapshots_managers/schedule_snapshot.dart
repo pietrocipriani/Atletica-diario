@@ -1,4 +1,4 @@
-import 'package:Atletica/schedule/schedule.dart';
+import 'package:AtleticaCoach/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<bool> scheduleSnapshot(

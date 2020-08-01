@@ -1,6 +1,6 @@
-import 'package:Atletica/schedule/athletes_picker.dart';
-import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:AtleticaCoach/schedule/athletes_picker.dart';
+import 'package:AtleticaCoach/schedule/schedule.dart';
+import 'package:AtleticaCoach/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

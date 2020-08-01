@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/firestore.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 class AthleteHelper extends FirebaseUserHelper {
   static List<Callback> onCoachChanged = <Callback>[];
   void coachCallAll() => onCoachChanged.forEach((c) => c.call(null));
-
-  final DocumentReference athleteReference;
 
   DocumentReference _athleteCoachReference;
   StreamSubscription<DocumentSnapshot> _requestSubscription;
@@ -21,7 +19,7 @@ class AthleteHelper extends FirebaseUserHelper {
     _athleteCoachReference = reference;
     _requestSubscription = reference?.snapshots()?.listen((snap) {
       if (snap.data == null)
-        athleteReference.updateData({'coach': null});
+        userReference.updateData({'coach': null});
       else {
         accepted = snap['nickname'] != null && snap['group'] != null;
         coachCallAll();
@@ -40,13 +38,12 @@ class AthleteHelper extends FirebaseUserHelper {
   AthleteHelper({
     @required FirebaseUser user,
     @required DocumentReference userReference,
-  })  : athleteReference = firestore.collection('athletes').document(user.uid),
-        super(user: user, userReference: userReference) {
+  })  : super(user: user, userReference: userReference) {
     _init();
   }
 
   void _init() async {
-    athleteReference.snapshots().listen((snap) async {
+    userReference.snapshots().listen((snap) async {
       athleteCoachReference = snap['coach'];
       final DocumentSnapshot athleteCoachSnapshot =
           await athleteCoachReference?.get();
@@ -60,7 +57,7 @@ class AthleteHelper extends FirebaseUserHelper {
   Future<bool> requestCoach({@required String uid}) async {
     if (uid == null || uid == user.uid) return false;
     final DocumentReference request = firestore
-        .collection('coaches')
+        .collection('users')
         .document(uid)
         .collection('athletes')
         .document(user.uid);
@@ -68,8 +65,8 @@ class AthleteHelper extends FirebaseUserHelper {
     final WriteBatch batch = firestore.batch();
 
     if (athleteCoachReference != null) batch.delete(athleteCoachReference);
-    batch.updateData(athleteReference, {'coach': request});
-    batch.setData(request, {'athlete': athleteReference}, merge: true);
+    batch.updateData(userReference, {'coach': request});
+    batch.setData(request, {'athlete': userReference}, merge: true);
 
     await batch.commit();
     return true;

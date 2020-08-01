@@ -1,9 +1,9 @@
-import 'package:Atletica/athlete/athletes_route.dart';
-import 'package:Atletica/home/home_page.dart';
-import 'package:Atletica/main.dart';
-import 'package:Atletica/plan/tabella.dart';
-import 'package:Atletica/schedule/schedule_route.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:AtleticaCoach/athlete/athletes_route.dart';
+import 'package:AtleticaCoach/home/home_page.dart';
+import 'package:AtleticaCoach/main.dart';
+import 'package:AtleticaCoach/plan/tabella.dart';
+import 'package:AtleticaCoach/schedule/schedule_route.dart';
+import 'package:AtleticaCoach/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 

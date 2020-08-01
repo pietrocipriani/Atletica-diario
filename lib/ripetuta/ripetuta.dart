@@ -1,8 +1,8 @@
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/ripetuta/template.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/global_widgets/duration_picker.dart';
-import 'package:Atletica/recupero/recupero.dart';
+import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/ripetuta/template.dart';
+import 'package:AtleticaCoach/training/allenamento.dart';
+import 'package:AtleticaCoach/global_widgets/duration_picker.dart';
+import 'package:AtleticaCoach/recupero/recupero.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 

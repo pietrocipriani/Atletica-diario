@@ -1,21 +1,21 @@
-import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/schedule/schedule_dialogs/plan_schedule_dialog_content.dart';
-import 'package:Atletica/schedule/schedule_dialogs/training_schedule_dialog_content.dart';
-import 'package:Atletica/schedule/schedule_widgets/plan_schedule_widget.dart';
-import 'package:Atletica/schedule/schedule_widgets/schedule_widget.dart';
-import 'package:Atletica/schedule/schedule_widgets/training_schedule_widget.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/plan/tabella.dart';
+import 'package:AtleticaCoach/athlete/group.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/schedule/schedule_dialogs/plan_schedule_dialog_content.dart';
+import 'package:AtleticaCoach/schedule/schedule_dialogs/training_schedule_dialog_content.dart';
+import 'package:AtleticaCoach/schedule/schedule_widgets/plan_schedule_widget.dart';
+import 'package:AtleticaCoach/schedule/schedule_widgets/schedule_widget.dart';
+import 'package:AtleticaCoach/schedule/schedule_widgets/training_schedule_widget.dart';
+import 'package:AtleticaCoach/training/allenamento.dart';
+import 'package:AtleticaCoach/athlete/atleta.dart';
+import 'package:AtleticaCoach/plan/tabella.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 Map<DocumentReference, Schedule> schedules = <DocumentReference, Schedule>{};
 Iterable<Schedule> get avaiableSchedules =>
-    schedules.values.where((s) => s.athletes.isNotEmpty);
-Iterable<Allenamento> get todayTrainings =>
-    avaiableSchedules.map((s) => s.todayTraining).where((t) => t != null);
+    schedules.values.where((s) => s.athletes.isNotEmpty && s.isValid);
+Iterable<Schedule> get todayTrainings =>
+    avaiableSchedules.where((s) => s.todayTraining != null);
 
 DateTime bareDT([DateTime dt]) {
   dt ??= DateTime.now();
@@ -63,10 +63,12 @@ abstract class Schedule<T extends dynamic> {
     @required DateTime date,
     @required List<DocumentReference> athletes,
   }) {
-    return userC.coachReference
+    return userC.userReference
         .collection('schedules')
         .add({'work': work, 'date': date, 'athletes': athletes});
   }
+
+  bool get isValid;
 
   ScheduleWidget<Schedule<T>> get widget;
 
@@ -124,9 +126,12 @@ class PlanSchedule extends Schedule<Tabella> {
   }
 
   @override
+  bool get isValid => !bareDT(to).isBefore(bareDT());
+
+  @override
   Future<void> create() {
     assert(reference == null);
-    return userC.coachReference.collection('schedules').add({
+    return userC.userReference.collection('schedules').add({
       'work': workRef,
       'date': date,
       'to': to,
@@ -171,6 +176,9 @@ class TrainingSchedule extends Schedule<Allenamento> {
   Widget content({BuildContext context, void Function() onChanged}) {
     return TrainingScheduleDialogContent(onChanged: onChanged, schedule: this);
   }
+
+  @override
+  bool get isValid => !bareDT(date).isBefore(bareDT());
 
   @override
   Future<void> create() =>

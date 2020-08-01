@@ -1,4 +1,4 @@
-import 'package:Atletica/schedule/schedule.dart';
+import 'package:AtleticaCoach/schedule/schedule.dart';
 import 'package:flutter/material.dart';
 
 Widget _typeBtn({

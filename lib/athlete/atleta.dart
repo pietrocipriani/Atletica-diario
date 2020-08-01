@@ -1,32 +1,47 @@
 import 'dart:async';
 
-import 'package:Atletica/athlete/athlete_dialog.dart';
-import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:AtleticaCoach/athlete/athlete_dialog.dart';
+import 'package:AtleticaCoach/athlete/group.dart';
+import 'package:AtleticaCoach/persistence/auth.dart' as auth;
+import 'package:AtleticaCoach/persistence/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Athlete {
   /// `reference` is the reference for [coaches/$coachUid/athletes/$id]
+  final String uid;
+  final DocumentReference athlete;
   final DocumentReference reference;
-  final String realName;
+  DocumentReference get resultsDoc => athlete ?? reference;
+
   String name, _group;
   String get group => _group;
   set group(String group) => lastGroup = (_group = group) ?? lastGroup;
-  List<Allenamento> allenamenti = <Allenamento>[];
 
-  bool get isRequest => name == null || group == null;
-  bool get isAthlete => name != null && group != null;
+  int trainingsCount = 0;
+  StreamSubscription _trainingsCountSubscription;
+
+  bool get isRequest => group == null;
+  bool get isAthlete => group != null;
 
   bool dismissed = false;
 
-  /// `raw` is the snapshot for [coaches/$coachUid/athletes/$id]
-  /// `user` is the snapshot for [coaches/$coachUid/athletes/$id/athlete -> /user]
-  Athlete.parse({DocumentSnapshot raw, DocumentSnapshot user})
+  /// `reference` is the reference to [users/$coachUid/athletes/$uid]
+  /// `athlete` is the reference to [users/$uid]
+  Athlete.parse(DocumentSnapshot raw, bool exists)
       : reference = raw.reference,
-        realName = user['name'] {
+        uid = exists ? raw.documentID : null,
+        athlete = exists
+            ? firestore.collection('users').document(raw.documentID)
+            : null {
     name = raw['nickname'];
     group = raw['group'];
+    _trainingsCountSubscription =
+        auth.userC.resultSnapshots(athlete: this).listen((e) {
+      if (e == null) return;
+      final QuerySnapshot cast = e;
+      trainingsCount = cast.documents.length;
+    });
   }
 
   static Future<bool> fromDialog(
@@ -42,9 +57,16 @@ class Athlete {
   Future<void> update({@required String nickname, @required String group}) =>
       reference.updateData({'nickname': nickname, 'group': group});
 
+  static Future<void> create({
+    @required String nickname,
+    @required String group,
+  }) =>
+      auth.userC.addAthlete(null, nickname, group);
+
   /// deleted `this` Athlete from `firestore`.
   Future<void> delete() {
     dismissed = true;
+    _trainingsCountSubscription?.cancel();
     return reference.delete();
   }
 

@@ -1,10 +1,10 @@
-import 'package:Atletica/athlete/athletes_route.dart';
-import 'package:Atletica/main.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/running_training/running_training.dart';
-import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/schedule/schedule_dialogs/schedule_dialog.dart';
+import 'package:AtleticaCoach/athlete/athletes_route.dart';
+import 'package:AtleticaCoach/main.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
+import 'package:AtleticaCoach/running_training/running_training.dart';
+import 'package:AtleticaCoach/schedule/schedule.dart';
+import 'package:AtleticaCoach/schedule/schedule_dialogs/schedule_dialog.dart';
 import 'package:flutter/material.dart';
 
 class ScheduleRoute extends StatefulWidget {

@@ -1,8 +1,8 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/global_widgets/link_line/athlete_link_line_widget.dart';
-import 'package:Atletica/global_widgets/link_line/result_link_line_widget.dart';
-import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:AtleticaCoach/athlete/atleta.dart';
+import 'package:AtleticaCoach/global_widgets/link_line/athlete_link_line_widget.dart';
+import 'package:AtleticaCoach/global_widgets/link_line/result_link_line_widget.dart';
+import 'package:AtleticaCoach/ripetuta/ripetuta.dart';
+import 'package:AtleticaCoach/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 
 class Keys {

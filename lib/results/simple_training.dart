@@ -1,11 +1,13 @@
-import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:AtleticaCoach/ripetuta/ripetuta.dart';
+import 'package:AtleticaCoach/training/allenamento.dart';
 
 class SimpleTraining {
+  final String name;
   final List<SimpleRipetuta> ripetute;
 
   SimpleTraining.from(Allenamento training)
-      : ripetute = List.unmodifiable(
+      : name = training.name,
+        ripetute = List.unmodifiable(
           training.ripetute.map((r) => SimpleRipetuta.from(r)),
         );
 }
@@ -15,4 +17,7 @@ class SimpleRipetuta {
 
   SimpleRipetuta(this.name);
   SimpleRipetuta.from(Ripetuta r) : name = r.template;
+
+  @override
+  String toString() => name;
 }

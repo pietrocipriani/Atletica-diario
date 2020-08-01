@@ -1,4 +1,4 @@
-import 'package:Atletica/plan/tabella.dart';
+import 'package:AtleticaCoach/plan/tabella.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<bool> planSnapshot(

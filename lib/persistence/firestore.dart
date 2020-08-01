@@ -1,7 +1,9 @@
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/persistence/user_helper/athlete_helper.dart';
+import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+const String COACH_ROLE = 'coach', ATHLETE_ROLE = 'athlete';
 
 Firestore firestore = Firestore.instance;
 
@@ -10,43 +12,31 @@ DocumentReference userFromUid(final String uid) =>
 
 Future<void> initFirestore() async {
   await firestore.settings(persistenceEnabled: true);
-  final DocumentReference userDoc =
-      firestore.collection('users').document(rawUser.uid);
+  final DocumentReference userDoc = userFromUid(rawUser.uid);
   final DocumentSnapshot snapshot = await userDoc.get();
-  if (snapshot.data == null) {
-    final WriteBatch batch = firestore.batch();
-    batch.setData(userDoc, {'name': rawUser.displayName});
-    batch.setData(
-      firestore.collection('coaches').document(rawUser.uid),
-      {'user': userDoc},
-    );
-    batch.setData(
-      firestore.collection('athletes').document(rawUser.uid),
-      {'user': userDoc, 'coach': null},
-    );
-    await batch.commit();
-  } else {
-    String role = snapshot.data['role'];
-    assert(role == 'coach' || role == 'athlete');
-    if (role == 'coach')
-      user =
-          CoachHelper(user: rawUser, userReference: userFromUid(rawUser.uid));
-    else if (role == 'athlete')
-      user =
-          AthleteHelper(user: rawUser, userReference: userFromUid(rawUser.uid));
+  if (!snapshot.exists)
+    await userDoc.setData({'name': rawUser.displayName});
+  else if (snapshot['role'] != null) {
+    print(snapshot['role']);
+    if (snapshot['role'] == COACH_ROLE)
+      user = CoachHelper(
+        user: rawUser,
+        userReference: userFromUid(rawUser.uid),
+      );
+    else if (snapshot['role'] == ATHLETE_ROLE)
+      user = AthleteHelper(
+        user: rawUser,
+        userReference: userFromUid(rawUser.uid),
+      );
   }
 }
 
-Future<void> setRole(String role) async {
-  if (hasRole) return;
-  assert(role == 'coach' || role == 'athlete');
-  if (role == 'coach')
-    user = CoachHelper(user: rawUser, userReference: userFromUid(rawUser.uid));
-  else if (role == 'athlete')
-    user =
-        AthleteHelper(user: rawUser, userReference: userFromUid(rawUser.uid));
-  await firestore
-      .collection('users')
-      .document(user.uid)
-      .updateData({'role': role});
+Future<void> setRole(String role) {
+  assert(user == null && (role == COACH_ROLE || role == ATHLETE_ROLE));
+  final DocumentReference userReference = userFromUid(rawUser.uid);
+  if (role == COACH_ROLE)
+    user = CoachHelper(user: rawUser, userReference: userReference);
+  else if (role == ATHLETE_ROLE)
+    user = AthleteHelper(user: rawUser, userReference: userReference);
+  return userReference.updateData({'role': role});
 }

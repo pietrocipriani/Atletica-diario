@@ -1,7 +1,7 @@
-import 'package:Atletica/global_widgets/mode_selector_route.dart';
-import 'package:Atletica/global_widgets/splash_screen.dart';
-import 'package:Atletica/home/home_page.dart';
-import 'package:Atletica/persistence/auth.dart';
+import 'package:AtleticaCoach/global_widgets/mode_selector_route.dart';
+import 'package:AtleticaCoach/global_widgets/splash_screen.dart';
+import 'package:AtleticaCoach/home/home_page.dart';
+import 'package:AtleticaCoach/persistence/auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +12,8 @@ import 'package:vibration/vibration.dart';
 
 const double kListTileHeight = 72.0;
 
-/* 
-TODO: user sign out
-TODO: block app on user login refuse
-*/
+
+// TODO: user sign out
 PackageInfo packageInfo;
 
 bool canVibrate, vibrationAmplitude, vibrationCustomPattern;
@@ -34,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Atletica',
+      title: 'Atletica - Coach',
       theme: ThemeData(
         primarySwatch: Colors.amber,
         dialogTheme: DialogTheme(
@@ -92,6 +90,7 @@ class MyHomePageState extends State<MyHomePage> {
     ));
     final Widget divider = Container(
       color: Colors.grey[300],
+import 'package:cloud_firestore/cloud_firestore.dart';
       width: double.infinity,
       height: 1,
       margin: const EdgeInsets.symmetric(vertical: 10),

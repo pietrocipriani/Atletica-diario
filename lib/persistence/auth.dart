@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:Atletica/persistence/firestore.dart';
-import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:AtleticaCoach/persistence/firestore.dart';
+import 'package:AtleticaCoach/persistence/user_helper/athlete_helper.dart';
+import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ GoogleSignInAuthentication _auth;
 
 dynamic _user;
 set user(dynamic user) {
-  assert(user == null || user is FirebaseUser || user is FirebaseUserHelper);
+  assert(user == null || user is FirebaseUserHelper || user is FirebaseUser);
   _user = user;
 }
 
@@ -57,6 +57,7 @@ class Request extends BasicUser {
       : super(uid: uid, name: name);
 }
 
+// FIXME: sometimes returns null... no error printed
 Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
@@ -71,6 +72,7 @@ Stream<double> login({@required BuildContext context}) async* {
         await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
     if (_guser == null) await requestLoginDialog(context: context);
   } while (_guser == null);
+  
   yield 1 / N;
   _auth = await _guser.authentication;
   yield 2 / N;
@@ -84,7 +86,7 @@ Stream<double> login({@required BuildContext context}) async* {
   yield 3 / N;
   assert(rawUser != null);
   await initFirestore();
-  yield N / N;
+  yield 1;
 }
 
 Future<void> logout() async {
@@ -95,7 +97,7 @@ Future<void> logout() async {
 
 void changeAccount({@required BuildContext context}) async {
   await logout();
-  await for (double _ in login(context: context));
+  await for (double _ in login(context: context)) {}
 }
 
 Future requestLoginDialog({@required BuildContext context}) {
