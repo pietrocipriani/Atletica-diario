@@ -1,4 +1,5 @@
 import 'package:AtleticaCoach/global_widgets/alert_point.dart';
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:AtleticaCoach/global_widgets/link_line/link_line.dart';
 import 'package:AtleticaCoach/main.dart';
 import 'package:AtleticaCoach/ripetuta/template.dart';
@@ -174,7 +175,7 @@ class _RunningTrainingState extends State<RunningTraining>
       key: ValueKey(this),
       child: Column(
         children: <Widget>[
-          ListTile(
+          CustomListTile(
             onTap: () => _timerDialog(context: context, rip: rip),
             title: title,
             leading: tickerProvider.ticker?.isActive ?? false

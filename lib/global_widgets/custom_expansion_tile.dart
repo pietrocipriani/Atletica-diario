@@ -1,3 +1,4 @@
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:flutter/material.dart';
 
 const Duration _kExpand = Duration(milliseconds: 200);
@@ -88,7 +89,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        ListTile(
+        CustomListTile(
           title: Text(
             widget.title,
             style: TextStyle(

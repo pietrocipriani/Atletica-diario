@@ -1,4 +1,5 @@
 import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:AtleticaCoach/ripetuta/template.dart';
 import 'package:AtleticaCoach/training/allenamento.dart';
 import 'package:AtleticaCoach/global_widgets/duration_picker.dart';
@@ -262,7 +263,7 @@ class Ripetuta {
         onDismissed: (direction) => setState(() => serie.ripetute.remove(this)),
         child: Container(
           color: Theme.of(context).scaffoldBackgroundColor,
-          child: ListTile(
+          child: CustomListTile(
             leading: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[

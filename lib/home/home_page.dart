@@ -1,3 +1,4 @@
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:AtleticaCoach/persistence/auth.dart';
 import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
 import 'package:AtleticaCoach/results/result.dart';
@@ -53,7 +54,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   Widget _todayTrainingWidget(final Schedule s) {
     final Allenamento a = s.todayTraining;
     assert(a != null);
-    return ListTile(
+    return CustomListTile(
       title: Text(
         s.todayTraining.name,
         style: TextStyle(fontWeight: FontWeight.bold),

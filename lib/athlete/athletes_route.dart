@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:AtleticaCoach/athlete/athlete_widget.dart';
 import 'package:AtleticaCoach/athlete/atleta.dart';
 import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:AtleticaCoach/persistence/auth.dart';
 import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -58,7 +59,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
             text: 'questo è il tuo ',
             children: [
               TextSpan(
-                text: 'userC id',
+                text: 'user id',
                 style: TextStyle(fontWeight: FontWeight.w900),
               ),
               TextSpan(
@@ -69,7 +70,10 @@ class _AthletesRouteState extends State<AthletesRoute> {
                 style: TextStyle(fontWeight: FontWeight.w900),
               )
             ],
-            style: Theme.of(context).textTheme.overline,
+            style: Theme.of(context)
+                .textTheme
+                .overline
+                .copyWith(fontWeight: FontWeight.normal),
           ),
           textAlign: TextAlign.justify,
         ),
@@ -78,7 +82,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
   Widget _requestWidget(Athlete request) {
     final Widget title = Text(request.name, style: _subtitle1Bold);
 
-    final Widget content = ListTile(leading: _requestIcon, title: title);
+    final Widget content = CustomListTile(leading: _requestIcon, title: title);
     final FutureOr<void> Function(DismissDirection dir) onDismissed =
         (direction) async {
       await userC.refuseRequest(request.reference);

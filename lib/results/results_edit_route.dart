@@ -1,4 +1,5 @@
 import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:AtleticaCoach/main.dart';
 import 'package:AtleticaCoach/persistence/auth.dart';
 import 'package:AtleticaCoach/results/result.dart';
@@ -36,7 +37,7 @@ class ResultsEditRoute extends StatelessWidget {
                     );
                     return Future.value(false);
                   },
-                  child: ListTile(
+                  child: CustomListTile(
                     title: Text(userC.rawAthletes[a].name),
                     trailing: StreamBuilder(
                       stream: userC.resultSnapshots(

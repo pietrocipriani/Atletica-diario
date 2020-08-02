@@ -1,4 +1,5 @@
 import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:AtleticaCoach/global_widgets/delete_confirm_dialog.dart';
 import 'package:AtleticaCoach/schedule/schedule.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,7 @@ abstract class ScheduleWidget<T extends Schedule> extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomDismissible(
       key: ValueKey(schedule.reference),
-      child: ListTile(
+      child: CustomListTile(
         title: Text(
           schedule.work.name,
           style: TextStyle(fontWeight: FontWeight.bold),

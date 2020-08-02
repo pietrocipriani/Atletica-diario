@@ -2,6 +2,7 @@ import 'package:AtleticaCoach/global_widgets/mode_selector_route.dart';
 import 'package:AtleticaCoach/global_widgets/splash_screen.dart';
 import 'package:AtleticaCoach/home/home_page.dart';
 import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:AtleticaCoach/themes/light_theme.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -33,19 +34,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Atletica - Coach',
-      theme: ThemeData(
-        primarySwatch: Colors.amber,
-        dialogTheme: DialogTheme(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-        buttonTheme: ButtonThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-      ),
+      theme: lightTheme,
       home: SplashScreen(),
       supportedLocales: [Locale('it')],
       localizationsDelegates: [

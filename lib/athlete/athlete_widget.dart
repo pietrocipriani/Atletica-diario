@@ -1,7 +1,9 @@
 import 'package:AtleticaCoach/athlete/atleta.dart';
 import 'package:AtleticaCoach/athlete/results/results_route.dart';
 import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
+import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
 import 'package:AtleticaCoach/global_widgets/delete_confirm_dialog.dart';
+import 'package:AtleticaCoach/global_widgets/leading_info_widget.dart';
 import 'package:AtleticaCoach/main.dart';
 import 'package:flutter/material.dart';
 
@@ -22,25 +24,18 @@ class AthleteWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (atleta.dismissed) return Container();
 
-    final Widget child = ListTile(
-      onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResultsRouteList(atleta),
-          )),
-      title: Text(atleta.name, style: subtitle1Bold),
-      subtitle: Text(atleta.group, style: overlineBoldPrimaryDark),
-      trailing: Column(children: <Widget>[
-        Text(
-          '${atleta.trainingsCount}',
-          style: Theme.of(context).textTheme.headline5,
-        ),
-        Text(
-          singularPlural('allenament', 'o', 'i', atleta.trainingsCount),
-          style: Theme.of(context).textTheme.overline,
-        )
-      ]),
-    );
+    final Widget child = CustomListTile(
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultsRouteList(atleta),
+            )),
+        title: Text(atleta.name, style: subtitle1Bold),
+        subtitle: Text(atleta.group, style: overlineBoldPrimaryDark),
+        trailing: LeadingInfoWidget(
+          info: '${atleta.trainingsCount}',
+          bottom: singularPlural('allenament', 'o', 'i', atleta.trainingsCount),
+        ));
 
     Future<bool> confirmDismiss(DismissDirection dir) async {
       if (dir == DismissDirection.startToEnd)
