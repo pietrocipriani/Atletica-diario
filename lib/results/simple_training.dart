@@ -1,5 +1,5 @@
-import 'package:AtleticaCoach/ripetuta/ripetuta.dart';
-import 'package:AtleticaCoach/training/allenamento.dart';
+import 'package:Atletica/ripetuta/ripetuta.dart';
+import 'package:Atletica/training/allenamento.dart';
 
 class SimpleTraining {
   final String name;

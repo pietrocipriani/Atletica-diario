@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:AtleticaCoach/athlete/athlete_dialog.dart';
-import 'package:AtleticaCoach/athlete/group.dart';
-import 'package:AtleticaCoach/persistence/auth.dart' as auth;
-import 'package:AtleticaCoach/persistence/firestore.dart';
+import 'package:Atletica/athlete/athlete_dialog.dart';
+import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/persistence/auth.dart' as auth;
+import 'package:Atletica/persistence/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

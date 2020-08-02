@@ -1,10 +1,10 @@
-import 'package:AtleticaCoach/athlete/atleta.dart';
-import 'package:AtleticaCoach/athlete/results/results_route.dart';
-import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
-import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
-import 'package:AtleticaCoach/global_widgets/delete_confirm_dialog.dart';
-import 'package:AtleticaCoach/global_widgets/leading_info_widget.dart';
-import 'package:AtleticaCoach/main.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/athlete/results/results_route.dart';
+import 'package:Atletica/global_widgets/custom_dismissible.dart';
+import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:Atletica/global_widgets/leading_info_widget.dart';
+import 'package:Atletica/main.dart';
 import 'package:flutter/material.dart';
 
 class AthleteWidget extends StatelessWidget {

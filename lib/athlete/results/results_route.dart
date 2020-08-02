@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:AtleticaCoach/athlete/atleta.dart';
-import 'package:AtleticaCoach/athlete/results/result_widget.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/athlete/results/result_widget.dart';
+import 'package:Atletica/persistence/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

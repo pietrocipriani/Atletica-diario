@@ -1,6 +1,6 @@
-import 'package:AtleticaCoach/athlete/atleta.dart';
-import 'package:AtleticaCoach/athlete/group.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/persistence/auth.dart';
 import 'package:flutter/material.dart';
 
 String _validator(String value, Athlete atleta, bool isNew) {
@@ -27,7 +27,8 @@ bool _shouldRemoveGroup(Group group, Group selectedGroup, Athlete atleta) {
 
 Widget dialog({@required BuildContext context, Athlete atleta}) {
   final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1;
-  final TextStyle overline = Theme.of(context).textTheme.overline;
+  final TextStyle overlineSelected = Theme.of(context).textTheme.overline;
+  final TextStyle overline = overlineSelected.copyWith(fontWeight: FontWeight.normal);
   final TextStyle overlineLineThrough =
       overline.copyWith(decoration: TextDecoration.lineThrough);
 
@@ -110,7 +111,7 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
                     group.name,
                     style: _shouldRemoveGroup(group, selectedGroup, atleta)
                         ? overlineLineThrough
-                        : overline,
+                        : selectedGroup == group ? overlineSelected : overline,
                   ),
                 ),
               ),

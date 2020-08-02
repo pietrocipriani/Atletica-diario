@@ -1,6 +1,6 @@
-import 'package:AtleticaCoach/global_widgets/animated_text.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/persistence/user_helper/athlete_helper.dart';
+import 'package:Atletica/global_widgets/animated_text.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:flutter/material.dart';
 
 class RequestCoachRoute extends StatefulWidget {
@@ -91,7 +91,10 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                 RaisedButton.icon(
                   onPressed: userA.needsRequest
                       ? _hasText
-                          ? () => userA.requestCoach(uid: controller.text)
+                          ? () => userA.requestCoach(
+                                uid: controller.text,
+                                nickname: nameController.text,
+                              )
                           : null
                       : userA.hasRequest
                           ? () => userA.deleteCoachSubscription()

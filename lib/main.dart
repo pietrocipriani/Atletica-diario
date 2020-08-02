@@ -1,8 +1,8 @@
-import 'package:AtleticaCoach/global_widgets/mode_selector_route.dart';
-import 'package:AtleticaCoach/global_widgets/splash_screen.dart';
-import 'package:AtleticaCoach/home/home_page.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/themes/light_theme.dart';
+import 'package:Atletica/global_widgets/mode_selector_route.dart';
+import 'package:Atletica/global_widgets/splash_screen.dart';
+import 'package:Atletica/home/home_page.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/themes/light_theme.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';

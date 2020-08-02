@@ -1,6 +1,6 @@
-import 'package:AtleticaCoach/athlete/atleta.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/persistence/firestore.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<bool> athleteSnapshot(

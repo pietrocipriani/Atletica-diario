@@ -1,4 +1,4 @@
-import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/global_widgets/custom_list_tile.dart';
 import 'package:flutter/material.dart';
 
 const Duration _kExpand = Duration(milliseconds: 200);

@@ -1,5 +1,5 @@
-import 'package:AtleticaCoach/athlete/atleta.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/persistence/auth.dart';
 import 'package:flutter/material.dart';
 
 String lastGroup;

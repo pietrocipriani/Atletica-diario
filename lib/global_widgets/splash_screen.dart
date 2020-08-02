@@ -1,8 +1,8 @@
-import 'package:AtleticaCoach/athlete_role/main.dart';
-import 'package:AtleticaCoach/coach_role/main.dart';
-import 'package:AtleticaCoach/global_widgets/mode_selector_route.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/athlete_role/main.dart';
+import 'package:Atletica/coach_role/main.dart';
+import 'package:Atletica/global_widgets/mode_selector_route.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatelessWidget {

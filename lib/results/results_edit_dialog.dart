@@ -1,5 +1,5 @@
-import 'package:AtleticaCoach/results/simple_training.dart';
-import 'package:AtleticaCoach/ripetuta/template.dart';
+import 'package:Atletica/results/simple_training.dart';
+import 'package:Atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showResultsEditDialog(

@@ -1,6 +1,6 @@
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/persistence/user_helper/athlete_helper.dart';
-import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const String COACH_ROLE = 'coach', ATHLETE_ROLE = 'athlete';

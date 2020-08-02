@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:AtleticaCoach/athlete/athlete_widget.dart';
-import 'package:AtleticaCoach/athlete/atleta.dart';
-import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
-import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/athlete/athlete_widget.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/global_widgets/custom_dismissible.dart';
+import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -1,14 +1,23 @@
 import 'dart:async';
 
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/persistence/firestore.dart';
+import 'package:Atletica/athlete_role/result.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/firestore.dart';
+import 'package:Atletica/persistence/user_helper/snapshots_managers/result_snapshot.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AthleteHelper extends FirebaseUserHelper {
-  static List<Callback> onCoachChanged = <Callback>[];
+  static final List<Callback> onResultCallbacks = [];
+  static final List<Callback> onCoachChanged = <Callback>[];
+
+  final Map<DocumentReference, Result> results = {};
+
+  final Map<DateTime, List<dynamic>> events = {};
+
   void coachCallAll() => onCoachChanged.forEach((c) => c.call(null));
+  void resultsCallAll() => onResultCallbacks.forEach((c) => c.call(null));
 
   DocumentReference _athleteCoachReference;
   StreamSubscription<DocumentSnapshot> _requestSubscription;
@@ -38,13 +47,19 @@ class AthleteHelper extends FirebaseUserHelper {
   AthleteHelper({
     @required FirebaseUser user,
     @required DocumentReference userReference,
-  })  : super(user: user, userReference: userReference) {
+  }) : super(user: user, userReference: userReference) {
     _init();
   }
 
   void _init() async {
     userReference.snapshots().listen((snap) async {
-      athleteCoachReference = snap['coach'];
+      athleteCoachReference = snap['coach'] == null
+          ? null
+          : firestore
+              .collection('users')
+              .document(snap['coach'])
+              .collection('athletes')
+              .document(user.uid);
       final DocumentSnapshot athleteCoachSnapshot =
           await athleteCoachReference?.get();
       accepted = athleteCoachSnapshot?.data != null &&
@@ -52,9 +67,16 @@ class AthleteHelper extends FirebaseUserHelper {
           athleteCoachSnapshot['group'] != null;
       coachCallAll();
     });
+
+    userReference.collection('results').snapshots().listen((snap) {
+      bool modified = false;
+      for (DocumentChange change in snap.documentChanges)
+        modified |= resultSnapshot(change.document, change.type);
+      if (modified) resultsCallAll();
+    });
   }
 
-  Future<bool> requestCoach({@required String uid}) async {
+  Future<bool> requestCoach({@required String uid, @required String nickname}) async {
     if (uid == null || uid == user.uid) return false;
     final DocumentReference request = firestore
         .collection('users')
@@ -65,8 +87,8 @@ class AthleteHelper extends FirebaseUserHelper {
     final WriteBatch batch = firestore.batch();
 
     if (athleteCoachReference != null) batch.delete(athleteCoachReference);
-    batch.updateData(userReference, {'coach': request});
-    batch.setData(request, {'athlete': userReference}, merge: true);
+    batch.updateData(userReference, {'coach': uid});
+    batch.setData(request, {'nickname': nickname}, merge: true);
 
     await batch.commit();
     return true;

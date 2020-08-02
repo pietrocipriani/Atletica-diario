@@ -1,4 +1,4 @@
-name: AtleticaCoach
+name: Atletica
 description: training manager.
 
 # The following defines the version and build number for your application.
@@ -38,6 +38,7 @@ dependencies:
   package_info: ^0.4.1
   soundpool: ^1.1.1
   vibration: ^1.4.0
+  table_calendar: ^2.2.3
 
 
   # The following adds the Cupertino Icons font to your application.

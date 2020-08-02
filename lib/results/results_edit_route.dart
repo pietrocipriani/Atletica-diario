@@ -1,9 +1,9 @@
-import 'package:AtleticaCoach/global_widgets/custom_dismissible.dart';
-import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
-import 'package:AtleticaCoach/main.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/results/result.dart';
-import 'package:AtleticaCoach/results/results_edit_dialog.dart';
+import 'package:Atletica/global_widgets/custom_dismissible.dart';
+import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/main.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/results/result.dart';
+import 'package:Atletica/results/results_edit_dialog.dart';
 import 'package:flutter/material.dart';
 
 class ResultsEditRoute extends StatelessWidget {

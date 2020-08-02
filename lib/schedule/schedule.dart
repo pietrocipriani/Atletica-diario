@@ -1,13 +1,13 @@
-import 'package:AtleticaCoach/athlete/group.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/schedule/schedule_dialogs/plan_schedule_dialog_content.dart';
-import 'package:AtleticaCoach/schedule/schedule_dialogs/training_schedule_dialog_content.dart';
-import 'package:AtleticaCoach/schedule/schedule_widgets/plan_schedule_widget.dart';
-import 'package:AtleticaCoach/schedule/schedule_widgets/schedule_widget.dart';
-import 'package:AtleticaCoach/schedule/schedule_widgets/training_schedule_widget.dart';
-import 'package:AtleticaCoach/training/allenamento.dart';
-import 'package:AtleticaCoach/athlete/atleta.dart';
-import 'package:AtleticaCoach/plan/tabella.dart';
+import 'package:Atletica/athlete/group.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/schedule/schedule_dialogs/plan_schedule_dialog_content.dart';
+import 'package:Atletica/schedule/schedule_dialogs/training_schedule_dialog_content.dart';
+import 'package:Atletica/schedule/schedule_widgets/plan_schedule_widget.dart';
+import 'package:Atletica/schedule/schedule_widgets/schedule_widget.dart';
+import 'package:Atletica/schedule/schedule_widgets/training_schedule_widget.dart';
+import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/plan/tabella.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

@@ -1,9 +1,10 @@
-import 'package:AtleticaCoach/athlete/athletes_route.dart';
-import 'package:AtleticaCoach/home/home_page.dart';
-import 'package:AtleticaCoach/main.dart';
-import 'package:AtleticaCoach/plan/tabella.dart';
-import 'package:AtleticaCoach/schedule/schedule_route.dart';
-import 'package:AtleticaCoach/training/allenamento.dart';
+import 'package:Atletica/athlete/athletes_route.dart';
+import 'package:Atletica/home/home_page.dart';
+import 'package:Atletica/main.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/plan/tabella.dart';
+import 'package:Atletica/schedule/schedule_route.dart';
+import 'package:Atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
@@ -16,9 +17,7 @@ class _CoachMainPageState extends State<CoachMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Atletica - Allenatore'),
-      ),
+      appBar: AppBar(title: Text('Atletica - Allenatore')),
       body: HomePageWidget(),
       bottomNavigationBar: _BottomAppBar(setState: setState),
     );
@@ -39,29 +38,30 @@ class _BottomAppBar extends StatelessWidget {
     String tooltip,
   }) {
     Widget iconWidget = Icon(icon, color: Colors.black);
-    if (notify) iconWidget = Stack(
-      alignment: Alignment.topRight,
-      children: <Widget>[
-        iconWidget,
-        Container(
-                width: 5,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              )
-      ],
-    );
-    return IconButton(
-        tooltip: tooltip,
-        icon: iconWidget,
-        onPressed: () => startRoute(
-          context: context,
-          route: route,
-          setState: onPop ? setState : null,
-        ),
+    if (notify)
+      iconWidget = Stack(
+        alignment: Alignment.topRight,
+        children: <Widget>[
+          iconWidget,
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+            ),
+          )
+        ],
       );
+    return IconButton(
+      tooltip: tooltip,
+      icon: iconWidget,
+      onPressed: () => startRoute(
+        context: context,
+        route: route,
+        setState: onPop ? setState : null,
+      ),
+    );
   }
 
   @override
@@ -80,7 +80,7 @@ class _BottomAppBar extends StatelessWidget {
             context: context,
             icon: Icons.directions_run,
             route: AthletesRoute(),
-            //notify: user?.requests?.isNotEmpty ?? false,
+            notify: userC.requests.isNotEmpty,
             tooltip: 'gestisci i tuoi atleti'),
         _sectionBtn(
             context: context,

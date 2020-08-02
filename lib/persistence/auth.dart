@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:AtleticaCoach/persistence/firestore.dart';
-import 'package:AtleticaCoach/persistence/user_helper/athlete_helper.dart';
-import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/persistence/firestore.dart';
+import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

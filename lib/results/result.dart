@@ -1,4 +1,4 @@
-import 'package:AtleticaCoach/results/simple_training.dart';
+import 'package:Atletica/results/simple_training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Result {

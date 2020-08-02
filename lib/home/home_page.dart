@@ -1,11 +1,11 @@
-import 'package:AtleticaCoach/global_widgets/custom_list_tile.dart';
-import 'package:AtleticaCoach/persistence/auth.dart';
-import 'package:AtleticaCoach/persistence/user_helper/coach_helper.dart';
-import 'package:AtleticaCoach/results/result.dart';
-import 'package:AtleticaCoach/results/results_edit_route.dart';
-import 'package:AtleticaCoach/results/simple_training.dart';
-import 'package:AtleticaCoach/schedule/schedule.dart';
-import 'package:AtleticaCoach/training/allenamento.dart';
+import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/results/result.dart';
+import 'package:Atletica/results/results_edit_route.dart';
+import 'package:Atletica/results/simple_training.dart';
+import 'package:Atletica/schedule/schedule.dart';
+import 'package:Atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
