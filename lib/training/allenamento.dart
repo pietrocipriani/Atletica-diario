@@ -2,6 +2,8 @@ import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:Atletica/global_widgets/duration_picker.dart';
+import 'package:Atletica/global_widgets/leading_info_widget.dart';
+import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/recupero/recupero.dart';
@@ -77,61 +79,56 @@ class Allenamento {
     final TextStyle overlineBC =
         overlineB.copyWith(color: Theme.of(context).primaryColorDark);
 
-    Widget row(Ripetuta rip, Recupero rec) {
+    Widget row(dynamic v, [bool isSerieRec]) {
+      if (v == null) return Container();
+      assert(v is Recupero || v is Ripetuta, '\$v is ${v.runtimeType}');
+      if (v is Ripetuta)
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: RichText(
+            text: TextSpan(
+              text: v.template,
+              children: [
+                if (v.target != null)
+                  TextSpan(
+                    text: ' in ',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                if (v.target != null)
+                  TextSpan(
+                    text: templates[v.template]
+                        .tipologia
+                        .targetFormatter(v.target),
+                    style: TextStyle(color: Colors.black),
+                  )
+              ],
+              style: overlineBC,
+            ),
+          ),
+        );
+
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Expanded(
             child: Container(
-              alignment: Alignment.centerLeft,
-              child: RichText(
-                text: TextSpan(
-                  text: rip.template,
-                  children: [
-                    if (rip.target != null)
-                      TextSpan(
-                        text: ' in ',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    if (rip.target != null)
-                      TextSpan(
-                        text: templates[rip.template]
-                            .tipologia
-                            .targetFormatter(rip.target),
-                        style: TextStyle(color: Colors.black),
-                      )
-                  ],
-                  style: overlineBC,
-                ),
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              height: 1,
+              color: (isSerieRec ?? false)
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey[300],
             ),
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-            width: 40,
-            height: 1,
-            color: rec != null ? Colors.grey[300] : null,
-          ),
-          Expanded(
-            child: Container(
-              alignment: Alignment.centerRight,
-              child: rec != null
-                  ? RichText(
-                      text: TextSpan(
-                          text: rec.toString(),
-                          style: overlineB,
-                          children: [
-                            TextSpan(
-                              text: ' recupero',
-                              style: TextStyle(fontWeight: FontWeight.normal),
-                            )
-                          ]),
-                    )
-                  : null,
-            ),
+          RichText(
+            text: TextSpan(text: v.toString(), style: overlineB, children: [
+              TextSpan(
+                text: ' recupero',
+                style: TextStyle(fontWeight: FontWeight.normal),
+              )
+            ]),
           )
         ],
       );
@@ -140,16 +137,19 @@ class Allenamento {
     for (final Serie s in serie)
       for (int i = 1; i <= s.ripetizioni; i++)
         for (final Ripetuta r in s.ripetute)
-          for (int j = 1; j <= r.ripetizioni; j++)
+          for (int j = 1; j <= r.ripetizioni; j++) {
+            yield row(r);
             yield row(
-                r,
-                j == r.ripetizioni
-                    ? r == s.ripetute.last
-                        ? i == s.ripetizioni
-                            ? s == serie.last ? null : s.nextRecupero
-                            : s.recupero
-                        : r.nextRecupero
-                    : r.recupero);
+              j == r.ripetizioni
+                  ? r == s.ripetute.last
+                      ? i == s.ripetizioni
+                          ? s == serie.last ? null : s.nextRecupero
+                          : s.recupero
+                      : r.nextRecupero
+                  : r.recupero,
+              j == r.ripetizioni && r == s.ripetute.last,
+            );
+          }
   }
 
   Recupero recuperoFromIndex(int index) {
@@ -313,7 +313,10 @@ class _TrainingRouteState extends State<TrainingRoute> {
                                   a.descrizione == null || a.descrizione.isEmpty
                                       ? 'nessuna descrizione'
                                       : a.descrizione,
-                                  style: Theme.of(context).textTheme.overline,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .overline
+                                      .copyWith(fontWeight: FontWeight.normal),
                                   textAlign: TextAlign.justify,
                                 ),
                                 const SizedBox(
@@ -325,18 +328,10 @@ class _TrainingRouteState extends State<TrainingRoute> {
                             ),
                           )
                         ],
-                        leading: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              a.countRipetute().toString(),
-                              style: Theme.of(context).textTheme.headline5,
-                            ),
-                            Text(
-                              'ripetute',
-                              style: Theme.of(context).textTheme.overline,
-                            ),
-                          ],
+                        leading: LeadingInfoWidget(
+                          info: a.countRipetute().toString(),
+                          bottom: singularPlural(
+                              'ripetut', 'a', 'e', a.countRipetute()),
                         ),
                       ),
                     ),
