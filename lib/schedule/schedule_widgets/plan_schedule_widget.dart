@@ -1,4 +1,4 @@
-import 'package:Atletica/schedule/schedule.dart';
+/*import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/schedule/schedule_widgets/schedule_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -24,9 +24,7 @@ class PlanScheduleWidget extends ScheduleWidget<PlanSchedule> {
           if (schedule.to != null)
             TextSpan(
               text: DateFormat.MMMMd('it').format(schedule.to),
-            ),
-          TextSpan(text: ' per ', style: base),
-          TextSpan(text: schedule.joinAthletes)
+            )
         ],
         style: Theme.of(context).textTheme.overline.copyWith(
               color: Theme.of(context).primaryColorDark,
@@ -35,4 +33,4 @@ class PlanScheduleWidget extends ScheduleWidget<PlanSchedule> {
       ),
     );
   }
-}
+}*/

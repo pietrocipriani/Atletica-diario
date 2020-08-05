@@ -40,7 +40,7 @@ class ResultsRouteList extends StatelessWidget {
             for (DocumentSnapshot snap in snapshot.data.documents) {
               snap['results']
                   .map((r) => parseRawResult(r))
-                  .where((e) => e != null)
+                  .where((e) => e != null && e.value != null)
                   .forEach((e) {
                 pbs[e.key] = min(e.value, pbs[e.key] ?? double.infinity);
                 if (DateTime.now()

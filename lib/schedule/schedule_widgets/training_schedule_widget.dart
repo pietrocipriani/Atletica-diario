@@ -1,4 +1,4 @@
-import 'package:Atletica/schedule/schedule.dart';
+/*import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/schedule/schedule_widgets/schedule_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -12,14 +12,10 @@ class TrainingScheduleWidget extends ScheduleWidget<TrainingSchedule> {
 
   @override
   Widget subtitle(BuildContext context) {
-    TextStyle base =
-        TextStyle(color: Colors.black, fontWeight: FontWeight.normal);
     return RichText(
       text: TextSpan(
         children: [
-          TextSpan(text: DateFormat.MMMMd('it').format(schedule.date)),
-          TextSpan(text: ' per ', style: base),
-          TextSpan(text: schedule.joinAthletes)
+          TextSpan(text: DateFormat.MMMMd('it').format(schedule.date))
         ],
         style: Theme.of(context).textTheme.overline.copyWith(
               color: Theme.of(context).primaryColorDark,
@@ -28,4 +24,4 @@ class TrainingScheduleWidget extends ScheduleWidget<TrainingSchedule> {
       ),
     );
   }
-}
+}*/

@@ -1,4 +1,4 @@
-import 'package:Atletica/athlete/athletes_route.dart';
+/*import 'package:Atletica/athlete/athletes_route.dart';
 import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
@@ -37,7 +37,7 @@ class _ScheduleRouteState extends State<ScheduleRoute> {
     return Scaffold(
       key: _scaffold,
       appBar: _appBar,
-      body: schedules.values.any((s) => s.athletes.isNotEmpty)
+      body: schedules.values.any((s) => s.isValid)
           ? Column(
               children:
                   avaiableSchedules.map((schedule) => schedule.widget).toList(),
@@ -77,4 +77,4 @@ class _ScheduleRouteState extends State<ScheduleRoute> {
       ),
     );
   }
-}
+}*/

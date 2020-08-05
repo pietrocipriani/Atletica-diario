@@ -11,9 +11,10 @@ MapEntry<String, double> parseRawResult(String rawResult) {
   final List<String> splitted = rawResult.split(':');
   if (splitted.length != 2) return null;
   if (splitted[0].isEmpty || splitted[1].isEmpty) return null;
-  final double value = double.tryParse(splitted[1]);
-  if (value == null) return null;
-  return MapEntry<String,double>(splitted[0], value);
+  final double value =
+      splitted[1] == 'null' ? null : double.tryParse(splitted[1]) ?? -1;
+  if ((value ?? 1) < 0) return null;
+  return MapEntry<String, double>(splitted[0], value);
 }
 
 class ResultWidget extends StatelessWidget {
@@ -38,7 +39,7 @@ class ResultWidget extends StatelessWidget {
             .map((e) => CustomListTile(
                   title: Text(e.key),
                   subtitle: Text(
-                    Tipologia.corsaDist.targetFormatter(e.value),
+                    e.value == null ? 'N.P.' : Tipologia.corsaDist.targetFormatter(e.value),
                     style: TextStyle(
                       color: Theme.of(context).primaryColorDark,
                     ),

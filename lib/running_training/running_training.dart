@@ -1,7 +1,8 @@
-import 'package:Atletica/global_widgets/alert_point.dart';
+/*import 'package:Atletica/global_widgets/alert_point.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
 import 'package:Atletica/global_widgets/link_line/link_line.dart';
 import 'package:Atletica/main.dart';
+import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/ripetuta/template.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
@@ -19,10 +20,9 @@ bool _alreadyInserted(Schedule schedule) =>
     runningTrainings.any((rt) => rt.schedule == schedule);
 
 void updateFromSchedules() {
-  runningTrainings.removeWhere((rt) =>
-      !schedules.containsKey(rt.schedule.reference) ||
-      rt.schedule.athletes.isEmpty);
-  schedules.values.where((s) => s.athletes.isNotEmpty).forEach((schedule) {
+  runningTrainings
+      .removeWhere((rt) => !schedules.containsKey(rt.schedule.reference));
+  schedules.values.forEach((schedule) {
     if (_alreadyInserted(schedule)) return;
     final RunningTraining rt = RunningTraining.fromSchedule(schedule);
     if (rt != null) runningTrainings.add(rt);
@@ -265,7 +265,7 @@ class _RunningTrainingState extends State<RunningTraining>
               ? LinkLine(
                   results: rawResults,
                   rip: rip,
-                  athletes: widget.schedule.athletes,
+                  athletes: userC.athletes,
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
@@ -383,3 +383,4 @@ class TickerProvider {
     lapCallBack?.call(elapsed);
   }
 }
+*/

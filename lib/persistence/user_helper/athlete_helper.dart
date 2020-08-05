@@ -4,6 +4,7 @@ import 'package:Atletica/athlete_role/result.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/result_snapshot.dart';
+import 'package:Atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ class AthleteHelper extends FirebaseUserHelper {
   static final List<Callback> onCoachChanged = <Callback>[];
 
   final Map<DocumentReference, Result> results = {};
+  final Map<DocumentReference, ScheduledTraining> scheduledTrainings = {};
 
   final Map<DateTime, List<dynamic>> events = {};
 
@@ -21,6 +23,12 @@ class AthleteHelper extends FirebaseUserHelper {
 
   DocumentReference _athleteCoachReference;
   StreamSubscription<DocumentSnapshot> _requestSubscription;
+  DocumentReference get coach {
+    final DocumentReference doc = athleteCoachReference?.parent()?.parent();
+    assert(RegExp(r'^users/[A-Za-z0-9]+$').hasMatch(doc.path));
+    return doc;
+  }
+
   DocumentReference get athleteCoachReference => _athleteCoachReference;
   set athleteCoachReference(DocumentReference reference) {
     if (reference == _athleteCoachReference) return;
@@ -36,18 +44,48 @@ class AthleteHelper extends FirebaseUserHelper {
     });
   }
 
-  DocumentReference get coach => _athleteCoachReference?.parent()?.parent();
-
-  bool accepted = false;
+  StreamSubscription<QuerySnapshot> _acceptedSubscription;
+  bool _accepted = false;
+  bool get accepted => _accepted;
+  set accepted(bool accepted) {
+    _accepted = accepted;
+    if (accepted) {
+      _acceptedSubscription =
+          coach.collection('schedules').snapshots().listen((snap) {
+        for (DocumentChange doc in snap.documentChanges) {
+          switch (doc.type) {
+            case DocumentChangeType.modified:
+              final ScheduledTraining st =
+                  scheduledTrainings[doc.document.reference];
+              events[st.date.dateTime]?.remove(st);
+              continue ca;
+            ca:
+            case DocumentChangeType.added:
+              final ScheduledTraining st =
+                  scheduledTrainings[doc.document.reference] =
+                      ScheduledTraining.parse(doc.document);
+              (events[st.date.dateTime] ??= []).add(st);
+              break;
+            case DocumentChangeType.removed:
+              scheduledTrainings.remove(doc.document.reference);
+              break;
+          }
+        }
+        resultsCallAll();
+      });
+    } else
+      _acceptedSubscription?.cancel();
+  }
 
   bool get hasCoach => accepted;
-  bool get hasRequest => coach != null && !accepted;
-  bool get needsRequest => coach == null;
+  bool get hasRequest => athleteCoachReference != null && !accepted;
+  bool get needsRequest => athleteCoachReference == null;
 
   AthleteHelper({
     @required FirebaseUser user,
     @required DocumentReference userReference,
   }) : super(user: user, userReference: userReference) {
+    print(userReference.path);
     _init();
   }
 
@@ -76,7 +114,8 @@ class AthleteHelper extends FirebaseUserHelper {
     });
   }
 
-  Future<bool> requestCoach({@required String uid, @required String nickname}) async {
+  Future<bool> requestCoach(
+      {@required String uid, @required String nickname}) async {
     if (uid == null || uid == user.uid) return false;
     final DocumentReference request = firestore
         .collection('users')

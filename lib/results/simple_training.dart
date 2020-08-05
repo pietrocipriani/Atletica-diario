@@ -1,14 +1,15 @@
 import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/schedule/schedule.dart';
 
 class SimpleTraining {
+  final ScheduledTraining training;
   final String name;
   final List<SimpleRipetuta> ripetute;
 
-  SimpleTraining.from(Allenamento training)
-      : name = training.name,
+  SimpleTraining.from(this.training)
+      : name = training.work.name,
         ripetute = List.unmodifiable(
-          training.ripetute.map((r) => SimpleRipetuta.from(r)),
+          training.work.ripetute.map((r) => SimpleRipetuta.from(r)),
         );
 }
 

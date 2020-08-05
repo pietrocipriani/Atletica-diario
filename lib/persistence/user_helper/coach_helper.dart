@@ -7,6 +7,7 @@ import 'package:Atletica/persistence/user_helper/snapshots_managers/schedule_sna
 import 'package:Atletica/persistence/user_helper/snapshots_managers/template_snapshot.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
 import 'package:Atletica/results/simple_training.dart';
+import 'package:Atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,8 @@ class CoachHelper extends FirebaseUserHelper {
       List.unmodifiable(rawAthletes.values.where((a) => a.isRequest));
   List<Athlete> get athletes =>
       List.unmodifiable(rawAthletes.values.where((a) => a.isAthlete));
+
+  final Map<DateTime, List<ScheduledTraining>> scheduledTrainings = {};
 
   static void callAll<T>(List<Callback<T>> callbacks, [T value]) =>
       callbacks.forEach((callback) => callback.call(value));

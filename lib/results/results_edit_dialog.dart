@@ -14,7 +14,7 @@ Future<void> showResultsEditDialog(
         title: Text('Modifica i risultati'),
         scrollable: true,
         actions: <Widget>[
-          FlatButton(onPressed: null, child: Text('Chiudi')),
+          FlatButton(onPressed: () {/* TODO */}, child: Text('Chiudi')),
           FlatButton(
             onPressed: () async {
               await save(results);

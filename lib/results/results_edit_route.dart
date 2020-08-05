@@ -1,5 +1,6 @@
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/global_widgets/leading_info_widget.dart';
 import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/results/result.dart';
@@ -21,53 +22,49 @@ class ResultsEditRoute extends StatelessWidget {
       ),
       body: ListView(
         children: results.results.keys
-            .map((a) => CustomDismissible(
-                  key: ValueKey(hashList([results, a])),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (_) {
-                    showResultsEditDialog(
-                      context,
-                      results.results[a],
-                      (r) => userC.saveResult(
-                        athlete: a,
-                        dateIdentifier: _dateIdentifierFormatter(),
-                        results: r,
-                        training: results.training.name,
+            .map((a) => StreamBuilder(
+                stream: userC.resultSnapshots(
+                  athlete: userC.rawAthletes[a],
+                  dateIdentifier: _dateIdentifierFormatter(
+                      results.training.training.date.dateTime),
+                ),
+                builder: (context, snapshot) {
+                  bool ok = true;
+                  if (snapshot.data?.data != null) {
+                    ok = results.update(
+                        a, snapshot.data['results'].cast<String>());
+                  }
+
+                  if (!ok) return Container();
+
+                  final int count =
+                      results.results[a].values.where((v) => v != null).length;
+
+                  return CustomDismissible(
+                    key: ValueKey(hashList([results, a])),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (_) {
+                      showResultsEditDialog(
+                        context,
+                        results.results[a],
+                        (r) => userC.saveResult(
+                          athlete: a,
+                          dateIdentifier: _dateIdentifierFormatter(),
+                          results: r,
+                          training: results.training.name,
+                        ),
+                      );
+                      return Future.value(false);
+                    },
+                    child: CustomListTile(
+                      title: Text(userC.rawAthletes[a].name),
+                      trailing: LeadingInfoWidget(
+                        info: '$count/${results.ripetuteCount}',
+                        bottom: singularPlural('risultat', 'o', 'i', count),
                       ),
-                    );
-                    return Future.value(false);
-                  },
-                  child: CustomListTile(
-                    title: Text(userC.rawAthletes[a].name),
-                    trailing: StreamBuilder(
-                      stream: userC.resultSnapshots(
-                        athlete: userC.rawAthletes[a],
-                        dateIdentifier: _dateIdentifierFormatter(),
-                      ),
-                      builder: (context, snapshot) {
-                        if (snapshot.data?.data != null) {
-                          results.update(a, snapshot.data['results'].cast<String>());
-                        }
-                        final int count = results.results[a].values
-                            .where((v) => v != null)
-                            .length;
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              '$count/${results.ripetuteCount}',
-                              style: Theme.of(context).textTheme.headline5,
-                            ),
-                            Text(
-                              singularPlural('risultat', 'o', 'i', count),
-                              style: Theme.of(context).textTheme.overline,
-                            )
-                          ],
-                        );
-                      },
                     ),
-                  ),
-                ))
+                  );
+                }))
             .toList(),
       ),
     );

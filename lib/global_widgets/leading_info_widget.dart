@@ -16,6 +16,7 @@ class LeadingInfoWidget extends StatelessWidget {
     if (bottom == null) return infoWidget;
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         infoWidget,
         Text(

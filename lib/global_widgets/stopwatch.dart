@@ -1,4 +1,4 @@
-import 'dart:math';
+/*import 'dart:math';
 import 'dart:ui';
 
 import 'package:dotted_border/dotted_border.dart';
@@ -123,4 +123,4 @@ class _SnakeCircle extends CustomPainter {
   bool shouldRepaint(_SnakeCircle oldDelegate) {
     return color != oldDelegate.color || angle != oldDelegate.angle;
   }
-}
+}*/

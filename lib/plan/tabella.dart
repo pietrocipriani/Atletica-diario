@@ -1,7 +1,10 @@
+import 'package:Atletica/date.dart';
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,11 +21,14 @@ class Tabella {
   final DocumentReference reference;
   String name;
   List<Week> weeks = <Week>[];
+  DateTime start, stop;
 
   Tabella.parse(DocumentSnapshot raw)
       : reference = raw.reference,
         name = raw['name'],
-        weeks = raw['weeks'].map<Week>((raw) => Week.parse(raw)).toList() {
+        weeks = raw['weeks'].map<Week>((raw) => Week.parse(raw)).toList(),
+        start = raw['start']?.toDate(),
+        stop = raw['stop']?.toDate() {
     plans[reference] = this;
   }
 
@@ -33,13 +39,62 @@ class Tabella {
     );
   }
 
-  static Future<void> create({@required String name}) =>
-      user.userReference.collection('plans').add({'name': name, 'weeks': []});
+  static Future<void> create({
+    @required String name,
+    DateTime start,
+    DateTime stop,
+  }) {
+    return userC.userReference
+        .collection('plans')
+        .add({'name': name, 'weeks': [], 'start': start, 'stop': stop});
+  }
 
-  Future<void> update({String name, List<Week> weeks}) => reference.updateData({
-        'name': name ?? this.name,
-        'weeks': (weeks ?? this.weeks).map((week) => week.asMap).toList()
-      });
+  void _removeScheduledTrainings(WriteBatch batch) {
+    final Date now = Date.now();
+    for (MapEntry<DateTime, List<ScheduledTraining>> e
+        in userC.scheduledTrainings.entries) {
+      if (e.value == null || now > e.key) continue;
+      for (ScheduledTraining st in e.value)
+        if (st.plan == reference) batch.delete(st.reference);
+    }
+  }
+
+  Future<void> update({
+    String name,
+    List<Week> weeks,
+    DateTime start,
+    DateTime stop,
+  }) {
+    weeks ??= this.weeks;
+    final WriteBatch batch = firestore.batch();
+    batch.updateData(reference, {
+      'name': name ?? this.name,
+      'weeks': weeks.map((week) => week.asMap).toList(),
+      'start': start,
+      'stop': stop
+    });
+    _removeScheduledTrainings(batch);
+
+    if (start != null) {
+      final Date now = Date.now();
+      final Date first = Date.fromDateTime(start);
+      final Date end = Date.fromDateTime(stop);
+
+      for (Date current = first; current <= end; current++) {
+        final int week = ((current - first).inDays ~/ 7) % weeks.length;
+        if (current < now || weeks[week].trainings[current.weekday] == null)
+          continue;
+        ScheduledTraining.create(
+          work: weeks[week].trainings[current.weekday],
+          date: current.dateTime,
+          plan: this,
+          batch: batch,
+        );
+      }
+    }
+
+    return batch.commit();
+  }
 
   Future<bool> modify({@required BuildContext context}) {
     return showDialog<bool>(
@@ -51,14 +106,24 @@ class Tabella {
   static Widget _dialog(final BuildContext context, [Tabella plan]) {
     final bool isNew = plan == null;
     String name = plan?.name;
+    DateTime start = plan?.start;
+    DateTime stop = plan?.stop;
 
-    String Function([String]) validator = ([s]) {
+    final DateTime firstAvaiableStartDay = bareDT(DateTime.now().subtract(
+      Duration(days: (DateTime.now().weekday - DateTime.monday) % 7),
+    ));
+
+    String validator([s]) {
       s ??= name ?? '';
       if (s.isEmpty) return 'inserire il nome';
       if (plans.values.any((p) => p != plan && p.name == s))
         return 'nome già in uso';
       return null;
-    };
+    }
+
+    String _format(DateTime d) => d == null
+        ? 'seleziona'
+        : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year % 100}';
 
     return StatefulBuilder(
       builder: (context, ss) => AlertDialog(
@@ -77,6 +142,60 @@ class Tabella {
                 ss(() => name = value);
               },
             ),
+            Row(
+              children: <Widget>[
+                Text('dal'),
+                Expanded(
+                  child: FlatButton(
+                    onPressed: () async {
+                      start = await showDatePicker(
+                            context: context,
+                            initialDate: start ?? firstAvaiableStartDay,
+                            firstDate: firstAvaiableStartDay,
+                            helpText: "seleziona la data di inizio",
+                            selectableDayPredicate: (day) =>
+                                day.weekday == DateTime.monday,
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 365)),
+                          ) ??
+                          start;
+                      if (stop != null && start.isAfter(stop)) stop = start;
+                      ss(() {});
+                    },
+                    onLongPress: start == null
+                        ? null
+                        : () => ss(() => start = stop = null),
+                    child: Text(_format(start)),
+                  ),
+                ),
+                Text('al'),
+                Expanded(
+                  child: FlatButton(
+                    onPressed: stop == null && start == null
+                        ? null
+                        : () async {
+                            stop = await showDatePicker(
+                                  context: context,
+                                  initialDate:
+                                      stop ?? start.add(Duration(days: 6)),
+                                  firstDate: start,
+                                  helpText:
+                                      "seleziona la data di fine. Premi a lungo sulla data della schermata precendente per eliminare la scadenza.",
+                                  selectableDayPredicate: (day) =>
+                                      day.weekday == DateTime.sunday,
+                                  lastDate: DateTime.now()
+                                      .add(const Duration(days: 365)),
+                                ) ??
+                                stop;
+                            ss(() {});
+                          },
+                    onLongPress:
+                        stop == null ? null : () => ss(() => stop = null),
+                    child: Text(_format(stop)),
+                  ),
+                )
+              ],
+            )
           ],
         ),
         actions: <Widget>[
@@ -87,13 +206,13 @@ class Tabella {
             ),
           ),
           FlatButton(
-            onPressed: validator() != null
+            onPressed: validator() != null || (start == null) != (stop == null)
                 ? null
                 : () async {
                     if (isNew)
-                      Tabella.create(name: name);
+                      Tabella.create(name: name, start: start, stop: stop);
                     else
-                      plan.update(name: name);
+                      plan.update(name: name, start: start, stop: stop);
                     Navigator.pop(context, true);
                   },
             child: Text(

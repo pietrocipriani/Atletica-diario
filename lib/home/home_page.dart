@@ -1,4 +1,4 @@
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/results/result.dart';
@@ -8,24 +8,20 @@ import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 
 class HomePageWidget extends StatefulWidget {
-  HomePageWidget({Key key}) : super(key: key);
+  final void Function(DateTime day) onSelectedDayChanged;
+
+  HomePageWidget({Key key, this.onSelectedDayChanged}) : super(key: key);
 
   @override
   _HomePageWidgetState createState() => _HomePageWidgetState();
 }
 
 class _HomePageWidgetState extends State<HomePageWidget> {
-  BoxDecoration _bgDecoration = BoxDecoration(
-    image: DecorationImage(
-      image: AssetImage('assets/speed.png'),
-      colorFilter: ColorFilter.mode(
-        Colors.grey[100],
-        BlendMode.srcIn,
-      ),
-    ),
-  );
+  final CalendarController _calendarController = CalendarController();
 
   final Callback callback = Callback();
 
@@ -51,35 +47,27 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     super.dispose();
   }
 
-  Widget _todayTrainingWidget(final Schedule s) {
-    final Allenamento a = s.todayTraining;
+  Widget _trainingWidget(final ScheduledTraining s) {
+    final Allenamento a = s.work;
     assert(a != null);
-    return CustomListTile(
-      title: Text(
-        s.todayTraining.name,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      leading: IconButton(
+    return CustomExpansionTile(
+      title: a.name,
+      trailing: IconButton(
         icon: Icon(Mdi.poll),
         onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ResultsEditRoute(
                 Result(
-                  training: SimpleTraining.from(a),
-                  athletes: s.athletesRefs,
+                  training: SimpleTraining.from(s),
+                  athletes: userC.athletes.map((a) => a.reference),
                 ),
               ),
             )),
         color: Colors.black,
       ),
-      subtitle: Text(
-        s.joinAthletes,
-        style: Theme.of(context).textTheme.overline.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColorDark,
-            ),
-      ),
+      children: a.ripetuteAsDescription(context).toList(),
+      childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
         onPressed: () {},
@@ -90,16 +78,54 @@ class _HomePageWidgetState extends State<HomePageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Widget content = todayTrainings.isNotEmpty
-        ? ListView(
-            children:
-                todayTrainings.map((tt) => _todayTrainingWidget(tt)).toList(),
-          )
-        : Text('Nessun allenamento in programma per oggi!');
-    return Container(
-      alignment: todayTrainings.isEmpty ? Alignment.center : null,
-      decoration: _bgDecoration,
-      child: content,
+    return Column(
+      children: [
+        TableCalendar(
+          calendarController: _calendarController,
+          availableCalendarFormats: {
+            CalendarFormat.month: 'mese',
+            CalendarFormat.week: 'settimana'
+          },
+          locale: 'it',
+          headerStyle: HeaderStyle(
+            centerHeaderTitle: true,
+            formatButtonVisible: false,
+          ),
+          calendarStyle: CalendarStyle(
+            selectedColor: Theme.of(context).primaryColor,
+            todayColor: Theme.of(context).primaryColorLight,
+            markersColor: Theme.of(context).primaryColorDark,
+            todayStyle: const TextStyle(color: Colors.black),
+            outsideStyle: TextStyle(color: Colors.grey[300]),
+            outsideWeekendStyle: TextStyle(color: Colors.red[100]),
+          ),
+          simpleSwipeConfig: const SimpleSwipeConfig(verticalThreshold: 15),
+          startingDayOfWeek: StartingDayOfWeek.monday,
+          daysOfWeekStyle: DaysOfWeekStyle(
+            weekdayStyle: Theme.of(context).textTheme.overline,
+            weekendStyle: Theme.of(context).textTheme.overline,
+          ),
+          weekendDays: [DateTime.sunday],
+          onDaySelected: (day, events) =>
+              widget.onSelectedDayChanged?.call(day),
+          onCalendarCreated: (first, last, format) => widget
+              .onSelectedDayChanged
+              ?.call(_calendarController.selectedDay),
+          events: userC.scheduledTrainings,
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          height: 1,
+          color: Colors.grey[300],
+        ),
+        Expanded(
+          child: ListView(
+            children: userC.scheduledTrainings[_calendarController.selectedDay]
+                ?.map((st) => _trainingWidget(st))
+                ?.toList() ?? [],
+          ),
+        ),
+      ],
     );
   }
 }

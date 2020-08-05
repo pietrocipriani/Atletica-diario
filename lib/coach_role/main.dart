@@ -3,7 +3,7 @@ import 'package:Atletica/home/home_page.dart';
 import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/plan/tabella.dart';
-import 'package:Atletica/schedule/schedule_route.dart';
+import 'package:Atletica/schedule/schedule_dialogs/scheduled_training_dialog.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
@@ -14,11 +14,36 @@ class CoachMainPage extends StatefulWidget {
 }
 
 class _CoachMainPageState extends State<CoachMainPage> {
+  DateTime selectedDay;
+
+  bool get _canAddEvents {
+    DateTime now = DateTime.now().toUtc();
+    now = DateTime.utc(now.year, now.month, now.day, 12);
+
+    return !(selectedDay?.isBefore(now) ?? false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Atletica - Allenatore')),
-      body: HomePageWidget(),
+      body: HomePageWidget(
+          onSelectedDayChanged: (day) {
+            selectedDay = day;
+            WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+          }),
+      floatingActionButton: _canAddEvents
+          ? FloatingActionButton(
+              onPressed: () async {
+                if (await showDialog<bool>(
+                  context: context,
+                  builder: (context) => ScheduledTrainingDialog(selectedDay),
+                )) setState(() {});
+              },
+              child: Icon(Icons.add),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       bottomNavigationBar: _BottomAppBar(setState: setState),
     );
   }
@@ -67,15 +92,16 @@ class _BottomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
+      shape: CircularNotchedRectangle(),
       child: Row(children: [
-        _sectionBtn(
+        /*_sectionBtn(
           context: context,
           icon: Icons.schedule,
           route: ScheduleRoute(),
           onPop: true,
           tooltip:
               'programma gli allenamenti per uno specifico gruppo di atleti',
-        ),
+        ),*/
         _sectionBtn(
             context: context,
             icon: Icons.directions_run,

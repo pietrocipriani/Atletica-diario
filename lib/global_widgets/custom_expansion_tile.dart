@@ -14,7 +14,8 @@ class CustomExpansionTile extends StatefulWidget {
     this.children = const <Widget>[],
     this.trailing,
     this.initiallyExpanded = false,
-  })  : assert(initiallyExpanded != null),
+    this.childrenPadding = EdgeInsets.zero,
+  })  : assert(initiallyExpanded != null && childrenPadding != null),
         super(key: key);
 
   final Widget leading;
@@ -25,6 +26,7 @@ class CustomExpansionTile extends StatefulWidget {
   final Color backgroundColor;
   final Widget trailing;
   final bool initiallyExpanded;
+  final EdgeInsets childrenPadding;
 
   @override
   _ExpansionTileState createState() => _ExpansionTileState();
@@ -135,7 +137,12 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     return AnimatedBuilder(
       animation: _controller.view,
       builder: _buildChildren,
-      child: closed ? null : Column(children: widget.children),
+      child: closed
+          ? null
+          : Padding(
+              padding: widget.childrenPadding,
+              child: Column(children: widget.children),
+            ),
     );
   }
 }

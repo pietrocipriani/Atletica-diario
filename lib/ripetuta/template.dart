@@ -94,7 +94,7 @@ class Tipologia {
       int min = int.tryParse(match?.substring(0, match.length - 1)) ?? 0;
       match = RegExp(r'\d+\s*"\s*\d?\d?').stringMatch(target) ?? '0"';
       int sec = int.tryParse(match.split('"')[0]) ?? 0;
-      int cent = int.tryParse(match.split('"')[1]) ?? 0;
+      int cent = int.tryParse(match.split('"')[1].padRight(2, '0')) ?? 0;
       return min * 60 + sec + cent / 100;
     },
   );
