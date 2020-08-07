@@ -43,7 +43,10 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
           : Colors.grey[300],
       trailing: IconButton(
         icon: Icon(Mdi.poll),
-        onPressed: Date.now() <= s.date && (s == compatible || compatible == null) ? () {} : null,
+        onPressed:
+            Date.now() >= s.date && (s == compatible || compatible == null)
+                ? () {}
+                : null,
         /*onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(

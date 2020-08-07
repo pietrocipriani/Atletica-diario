@@ -56,6 +56,7 @@ class AthleteHelper extends FirebaseUserHelper {
   bool _accepted = false;
   bool get accepted => _accepted;
   set accepted(bool accepted) {
+    if (_accepted == accepted) return;
     _accepted = accepted;
     if (accepted) {
       _schedulesSubscription =
@@ -92,6 +93,8 @@ class AthleteHelper extends FirebaseUserHelper {
     } else {
       _schedulesSubscription?.cancel();
       _trainingsSubscription?.cancel();
+      events.clear();
+      scheduledTrainings.clear();
     }
   }
 
