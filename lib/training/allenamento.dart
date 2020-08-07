@@ -99,8 +99,8 @@ class Allenamento {
                   ),
                 if (v.target != null)
                   TextSpan(
-                    text: templates[v.template]
-                        .tipologia
+                    text: (templates[v.template]?.tipologia ??
+                            Tipologia.corsaDist)
                         .targetFormatter(v.target),
                     style: TextStyle(color: Colors.black),
                   )

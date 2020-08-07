@@ -8,21 +8,15 @@ bool resultSnapshot(
 ) {
   switch (changeType) {
     case DocumentChangeType.added:
-      final Result res = Result(snapshot);
-      userA.results[snapshot.reference] = res;
-      (userA.events[res.date] ??= []).add(res);
+      userA.results[snapshot.reference] = Result(snapshot);
       break;
     case DocumentChangeType.modified:
       final Result prev = userA.results[snapshot.reference];
       assert(prev != null);
-      final Result res = Result(snapshot);
       userA.results[snapshot.reference] = Result(snapshot);
-      userA.events[prev.date].remove(prev);
-      (userA.events[res.date] ??= []).add(res);
       break;
     case DocumentChangeType.removed:
-      final Result res = userA.results.remove(snapshot.reference);
-      userA.events[res.date].remove(res);
+      userA.results.remove(snapshot.reference);
       break;
   }
   return true;

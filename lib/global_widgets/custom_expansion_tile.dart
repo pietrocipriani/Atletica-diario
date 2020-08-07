@@ -8,6 +8,7 @@ class CustomExpansionTile extends StatefulWidget {
     Key key,
     this.leading,
     @required this.title,
+    this.titleColor = Colors.black,
     this.subtitle,
     this.backgroundColor,
     this.onExpansionChanged,
@@ -15,11 +16,14 @@ class CustomExpansionTile extends StatefulWidget {
     this.trailing,
     this.initiallyExpanded = false,
     this.childrenPadding = EdgeInsets.zero,
-  })  : assert(initiallyExpanded != null && childrenPadding != null),
+  })  : assert(initiallyExpanded != null &&
+            childrenPadding != null &&
+            titleColor != null),
         super(key: key);
 
   final Widget leading;
   final String title;
+  final Color titleColor;
   final Widget subtitle;
   final ValueChanged<bool> onExpansionChanged;
   final List<Widget> children;
@@ -96,6 +100,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
             widget.title,
             style: TextStyle(
               fontWeight: _isExpanded ? FontWeight.bold : FontWeight.normal,
+              color: widget.titleColor,
             ),
           ),
           leading: widget.leading,

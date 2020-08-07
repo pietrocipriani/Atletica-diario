@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:Atletica/athlete_role/result.dart';
+import 'package:Atletica/date.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/result_snapshot.dart';
+import 'package:Atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
+import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -44,13 +47,18 @@ class AthleteHelper extends FirebaseUserHelper {
     });
   }
 
-  StreamSubscription<QuerySnapshot> _acceptedSubscription;
+  Result getResult(Date date) => results[
+      userReference.collection('results').document(date.formattedAsIdentifier)];
+
+  StreamSubscription<QuerySnapshot> _schedulesSubscription;
+  StreamSubscription<QuerySnapshot> _trainingsSubscription;
+
   bool _accepted = false;
   bool get accepted => _accepted;
   set accepted(bool accepted) {
     _accepted = accepted;
     if (accepted) {
-      _acceptedSubscription =
+      _schedulesSubscription =
           coach.collection('schedules').snapshots().listen((snap) {
         for (DocumentChange doc in snap.documentChanges) {
           switch (doc.type) {
@@ -67,14 +75,24 @@ class AthleteHelper extends FirebaseUserHelper {
               (events[st.date.dateTime] ??= []).add(st);
               break;
             case DocumentChangeType.removed:
-              scheduledTrainings.remove(doc.document.reference);
+              ScheduledTraining st = scheduledTrainings.remove(doc.document.reference);
+              events[st.date.dateTime]?.remove(st);
               break;
           }
         }
         resultsCallAll();
       });
-    } else
-      _acceptedSubscription?.cancel();
+      _trainingsSubscription =
+          coach.collection('trainings').snapshots().listen((snap) async {
+        bool ok = false;
+        for (DocumentChange changed in snap.documentChanges)
+          ok |= await trainingSnapshot(changed.document, changed.type);
+        if (ok) resultsCallAll();
+      });
+    } else {
+      _schedulesSubscription?.cancel();
+      _trainingsSubscription?.cancel();
+    }
   }
 
   bool get hasCoach => accepted;
@@ -131,6 +149,22 @@ class AthleteHelper extends FirebaseUserHelper {
 
     await batch.commit();
     return true;
+  }
+
+  Future<void> saveResult({
+    @required Date date,
+    @required Map<SimpleRipetuta, double> results,
+    @required String training,
+  }) async {
+    userReference
+        .collection('results')
+        .document(date.formattedAsIdentifier)
+        .setData({
+      'coach': coach.documentID,
+      'training': training,
+      'results':
+          results.entries.map((e) => '${e.key.name}:${e.value}').toList(),
+    }, merge: true);
   }
 
   Future<void> deleteCoachSubscription() => athleteCoachReference?.delete();
