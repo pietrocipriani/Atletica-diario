@@ -155,12 +155,6 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   Future<void> saveResult({@required Result results}) async {
-    print({
-      'coach': coach.documentID,
-      'training': results.training,
-      'results':
-          results.asIterable.map((e) => '${e.key.name}:${e.value}').toList()
-    });
     userReference
         .collection('results')
         .document(results.date.formattedAsIdentifier)

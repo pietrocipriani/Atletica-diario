@@ -12,7 +12,9 @@ class Date {
   Date.fromTimeStamp(Timestamp timestamp)
       : this.fromDateTime(timestamp.toDate());
   Date.now() : this.fromDateTime(DateTime.now());
-  Date.parse(final String raw) : this.fromDateTime(DateTime.parse(raw));
+
+  /// use to parse `formattedAsIdentifier`
+  Date.parse(final String raw) : this.fromDateTime(DateTime.parse(raw+'T12:00:00Z'));
 
   bool operator >(dynamic other) {
     assert(other is Date || other is DateTime || other is Timestamp);
