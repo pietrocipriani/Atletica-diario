@@ -7,6 +7,7 @@ import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/recupero/recupero.dart';
+import 'package:Atletica/results/result.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
 import 'package:Atletica/ripetuta/template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -73,43 +74,56 @@ class Allenamento {
     });
   }
 
-  Iterable<Widget> ripetuteAsDescription(BuildContext context) sync* {
+  Iterable<Widget> ripetuteAsDescription(BuildContext context,
+      [Result result]) sync* {
+    final bool useResult = result != null &&
+        result.isCompatible(this) &&
+        result.results.values.any((r) => r != null);
+
     final TextStyle overline = Theme.of(context).textTheme.overline;
     final TextStyle overlineB = overline.copyWith(fontWeight: FontWeight.bold);
     final TextStyle overlineBC =
         overlineB.copyWith(color: Theme.of(context).primaryColorDark);
 
-    Widget row(dynamic v, [bool isSerieRec]) {
-      if (v == null) return Container();
-      assert(v is Recupero || v is Ripetuta, '\$v is ${v.runtimeType}');
-      if (v is Ripetuta)
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: RichText(
-            text: TextSpan(
-              text: v.template,
-              children: [
-                if (v.target != null)
-                  TextSpan(
-                    text: ' in ',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.normal,
-                    ),
+    Widget rowRip(final Ripetuta rip, final int index) {
+      assert(index != null && index >= 0);
+      final double ris =
+          useResult ? result.results.values.skip(index).first : null;
+      final double risOrTarget = ris ?? rip.target;
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: RichText(
+          text: TextSpan(
+            text: rip.template,
+            children: [
+              if (risOrTarget != null)
+                TextSpan(
+                  text: ' in ',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.normal,
                   ),
-                if (v.target != null)
-                  TextSpan(
-                    text: (templates[v.template]?.tipologia ??
-                            Tipologia.corsaDist)
-                        .targetFormatter(v.target),
-                    style: TextStyle(color: Colors.black),
-                  )
-              ],
-              style: overlineBC,
-            ),
+                ),
+              if (risOrTarget != null)
+                TextSpan(
+                  text: (templates[rip.template]?.tipologia ??
+                          Tipologia.corsaDist)
+                      .targetFormatter(risOrTarget),
+                  style: TextStyle(
+                    color: useResult && ris == null
+                        ? Colors.grey[300]
+                        : Colors.black,
+                  ),
+                )
+            ],
+            style: overlineBC,
           ),
-        );
+        ),
+      );
+    }
 
+    Widget rowRec(final Recupero rec, bool isSerieRec) {
+      if (rec == null) return Container();
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -123,7 +137,7 @@ class Allenamento {
             ),
           ),
           RichText(
-            text: TextSpan(text: v.toString(), style: overlineB, children: [
+            text: TextSpan(text: rec.toString(), style: overlineB, children: [
               TextSpan(
                 text: ' recupero',
                 style: TextStyle(fontWeight: FontWeight.normal),
@@ -134,12 +148,13 @@ class Allenamento {
       );
     }
 
+    int index = 0;
     for (final Serie s in serie)
       for (int i = 1; i <= s.ripetizioni; i++)
         for (final Ripetuta r in s.ripetute)
           for (int j = 1; j <= r.ripetizioni; j++) {
-            yield row(r);
-            yield row(
+            yield rowRip(r, index++);
+            yield rowRec(
               j == r.ripetizioni
                   ? r == s.ripetute.last
                       ? i == s.ripetizioni

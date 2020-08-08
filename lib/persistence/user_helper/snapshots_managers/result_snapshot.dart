@@ -1,4 +1,4 @@
-import 'package:Atletica/athlete_role/result.dart';
+import 'package:Atletica/results/result.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

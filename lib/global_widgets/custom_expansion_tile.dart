@@ -11,6 +11,7 @@ class CustomExpansionTile extends StatefulWidget {
     this.titleColor = Colors.black,
     this.subtitle,
     this.backgroundColor,
+    this.childrenBackgroudColor,
     this.onExpansionChanged,
     this.children = const <Widget>[],
     this.trailing,
@@ -27,7 +28,7 @@ class CustomExpansionTile extends StatefulWidget {
   final Widget subtitle;
   final ValueChanged<bool> onExpansionChanged;
   final List<Widget> children;
-  final Color backgroundColor;
+  final Color backgroundColor, childrenBackgroudColor;
   final Widget trailing;
   final bool initiallyExpanded;
   final EdgeInsets childrenPadding;
@@ -144,8 +145,9 @@ class _ExpansionTileState extends State<CustomExpansionTile>
       builder: _buildChildren,
       child: closed
           ? null
-          : Padding(
+          : Container(
               padding: widget.childrenPadding,
+              color: widget.childrenBackgroudColor,
               child: Column(children: widget.children),
             ),
     );

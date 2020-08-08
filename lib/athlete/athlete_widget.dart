@@ -25,17 +25,19 @@ class AthleteWidget extends StatelessWidget {
     if (atleta.dismissed) return Container();
 
     final Widget child = CustomListTile(
-        onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResultsRouteList(atleta),
-            )),
-        title: Text(atleta.name, style: subtitle1Bold),
-        subtitle: Text(atleta.group, style: overlineBoldPrimaryDark),
-        trailing: LeadingInfoWidget(
-          info: '${atleta.trainingsCount}',
-          bottom: singularPlural('allenament', 'o', 'i', atleta.trainingsCount),
-        ));
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultsRouteList(atleta),
+        ),
+      ),
+      title: Text(atleta.name, style: subtitle1Bold),
+      subtitle: Text(atleta.group, style: overlineBoldPrimaryDark),
+      trailing: LeadingInfoWidget(
+        info: '${atleta.trainingsCount}',
+        bottom: singularPlural('allenament', 'o', 'i', atleta.trainingsCount),
+      ),
+    );
 
     Future<bool> confirmDismiss(DismissDirection dir) async {
       if (dir == DismissDirection.startToEnd)

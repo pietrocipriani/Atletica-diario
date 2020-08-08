@@ -29,7 +29,7 @@ class Ripetuta {
   }
   Ripetuta.parse(Map raw) {
     template = raw['template'];
-    target = raw['target'];
+    target = raw['target'].toDouble();
     recupero = Recupero(raw['recupero']);
     ripetizioni = raw['times'];
     nextRecupero = Recupero(raw['recuperoNext']);

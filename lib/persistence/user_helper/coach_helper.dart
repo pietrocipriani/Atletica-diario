@@ -6,7 +6,7 @@ import 'package:Atletica/persistence/user_helper/snapshots_managers/plan_snapsho
 import 'package:Atletica/persistence/user_helper/snapshots_managers/schedule_snapshot.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/template_snapshot.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
-import 'package:Atletica/results/simple_training.dart';
+import 'package:Atletica/results/result.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -112,25 +112,19 @@ class CoachHelper extends FirebaseUserHelper {
   Future<void> refuseRequest(DocumentReference request) => request.delete();
 
   /// `athlete` is the reference to /coaches/$coach/athletes/$athlete
-  ///
-  /// `dateIdentifier` is in the form 'yyyymmdd' (example 20200708)
-  /// required '0's left padding!
-  /// `results` is the map for the results, also `null` values are required
   Future<void> saveResult({
     @required DocumentReference athlete,
-    @required String dateIdentifier,
-    @required Map<SimpleRipetuta, double> results,
-    @required String training,
+    @required Result results,
   }) async {
     rawAthletes[athlete]
         .resultsDoc
         .collection('results')
-        .document(dateIdentifier)
+        .document(results.date.formattedAsIdentifier)
         .setData({
       'coach': uid,
-      'training': training,
+      'training': results.training,
       'results':
-          results.entries.map((e) => '${e.key.name}:${e.value}').toList(),
+          results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
     }, merge: true);
   }
 

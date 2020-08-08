@@ -1,8 +1,8 @@
 import 'package:Atletica/athlete/results/results_route.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/results/result.dart';
 import 'package:Atletica/ripetuta/template.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -18,55 +18,62 @@ MapEntry<String, double> parseRawResult(String rawResult) {
 }
 
 class ResultWidget extends StatelessWidget {
-  final DocumentSnapshot snap;
-  final DateTime date;
-  final String training;
+  final Result res;
 
-  ResultWidget(this.snap)
-      : date = DateTime.parse(snap.documentID),
-        training = snap['training'];
+  ResultWidget(this.res);
 
   @override
   Widget build(BuildContext context) => CustomExpansionTile(
-        title: training,
+        title: res.training,
         subtitle: Text(
-          DateFormat.yMMMMd('it').format(date),
+          DateFormat.yMMMMd('it').format(res.date.dateTime),
           style: TextStyle(color: Theme.of(context).primaryColorDark),
         ),
-        children: (snap['results'])
-            .map((r) => parseRawResult(r))
-            .where((e) => e != null)
+        childrenBackgroudColor: Theme.of(context).primaryColor,
+        childrenPadding: const EdgeInsets.all(8),
+        children: res.asIterable
             .map((e) => CustomListTile(
-                  title: Text(e.key),
-                  subtitle: Text(
-                    e.value == null ? 'N.P.' : Tipologia.corsaDist.targetFormatter(e.value),
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                    ),
+                  title: Text(e.key.name, textAlign: TextAlign.center),
+                  leading: Text(
+                    e.value == null
+                        ? 'N.P.'
+                        : Tipologia.corsaDist.targetFormatter(e.value),
+                    style: Theme.of(context).textTheme.headline5,
                   ),
+                  tileColor: Theme.of(context).scaffoldBackgroundColor,
                   trailing: RichText(
                     text: TextSpan(
                         style: Theme.of(context).textTheme.overline,
                         children: [
                           TextSpan(
-                              text: 'pb: ',
-                              style: TextStyle(fontWeight: FontWeight.normal)),
+                            text: 'PB: ',
+                            style: TextStyle(fontWeight: FontWeight.normal),
+                          ),
                           TextSpan(
-                              text: Tipologia.corsaDist
-                                  .targetFormatter(ResultsRouteList.pbs[e.key]),
+                            text: Tipologia.corsaDist.targetFormatter(
+                                ResultsRouteList.pbs[e.key.name]),
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark),
+                          ),
+                          if (ResultsRouteList.tbs[res.uniqueIdentifier]
+                                  [e.key.name] !=
+                              null)
+                            TextSpan(
+                              text: '\nTB: ',
+                              style: TextStyle(fontWeight: FontWeight.normal),
+                            ),
+                          if (ResultsRouteList.tbs[res.uniqueIdentifier]
+                                  [e.key.name] !=
+                              null)
+                            TextSpan(
+                              text: Tipologia.corsaDist.targetFormatter(
+                                ResultsRouteList.tbs[res.uniqueIdentifier]
+                                    [e.key.name],
+                              ),
                               style: TextStyle(
-                                  color: Theme.of(context).primaryColorDark)),
-                          if (ResultsRouteList.sbs[e.key] != null)
-                            TextSpan(
-                                text: '\nsb: ',
-                                style:
-                                    TextStyle(fontWeight: FontWeight.normal)),
-                          if (ResultsRouteList.sbs[e.key] != null)
-                            TextSpan(
-                                text: Tipologia.corsaDist.targetFormatter(
-                                    ResultsRouteList.sbs[e.key]),
-                                style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark)),
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
                         ]),
                   ),
                 ))

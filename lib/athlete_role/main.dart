@@ -1,10 +1,10 @@
 import 'package:Atletica/athlete_role/request_coach.dart';
-import 'package:Atletica/athlete_role/result.dart';
+import 'package:Atletica/results/result.dart';
 import 'package:Atletica/date.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
-import 'package:Atletica/results/simple_training.dart';
+import 'package:Atletica/results/results_edit_dialog.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +34,9 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
 
   Widget _trainingWidget(
       final ScheduledTraining s, final ScheduledTraining compatible) {
+    final Result result = compatible == null
+        ? null
+        : userA.getResult(Date.fromDateTime(controller.selectedDay));
     final Allenamento a = s.work;
     if (a == null) return Container();
     return CustomExpansionTile(
@@ -45,18 +48,12 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         icon: Icon(Mdi.poll),
         onPressed:
             Date.now() >= s.date && (s == compatible || compatible == null)
-                ? () {}
+                ? () => showResultsEditDialog(
+                      context,
+                      result ?? Result.empty(a, s.date),
+                      (r) => userA.saveResult(results: r),
+                    )
                 : null,
-        /*onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResultsEditRoute(
-                Result(
-                  training: SimpleTraining.from(s),
-                  athletes: userC.athletes.map((a) => a.reference),
-                ),
-              ),
-            )),*/
         color: Colors.black,
         disabledColor: Colors.grey[300],
       ),
@@ -64,19 +61,15 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         value: s,
         groupValue: compatible,
         onChanged: (st) {
-          print('called with arg: $st');
           userA.saveResult(
-            date: Date.fromDateTime(controller.selectedDay),
-            results: Map<SimpleRipetuta, double>.fromIterable(
-              st.work.ripetute.map((r) => SimpleRipetuta.from(r)),
-              key: (r) => r,
-              value: (r) => null,
+            results: Result.empty(
+              st.work,
+              Date.fromDateTime(controller.selectedDay),
             ),
-            training: st.work.name,
           );
         },
       ),
-      children: a.ripetuteAsDescription(context).toList(),
+      children: a.ripetuteAsDescription(context, result).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
@@ -91,6 +84,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
     final Result result =
         userA.getResult(Date.fromDateTime(controller.selectedDay));
     if (result == null) return null;
+    if (userA.events[controller.selectedDay] == null) return null;
 
     for (final ScheduledTraining st in userA.events[controller.selectedDay])
       if (result.isCompatible(st)) return st;

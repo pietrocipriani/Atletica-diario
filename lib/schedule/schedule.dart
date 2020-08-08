@@ -33,8 +33,8 @@ class ScheduledTraining {
         date = Date.fromTimeStamp(snap['date']),
         plan = snap['plan'];
 
-  ScheduledTraining._(this.reference, this.workRef, {DateTime date, this.plan})
-      : this.date = Date.fromDateTime(date);
+  /*ScheduledTraining._(this.reference, this.workRef, {DateTime date, this.plan})
+      : this.date = Date.fromDateTime(date);*/
 
   Allenamento get work => allenamenti[workRef];
 

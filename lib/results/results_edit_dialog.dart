@@ -1,11 +1,12 @@
+import 'package:Atletica/results/result.dart';
 import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showResultsEditDialog(
   BuildContext context,
-  Map<SimpleRipetuta, double> results,
-  Future<void> Function(Map<SimpleRipetuta, double> results) save,
+  Result results,
+  Future<void> Function(Result results) save,
 ) =>
     showDialog(
       context: context,
@@ -14,7 +15,13 @@ Future<void> showResultsEditDialog(
         title: Text('Modifica i risultati'),
         scrollable: true,
         actions: <Widget>[
-          FlatButton(onPressed: () {/* TODO */}, child: Text('Chiudi')),
+          FlatButton(
+            onPressed: () {
+              // TODO: remove changes
+              Navigator.pop(context);
+            },
+            child: Text('Chiudi'),
+          ),
           FlatButton(
             onPressed: () async {
               await save(results);
@@ -27,13 +34,13 @@ Future<void> showResultsEditDialog(
     );
 
 class ResultsEditDialog extends StatefulWidget {
-  final Map<SimpleRipetuta, double> results;
+  final Result results;
 
   ResultsEditDialog(this.results);
 
   @override
   _ResultsEditDialogState createState() =>
-      _ResultsEditDialogState(results.keys);
+      _ResultsEditDialogState(results.ripetute);
 }
 
 class _ResultsEditDialogState extends State<ResultsEditDialog> {
@@ -58,7 +65,7 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Column(
-        children: widget.results.entries.map((r) {
+        children: widget.results.asIterable.map((r) {
           return Row(
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
@@ -79,13 +86,13 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
                       _acceptable(value) ? null : 'es 1\' 20"50',
                   onChanged: (value) {
                     if (_acceptable(value))
-                      widget.results[r.key] =
+                      widget.results.results[r.key] =
                           Tipologia.corsaDist.targetParser(value);
                   },
                   onFieldSubmitted: (value) {
                     if (_acceptable(value))
-                      widget.results[r.key] =
-                          Tipologia.corsaDist.targetParser(value);
+                      widget.results
+                          .set(r.key, Tipologia.corsaDist.targetParser(value));
 
                     Iterable<SimpleRipetuta> nextIterable =
                         keys.skipWhile((key) => key != r.key);

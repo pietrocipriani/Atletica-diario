@@ -1,9 +1,8 @@
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/results/result.dart';
+import 'package:Atletica/results/results.dart';
 import 'package:Atletica/results/results_edit_route.dart';
-import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
@@ -58,10 +57,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             context,
             MaterialPageRoute(
               builder: (context) => ResultsEditRoute(
-                Result(
-                  training: SimpleTraining.from(s),
-                  athletes: userC.athletes.map((a) => a.reference),
-                ),
+                Results(training: a, date: s.date),
               ),
             )),
         color: Colors.black,
@@ -121,8 +117,9 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         Expanded(
           child: ListView(
             children: userC.scheduledTrainings[_calendarController.selectedDay]
-                ?.map((st) => _trainingWidget(st))
-                ?.toList() ?? [],
+                    ?.map((st) => _trainingWidget(st))
+                    ?.toList() ??
+                [],
           ),
         ),
       ],

@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:Atletica/athlete_role/result.dart';
+import 'package:Atletica/results/result.dart';
 import 'package:Atletica/date.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/result_snapshot.dart';
 import 'package:Atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
-import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -76,7 +75,8 @@ class AthleteHelper extends FirebaseUserHelper {
               (events[st.date.dateTime] ??= []).add(st);
               break;
             case DocumentChangeType.removed:
-              ScheduledTraining st = scheduledTrainings.remove(doc.document.reference);
+              ScheduledTraining st =
+                  scheduledTrainings.remove(doc.document.reference);
               events[st.date.dateTime]?.remove(st);
               break;
           }
@@ -154,19 +154,21 @@ class AthleteHelper extends FirebaseUserHelper {
     return true;
   }
 
-  Future<void> saveResult({
-    @required Date date,
-    @required Map<SimpleRipetuta, double> results,
-    @required String training,
-  }) async {
+  Future<void> saveResult({@required Result results}) async {
+    print({
+      'coach': coach.documentID,
+      'training': results.training,
+      'results':
+          results.asIterable.map((e) => '${e.key.name}:${e.value}').toList()
+    });
     userReference
         .collection('results')
-        .document(date.formattedAsIdentifier)
+        .document(results.date.formattedAsIdentifier)
         .setData({
       'coach': coach.documentID,
-      'training': training,
+      'training': results.training,
       'results':
-          results.entries.map((e) => '${e.key.name}:${e.value}').toList(),
+          results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
     }, merge: true);
   }
 

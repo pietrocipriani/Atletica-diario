@@ -11,6 +11,7 @@ class CustomListTile extends StatelessWidget {
     this.dense,
     this.onTap,
     this.onLongPress,
+    this.tileColor,
   }) : super(key: key);
 
   final Widget leading;
@@ -21,6 +22,7 @@ class CustomListTile extends StatelessWidget {
   final bool dense;
   final GestureTapCallback onTap;
   final GestureLongPressCallback onLongPress;
+  final Color tileColor;
 
   @override
   Widget build(BuildContext context) => ListTile(
@@ -29,10 +31,13 @@ class CustomListTile extends StatelessWidget {
           child: title,
           style: Theme.of(context).textTheme.bodyText1,
         ),
-        subtitle: subtitle == null ? null : DefaultTextStyle(
-          child: subtitle,
-          style: Theme.of(context).textTheme.overline,
-        ),
+        tileColor: tileColor,
+        subtitle: subtitle == null
+            ? null
+            : DefaultTextStyle(
+                child: subtitle,
+                style: Theme.of(context).textTheme.overline,
+              ),
         trailing: trailing,
         isThreeLine: isThreeLine,
         dense: dense,

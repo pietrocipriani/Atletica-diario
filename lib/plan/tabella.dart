@@ -49,13 +49,55 @@ class Tabella {
         .add({'name': name, 'weeks': [], 'start': start, 'stop': stop});
   }
 
-  void _removeScheduledTrainings(WriteBatch batch) {
+  void _removeScheduledTrainings({
+    @required final List<Week> newWeeks,
+    @required final Date start,
+    @required final Date stop,
+    @required final WriteBatch batch,
+  }) {
     final Date now = Date.now();
     for (MapEntry<DateTime, List<ScheduledTraining>> e
         in userC.scheduledTrainings.entries) {
       if (e.value == null || now > e.key) continue;
-      for (ScheduledTraining st in e.value)
-        if (st.plan == reference) batch.delete(st.reference);
+      final Date date = Date.fromDateTime(e.key);
+      final bool defaultDelete = start == null || date < start || date > stop;
+      final int week =
+          defaultDelete ? null : ((date - start).inDays ~/ 7) % newWeeks.length;
+      final DocumentReference scheduled =
+          defaultDelete ? null : newWeeks[week].trainings[date.weekday];
+      for (ScheduledTraining st in e.value) {
+        if (st.plan != reference) continue;
+        bool delete = defaultDelete;
+        delete |= st.workRef != scheduled;
+        if (delete) batch.delete(st.reference);
+      }
+    }
+  }
+
+  void _addScheduledTrainings({
+    @required final List<Week> weeks,
+    @required final Date start,
+    @required final Date stop,
+    @required final WriteBatch batch,
+  }) {
+    if (start == null) return;
+    final Date now = Date.now();
+
+    for (Date current = start; current <= stop; current++) {
+      final int week = ((current - start).inDays ~/ 7) % weeks.length;
+      final DocumentReference training = weeks[week].trainings[current.weekday];
+      if (current < now || training == null) continue;
+      if (userC.scheduledTrainings[current.dateTime]
+              ?.any((st) => st.workRef == training) ??
+          false) continue;
+
+      // TODO: if already exists, check for `plan`
+      ScheduledTraining.create(
+        work: training,
+        date: current.dateTime,
+        plan: this,
+        batch: batch,
+      );
     }
   }
 
@@ -73,25 +115,18 @@ class Tabella {
       'start': start,
       'stop': stop
     });
-    _removeScheduledTrainings(batch);
-
-    if (start != null) {
-      final Date now = Date.now();
-      final Date first = Date.fromDateTime(start);
-      final Date end = Date.fromDateTime(stop);
-
-      for (Date current = first; current <= end; current++) {
-        final int week = ((current - first).inDays ~/ 7) % weeks.length;
-        if (current < now || weeks[week].trainings[current.weekday] == null)
-          continue;
-        ScheduledTraining.create(
-          work: weeks[week].trainings[current.weekday],
-          date: current.dateTime,
-          plan: this,
-          batch: batch,
-        );
-      }
-    }
+    _removeScheduledTrainings(
+      newWeeks: weeks,
+      start: Date.fromDateTime(start),
+      stop: Date.fromDateTime(stop),
+      batch: batch,
+    );
+    _addScheduledTrainings(
+      weeks: weeks,
+      start: Date.fromDateTime(start),
+      stop: Date.fromDateTime(stop),
+      batch: batch,
+    );
 
     return batch.commit();
   }
@@ -226,21 +261,16 @@ class Tabella {
 }
 
 class Week {
-  /// `null` per ripeterlo indefinitamente
-  int repeat;
   Map<int, DocumentReference> trainings;
   // TODO: implementare giorni con allenamenti multipli
 
-  Week({this.repeat = 1, this.trainings}) {
+  Week({this.trainings}) {
     trainings ??= <int, DocumentReference>{};
   }
   Week.parse(Map raw) {
-    // TODO: repeat
     trainings = raw.map((key, value) => MapEntry(int.tryParse(key), value));
   }
-  Week.copy(Week week)
-      : this.repeat = week.repeat,
-        this.trainings = Map.from(week.trainings);
+  Week.copy(Week week) : this.trainings = Map.from(week.trainings);
 
   Map<String, dynamic> get asMap =>
       trainings.map((key, value) => MapEntry(key.toString(), value));

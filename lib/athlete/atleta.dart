@@ -40,7 +40,9 @@ class Athlete {
         auth.userC.resultSnapshots(athlete: this).listen((e) {
       if (e == null) return;
       final QuerySnapshot cast = e;
-      trainingsCount = cast.documents.length;
+      trainingsCount = cast.documents
+          .where((doc) => doc['results'].any((l) => !l.endsWith('null')))
+          .length;
     });
   }
 
