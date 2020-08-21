@@ -69,7 +69,42 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
           );
         },
       ),
-      children: a.ripetuteAsDescription(context, result).toList(),
+      children: a
+          .ripetuteAsDescription(
+              context, result, s != compatible && compatible != null)
+          .toList(),
+      childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
+      /*trailing: IconButton(
+        icon: Icon(Icons.play_arrow),
+        onPressed: () {},
+        color: Colors.black,
+      ),*/
+    );
+  }
+
+  Widget _resultWidget(final Result result) {
+    if (result?.training == null) return Container();
+    return CustomExpansionTile(
+      title: '${result.training} (prev)',
+      titleColor: Colors.black,
+      trailing: IconButton(
+        icon: Icon(Mdi.poll),
+        onPressed: Date.now() >= result.date
+            ? () => showResultsEditDialog(
+                  context,
+                  result,
+                  (r) => userA.saveResult(results: r),
+                )
+            : null,
+        color: Colors.black,
+        disabledColor: Colors.grey[300],
+      ),
+      leading: Radio<ScheduledTraining>(
+        value: null,
+        groupValue: null,
+        onChanged: (st) {},
+      ),
+      children: Allenamento.trainingFromResults(context, result).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
@@ -103,6 +138,18 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         ),
       );
     final ScheduledTraining compatibleST = _compatibleST;
+    final Result result = controller.selectedDay == null
+        ? null
+        : userA.getResult(Date.fromDateTime(controller.selectedDay));
+    List<Widget> children = <Widget>[
+      if (result != null && compatibleST == null) _resultWidget(result)
+    ];
+    if (userA.events[controller.selectedDay] != null)
+      children = children
+          .followedBy(userA.events[controller.selectedDay]
+              ?.map((st) => _trainingWidget(st, compatibleST)))
+          .toList();
+
     return Scaffold(
       appBar: AppBar(title: Text('Atletica - Atleta')),
       body: Column(
@@ -141,14 +188,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
             height: 1,
             color: Colors.grey[300],
           ),
-          Expanded(
-            child: ListView(
-              children: userA.events[controller.selectedDay]
-                      ?.map((st) => _trainingWidget(st, compatibleST))
-                      ?.toList() ??
-                  [],
-            ),
-          ),
+          Expanded(child: ListView(children: children)),
         ],
       ),
     );

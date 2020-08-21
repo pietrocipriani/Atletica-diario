@@ -8,6 +8,7 @@ import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/recupero/recupero.dart';
 import 'package:Atletica/results/result.dart';
+import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
 import 'package:Atletica/ripetuta/template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -74,87 +75,114 @@ class Allenamento {
     });
   }
 
+  static Widget _rowRip(
+    final Ripetuta rip,
+    final MapEntry<SimpleRipetuta, double> ris,
+    final TextStyle overlineBC, [
+    final bool disabled = false,
+  ]) {
+    assert((rip == null) != (ris == null),
+        'cannot pass both the rip and the result');
+    final String name = ris?.key?.name ?? rip?.template;
+    final double result = ris?.value ?? rip?.target;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          text: name,
+          children: [
+            if (result != null)
+              TextSpan(
+                text: ' in ',
+                style: TextStyle(
+                  color: disabled ? Colors.grey[300] : Colors.black,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            if (result != null)
+              TextSpan(
+                text:
+                    (templates[rip?.template]?.tipologia ?? Tipologia.corsaDist)
+                        .targetFormatter(result),
+                style: TextStyle(
+                  color: rip == null && ris == null ? Colors.grey[300] : Colors.black,
+                ),
+              )
+          ],
+          style: overlineBC,
+        ),
+      ),
+    );
+  }
+
+  static Widget _rowRec(
+    final BuildContext context,
+    final Recupero rec,
+    final bool isSerieRec,
+    final TextStyle overlineB, [
+    final bool disabled = false,
+  ]) {
+    if (rec == null) return Container();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            height: 1,
+            color: ((isSerieRec ?? false) && !disabled)
+                ? Theme.of(context).primaryColor
+                : Colors.grey[300],
+          ),
+        ),
+        RichText(
+          text: TextSpan(text: rec.toString(), style: overlineB, children: [
+            TextSpan(
+              text: ' recupero',
+              style: TextStyle(fontWeight: FontWeight.normal),
+            )
+          ]),
+        )
+      ],
+    );
+  }
+
+  static Iterable<Widget> trainingFromResults(
+    BuildContext context,
+    Result result,
+  ) {
+    final TextStyle overlineC = Theme.of(context)
+        .textTheme
+        .overline
+        .copyWith(color: Theme.of(context).primaryColorDark);
+    return result.asIterable.map((e) => _rowRip(null, e, overlineC));
+  }
+
   Iterable<Widget> ripetuteAsDescription(BuildContext context,
-      [Result result]) sync* {
+      [Result result, bool disabled = false]) sync* {
     final bool useResult = result != null &&
         result.isCompatible(this) &&
         result.results.values.any((r) => r != null);
 
-    final TextStyle overline = Theme.of(context).textTheme.overline;
-    final TextStyle overlineB = overline.copyWith(fontWeight: FontWeight.bold);
-    final TextStyle overlineBC =
-        overlineB.copyWith(color: Theme.of(context).primaryColorDark);
-
-    Widget rowRip(final Ripetuta rip, final int index) {
-      assert(index != null && index >= 0);
-      final double ris =
-          useResult ? result.results.values.skip(index).first : null;
-      final double risOrTarget = ris ?? rip.target;
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: RichText(
-          text: TextSpan(
-            text: rip.template,
-            children: [
-              if (risOrTarget != null)
-                TextSpan(
-                  text: ' in ',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-              if (risOrTarget != null)
-                TextSpan(
-                  text: (templates[rip.template]?.tipologia ??
-                          Tipologia.corsaDist)
-                      .targetFormatter(risOrTarget),
-                  style: TextStyle(
-                    color: useResult && ris == null
-                        ? Colors.grey[300]
-                        : Colors.black,
-                  ),
-                )
-            ],
-            style: overlineBC,
-          ),
-        ),
-      );
-    }
-
-    Widget rowRec(final Recupero rec, bool isSerieRec) {
-      if (rec == null) return Container();
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              height: 1,
-              color: (isSerieRec ?? false)
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey[300],
-            ),
-          ),
-          RichText(
-            text: TextSpan(text: rec.toString(), style: overlineB, children: [
-              TextSpan(
-                text: ' recupero',
-                style: TextStyle(fontWeight: FontWeight.normal),
-              )
-            ]),
-          )
-        ],
-      );
-    }
+    TextStyle overline = Theme.of(context).textTheme.overline;
+    if (disabled) overline = overline.copyWith(color: Colors.grey[300]);
+    final TextStyle overlineC = disabled
+        ? overline
+        : overline.copyWith(color: Theme.of(context).primaryColorDark);
 
     int index = 0;
     for (final Serie s in serie)
       for (int i = 1; i <= s.ripetizioni; i++)
         for (final Ripetuta r in s.ripetute)
           for (int j = 1; j <= r.ripetizioni; j++) {
-            yield rowRip(r, index++);
-            yield rowRec(
+            yield _rowRip(
+              useResult ? null : r,
+              useResult ? result.asIterable.skip(index++).first : null,
+              overlineC,
+              disabled,
+            );
+            yield _rowRec(
+              context,
               j == r.ripetizioni
                   ? r == s.ripetute.last
                       ? i == s.ripetizioni
@@ -163,6 +191,8 @@ class Allenamento {
                       : r.nextRecupero
                   : r.recupero,
               j == r.ripetizioni && r == s.ripetute.last,
+              overline,
+              disabled,
             );
           }
   }

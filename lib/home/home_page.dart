@@ -107,7 +107,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
           onCalendarCreated: (first, last, format) => widget
               .onSelectedDayChanged
               ?.call(_calendarController.selectedDay),
-          events: userC.scheduledTrainings,
+          events: userC?.scheduledTrainings ?? {},
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),

@@ -43,6 +43,7 @@ class ScheduledTraining {
       @required DateTime date,
       Tabella plan,
       WriteBatch batch}) {
+    print('creating training in date: ${date.toIso8601String()}');
     if (batch == null)
       return userC.userReference
           .collection('schedules')

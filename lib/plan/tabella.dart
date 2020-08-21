@@ -108,6 +108,8 @@ class Tabella {
     DateTime stop,
   }) {
     weeks ??= this.weeks;
+    start ??= this.start;
+    stop ??= this.stop;
     final WriteBatch batch = firestore.batch();
     batch.updateData(reference, {
       'name': name ?? this.name,
@@ -117,8 +119,8 @@ class Tabella {
     });
     _removeScheduledTrainings(
       newWeeks: weeks,
-      start: Date.fromDateTime(start),
-      stop: Date.fromDateTime(stop),
+      start: start == null ? null : Date.fromDateTime(start),
+      stop: stop == null ? null : Date.fromDateTime(stop),
       batch: batch,
     );
     _addScheduledTrainings(
@@ -128,6 +130,18 @@ class Tabella {
       batch: batch,
     );
 
+    return batch.commit();
+  }
+
+  Future<void> delete() {
+    final WriteBatch batch = firestore.batch();
+    _removeScheduledTrainings(
+      newWeeks: <Week>[],
+      start: null,
+      stop: null,
+      batch: batch,
+    );
+    batch.delete(reference);
     return batch.commit();
   }
 
@@ -144,9 +158,10 @@ class Tabella {
     DateTime start = plan?.start;
     DateTime stop = plan?.stop;
 
-    final DateTime firstAvaiableStartDay = bareDT(DateTime.now().subtract(
-      Duration(days: (DateTime.now().weekday - DateTime.monday) % 7),
-    ));
+    DateTime firstAvaiableStartDay = Date.now().dateTime;
+    firstAvaiableStartDay = firstAvaiableStartDay.subtract(
+      Duration(days: (firstAvaiableStartDay.weekday - DateTime.monday) % 7),
+    );
 
     String validator([s]) {
       s ??= name ?? '';
@@ -476,7 +491,7 @@ class _PlansRouteState extends State<PlansRoute>
                     name: plan.name,
                   );
                 },
-                onDismissed: (direction) => plan.reference.delete(),
+                onDismissed: (direction) => plan.delete(),
                 child: CustomExpansionTile(
                   trailing: IconButton(
                     icon: Icon(Icons.add_circle, color: Colors.black),
