@@ -105,7 +105,9 @@ class Allenamento {
                     (templates[rip?.template]?.tipologia ?? Tipologia.corsaDist)
                         .targetFormatter(result),
                 style: TextStyle(
-                  color: rip == null && ris == null ? Colors.grey[300] : Colors.black,
+                  color: (rip == null && ris == null) || disabled
+                      ? Colors.grey[300]
+                      : Colors.black,
                 ),
               )
           ],

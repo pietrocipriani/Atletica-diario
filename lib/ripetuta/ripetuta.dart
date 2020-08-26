@@ -29,7 +29,7 @@ class Ripetuta {
   }
   Ripetuta.parse(Map raw) {
     template = raw['template'];
-    target = raw['target'].toDouble();
+    target = raw['target']?.toDouble();
     recupero = Recupero(raw['recupero']);
     ripetizioni = raw['times'];
     nextRecupero = Recupero(raw['recuperoNext']);
@@ -226,7 +226,7 @@ class Ripetuta {
           actions: <Widget>[
             FlatButton(
               onPressed: () {
-                Navigator.pop(context, false);
+                Navigator.pop(context, null);
               },
               child: Text('Annulla'),
             ),
