@@ -1,3 +1,4 @@
+import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/athlete/results/results_route.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
@@ -19,8 +20,9 @@ MapEntry<String, double> parseRawResult(String rawResult) {
 
 class ResultWidget extends StatelessWidget {
   final Result res;
+  final Athlete athlete;
 
-  ResultWidget(this.res);
+  ResultWidget(this.res, this.athlete);
 
   @override
   Widget build(BuildContext context) => CustomExpansionTile(
@@ -50,25 +52,22 @@ class ResultWidget extends StatelessWidget {
                             style: TextStyle(fontWeight: FontWeight.normal),
                           ),
                           TextSpan(
-                            text: Tipologia.corsaDist.targetFormatter(
-                                ResultsRouteList.pbs[e.key.name]),
+                            text: Tipologia.corsaDist
+                                .targetFormatter(athlete.pb(e.key.name)),
                             style: TextStyle(
                                 color: Theme.of(context).primaryColorDark),
                           ),
-                          if (ResultsRouteList.tbs[res.uniqueIdentifier]
-                                  [e.key.name] !=
+                          if (athlete.tb(res.uniqueIdentifier, e.key.name) !=
                               null)
                             TextSpan(
                               text: '\nTB: ',
                               style: TextStyle(fontWeight: FontWeight.normal),
                             ),
-                          if (ResultsRouteList.tbs[res.uniqueIdentifier]
-                                  [e.key.name] !=
+                          if (athlete.tb(res.uniqueIdentifier, e.key.name) !=
                               null)
                             TextSpan(
                               text: Tipologia.corsaDist.targetFormatter(
-                                ResultsRouteList.tbs[res.uniqueIdentifier]
-                                    [e.key.name],
+                                athlete.tb(res.uniqueIdentifier, e.key.name),
                               ),
                               style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,

@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:Atletica/athlete/athlete_dialog.dart';
 import 'package:Atletica/athlete/group.dart';
 import 'package:Atletica/persistence/auth.dart' as auth;
 import 'package:Atletica/persistence/firestore.dart';
+import 'package:Atletica/results/result.dart';
+import 'package:Atletica/results/simple_training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -18,8 +21,47 @@ class Athlete {
   String get group => _group;
   set group(String group) => lastGroup = (_group = group) ?? lastGroup;
 
-  int trainingsCount = 0;
+  int get trainingsCount => results.values.where((r) => !r.isBooking).length;
   StreamSubscription _trainingsCountSubscription;
+  final Map<String, Result> results = {};
+
+  /// `tbs`: training bests
+  ///
+  /// the key of the Map is the `':'` concatenation of the `Result.ripetute` iterable
+  ///
+  /// the key of the inner Map is `SimpleRipetuta.name`
+  /// and the value is the corrispective double value to format
+  final Map<String, Map<String, double>> tbs = {};
+  final Map<String, double> pbs = {};
+
+  double tb(String identifier, String rip) {
+    dynamic a = tbs[identifier] ?? {};
+    return a[rip];
+  }
+
+  double pb(String rip) => pbs[rip];
+
+  void _reloadPbsTbs() {
+    for (String key in results.keys) {
+      if (key == null) continue;
+      _updatePbsTbs(key);
+    }
+  }
+
+  void _updatePbsTbs(String added) {
+    final Result result = results[added];
+    if (result == null) return;
+    final String identifier = result.uniqueIdentifier;
+    for (final MapEntry<SimpleRipetuta, double> e in result.asIterable) {
+      if (e.value == null) continue;
+      pbs[e.key.name] = min(e.value, pbs[e.key.name] ?? double.infinity);
+      final Map<String, double> map = tbs[identifier] ??= <String, double>{};
+      map[e.key.name] = min(
+        e.value,
+        map[e.key.name] ?? double.infinity,
+      );
+    }
+  }
 
   bool get isRequest => group == null;
   bool get isAthlete => group != null;
@@ -40,9 +82,17 @@ class Athlete {
         auth.userC.resultSnapshots(athlete: this).listen((e) {
       if (e == null) return;
       final QuerySnapshot cast = e;
-      trainingsCount = cast.documents
-          .where((doc) => doc['results'].any((l) => !l.endsWith('null')))
-          .length;
+      for (DocumentChange change in cast.documentChanges) {
+        if (change.type == DocumentChangeType.removed)
+          results.remove(change.document.documentID);
+        else
+          results[change.document.documentID] = Result(change.document);
+
+        if (change.type == DocumentChangeType.added)
+          _updatePbsTbs(change.document.documentID);
+        else
+          _reloadPbsTbs();
+      }
     });
   }
 

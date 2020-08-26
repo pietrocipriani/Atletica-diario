@@ -49,6 +49,8 @@ class Result {
     );
   }
 
+  bool get isBooking => results.values.every((r) => r == null);
+
   void set(final SimpleRipetuta rip, final double value) =>
       results[rip] = value;
   double operator [](final SimpleRipetuta rip) => results[rip];
