@@ -7,6 +7,7 @@ import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:Atletica/training/training_chip.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
@@ -296,23 +297,26 @@ class Week {
       @required void Function(void Function()) setState}) sync* {
     final TextStyle overline = Theme.of(context).textTheme.overline;
     Widget builder(BuildContext context, int weekday, bool over) {
-      return allenamenti[week.trainings[weekday]]?.chip(
-              context: context,
-              onDelete: () => setState(() => week.trainings[weekday] = null)) ??
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: DottedBorder(
-              borderType: BorderType.RRect,
-              padding: const EdgeInsets.all(0),
-              color:
-                  over ? Theme.of(context).primaryColorDark : Colors.grey[300],
-              radius: Radius.circular(20),
-              dashPattern: [6, 4],
-              child: Container(
-                height: 32,
+      return allenamenti[week.trainings[weekday]] != null
+          ? TrainingChip(
+              training: allenamenti[week.trainings[weekday]],
+              onDelete: () => setState(() => week.trainings[weekday] = null),
+            )
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: DottedBorder(
+                borderType: BorderType.RRect,
+                padding: const EdgeInsets.all(0),
+                color: over
+                    ? Theme.of(context).primaryColorDark
+                    : Colors.grey[300],
+                radius: Radius.circular(20),
+                dashPattern: [6, 4],
+                child: Container(
+                  height: 32,
+                ),
               ),
-            ),
-          );
+            );
     }
 
     for (int i = 0; i < weekdays.length; i += 2) {
@@ -403,15 +407,15 @@ class Week {
                       maxSimultaneousDrags: 1,
                       data: allenamento,
                       feedback:
-                          allenamento.chip(context: context, elevation: 6),
+                          TrainingChip(training: allenamento, elevation: 6),
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
-                        child: allenamento.chip(context: context),
+                        child: TrainingChip(training: allenamento),
                       ),
                       childWhenDragging: Padding(
                         padding: const EdgeInsets.all(4),
-                        child: allenamento.chip(
-                          context: context,
+                        child: TrainingChip(
+                          training: allenamento,
                           enabled: false,
                         ),
                       ),

@@ -1,9 +1,9 @@
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
 import 'package:Atletica/ripetuta/template.dart';
-import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/duration_picker.dart';
 import 'package:Atletica/recupero/recupero.dart';
+import 'package:Atletica/training/serie.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 

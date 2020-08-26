@@ -5,6 +5,7 @@ import 'package:Atletica/results/results.dart';
 import 'package:Atletica/results/results_edit_route.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -62,7 +63,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             )),
         color: Colors.black,
       ),
-      children: a.ripetuteAsDescription(context).toList(),
+      children: TrainingDescription.fromTraining(context, a).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),

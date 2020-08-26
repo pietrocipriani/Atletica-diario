@@ -5,6 +5,7 @@ import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/plan/tabella.dart';
 import 'package:Atletica/schedule/schedule_dialogs/scheduled_training_dialog.dart';
 import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/training/widgets/training_route.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 

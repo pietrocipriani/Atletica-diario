@@ -7,6 +7,7 @@ import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:Atletica/results/results_edit_dialog.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -69,10 +70,12 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
           );
         },
       ),
-      children: a
-          .ripetuteAsDescription(
-              context, result, s != compatible && compatible != null)
-          .toList(),
+      children: TrainingDescription.fromTraining(
+        context,
+        a,
+        result,
+        s != compatible && compatible != null,
+      ).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
@@ -104,7 +107,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         groupValue: null,
         onChanged: (st) {},
       ),
-      children: Allenamento.trainingFromResults(context, result).toList(),
+      children: TrainingDescription.fromResults(context, result).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),

@@ -1,6 +1,7 @@
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
+import 'package:Atletica/training/training_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -39,8 +40,8 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
                       : trainings.add(a)),
                   child: Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: a.chip(
-                      context: context,
+                    child: TrainingChip(
+                      training: a,
                       enabled: trainings.contains(a),
                     ),
                   ),
@@ -61,7 +62,7 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
                     work: a.reference,
                     date: widget.selectedDay,
                   );
-              
+
               for (ScheduledTraining st in prev)
                 if (trainings.every((a) => a.reference != st.workRef))
                   st.reference.delete();

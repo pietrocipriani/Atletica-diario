@@ -7,28 +7,45 @@ import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:Atletica/recupero/recupero.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:Atletica/training/serie.dart';
+import 'package:Atletica/training/training_description.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+/// Map [DocumentReference] [Allenamento] of the existing [trainings]
+///
+/// populated by `CoachHelper` query snapshot listener
 final Map<DocumentReference, Allenamento> allenamenti =
     <DocumentReference, Allenamento>{};
+
+/// list of `weekdays` names in [italian] locale
 final List<String> weekdays = dateTimeSymbolMap()['it'].WEEKDAYS;
+
+/// list of `weekdays` short names in [italian] locale
 final List<String> shortWeekDays = dateTimeSymbolMap()['it'].SHORTWEEKDAYS;
 
+/// class for [trainings] representation
 class Allenamento {
+  /// `reference` to corresponding [firestore] document
   final DocumentReference reference;
+
+  /// `name` is the identifier for the current [training]
+  ///
+  /// `descrizione` contains [notes] & [description] for the current [training]
   String name, descrizione;
+
+  /// `serie` is a `List` containing all the `Serie`s composing the [training]
   List<Serie> serie = <Serie>[];
 
-  bool waitingForChanges = false;
+  /// flag preventing [training] rendering (in `TrainingRoute`) if `dismissed`
   bool dismissed = false;
 
+  /// creates an instance from [firestore] `DocumentSnapshot`
+  ///
+  /// adds `this` to `allenamenti`
   Allenamento.parse(DocumentSnapshot raw)
       : assert(raw != null && raw['name'] != null),
         reference = raw.reference,
@@ -39,13 +56,19 @@ class Allenamento {
     allenamenti[reference] = this;
   }
 
+  /// adds a new [document] to [firestore/$userC/trainings/]
+  ///
+  /// [training] is initialized with a progressive `name`, `null` `description`
+  /// and an empty `serie`
   static Future<void> create() =>
       user.userReference.collection('trainings').add({
-        'name': 'training #${allenamenti.length + 1}',
+        'name':
+            'training #${allenamenti.length + 1}', // TODO: check if not exists
         'description': null,
         'serie': []
       });
 
+  /// returns `index`th `Ripetuta` for `this`
   Ripetuta ripetutaFromIndex(int index) {
     for (Serie s in serie)
       for (int i = 0; i < s.ripetizioni; i++)
@@ -54,6 +77,8 @@ class Allenamento {
     return null;
   }
 
+  /// returns all the [ripetute] as an `Iterable`
+  /// (not grouped in [Serie]s)
   Iterable<Ripetuta> get ripetute sync* {
     for (Serie s in serie)
       for (int i = 0; i < s.ripetizioni; i++)
@@ -61,13 +86,15 @@ class Allenamento {
           for (int j = 0; j < r.ripetizioni; j++) yield r;
   }
 
+  /// deletes current [training] from [firestore]
   Future<void> delete() {
+    // TODO: checks for schedules
     dismissed = true;
     return reference.delete();
   }
 
+  /// updates [firestore] document with new data
   Future<void> save() {
-    waitingForChanges = true;
     return reference.setData({
       'name': name,
       'description': descrizione,
@@ -75,130 +102,7 @@ class Allenamento {
     });
   }
 
-  static Widget _rowRip(
-    final Ripetuta rip,
-    final MapEntry<SimpleRipetuta, double> ris,
-    final TextStyle overlineBC, [
-    final bool disabled = false,
-  ]) {
-    assert((rip == null) != (ris == null),
-        'cannot pass both the rip and the result');
-    final String name = ris?.key?.name ?? rip?.template;
-    final double result = ris?.value ?? rip?.target;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: RichText(
-        text: TextSpan(
-          text: name,
-          children: [
-            if (result != null)
-              TextSpan(
-                text: ' in ',
-                style: TextStyle(
-                  color: disabled ? Colors.grey[300] : Colors.black,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-            if (result != null)
-              TextSpan(
-                text:
-                    (templates[rip?.template]?.tipologia ?? Tipologia.corsaDist)
-                        .targetFormatter(result),
-                style: TextStyle(
-                  color: (rip == null && ris == null) || disabled
-                      ? Colors.grey[300]
-                      : Colors.black,
-                ),
-              )
-          ],
-          style: overlineBC,
-        ),
-      ),
-    );
-  }
-
-  static Widget _rowRec(
-    final BuildContext context,
-    final Recupero rec,
-    final bool isSerieRec,
-    final TextStyle overlineB, [
-    final bool disabled = false,
-  ]) {
-    if (rec == null) return Container();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-            height: 1,
-            color: ((isSerieRec ?? false) && !disabled)
-                ? Theme.of(context).primaryColor
-                : Colors.grey[300],
-          ),
-        ),
-        RichText(
-          text: TextSpan(text: rec.toString(), style: overlineB, children: [
-            TextSpan(
-              text: ' recupero',
-              style: TextStyle(fontWeight: FontWeight.normal),
-            )
-          ]),
-        )
-      ],
-    );
-  }
-
-  static Iterable<Widget> trainingFromResults(
-    BuildContext context,
-    Result result,
-  ) {
-    final TextStyle overlineC = Theme.of(context)
-        .textTheme
-        .overline
-        .copyWith(color: Theme.of(context).primaryColorDark);
-    return result.asIterable.map((e) => _rowRip(null, e, overlineC));
-  }
-
-  Iterable<Widget> ripetuteAsDescription(BuildContext context,
-      [Result result, bool disabled = false]) sync* {
-    final bool useResult = result != null &&
-        result.isCompatible(this) &&
-        result.results.values.any((r) => r != null);
-
-    TextStyle overline = Theme.of(context).textTheme.overline;
-    if (disabled) overline = overline.copyWith(color: Colors.grey[300]);
-    final TextStyle overlineC = disabled
-        ? overline
-        : overline.copyWith(color: Theme.of(context).primaryColorDark);
-
-    int index = 0;
-    for (final Serie s in serie)
-      for (int i = 1; i <= s.ripetizioni; i++)
-        for (final Ripetuta r in s.ripetute)
-          for (int j = 1; j <= r.ripetizioni; j++) {
-            yield _rowRip(
-              useResult ? null : r,
-              useResult ? result.asIterable.skip(index++).first : null,
-              overlineC,
-              disabled,
-            );
-            yield _rowRec(
-              context,
-              j == r.ripetizioni
-                  ? r == s.ripetute.last
-                      ? i == s.ripetizioni
-                          ? s == serie.last ? null : s.nextRecupero
-                          : s.recupero
-                      : r.nextRecupero
-                  : r.recupero,
-              j == r.ripetizioni && r == s.ripetute.last,
-              overline,
-              disabled,
-            );
-          }
-  }
-
+  /// returns `index`th [Recupero] for this
   Recupero recuperoFromIndex(int index) {
     index--;
     if (index < 0) return null;
@@ -224,176 +128,13 @@ class Allenamento {
     return null;
   }
 
+  /// returns the number of [Ripetuta] in `this` training
   int countRipetute() {
     return serie.fold(0, (sum, serie) => sum + serie.ripetuteCount);
   }
 
-  Widget chip(
-      {@required BuildContext context,
-      double elevation = 0,
-      bool enabled = true,
-      void Function() onDelete}) {
-    Widget child = Material(
-      color: Colors.transparent,
-      child: Chip(
-        elevation: elevation,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        backgroundColor: Theme.of(context).dialogBackgroundColor,
-        shape: StadiumBorder(
-          side: BorderSide(
-            color: enabled ? Theme.of(context).primaryColor : Colors.grey[300],
-          ),
-        ),
-        label: Text(
-          name,
-          style: Theme.of(context).textTheme.overline.copyWith(
-              color: enabled ? null : Colors.grey[300],
-              fontWeight: FontWeight.bold),
-        ),
-        onDeleted: onDelete,
-      ),
-    );
-    return child;
-  }
-
   @override
   String toString() => name;
-}
-
-class Serie {
-  List<Ripetuta> ripetute = <Ripetuta>[];
-
-  final LayerLink link = LayerLink();
-
-  Recupero nextRecupero, recupero;
-
-  /// `ripetizioni` quante volte ripetere la stessa `Serie` di fila
-  int ripetizioni;
-
-  Serie(
-      {Iterable<Ripetuta> ripetute,
-      this.recupero,
-      this.ripetizioni = 1,
-      this.nextRecupero}) {
-    recupero ??= Recupero();
-    nextRecupero ??= Recupero();
-    if (ripetute != null) this.ripetute.addAll(ripetute);
-  }
-  Serie.parse(Map raw) {
-    recupero = Recupero(raw['recupero'] ?? 3 * 60);
-    nextRecupero = Recupero(raw['recuperoNext'] ?? 3 * 60);
-    ripetizioni = raw['times'];
-    ripetute = raw['ripetute']
-            ?.map<Ripetuta>((raw) => Ripetuta.parse(raw))
-            ?.toList() ??
-        <Ripetuta>[];
-  }
-
-  Map<String, dynamic> get asMap => {
-        'recuperoNext': nextRecupero.recupero,
-        'recupero': recupero.recupero,
-        'times': ripetizioni,
-        'ripetute': ripetute.map((rip) => rip.asMap).toList()
-      };
-
-  int get ripetuteCount {
-    return ripetute.fold(0, (sum, rip) => sum + rip.ripetizioni) * ripetizioni;
-  }
-}
-
-class TrainingRoute extends StatefulWidget {
-  @override
-  _TrainingRouteState createState() => _TrainingRouteState();
-}
-
-class _TrainingRouteState extends State<TrainingRoute> {
-  final Callback callback = Callback();
-
-  @override
-  void initState() {
-    callback.f = (_) => setState(() {});
-    CoachHelper.onTrainingCallbacks.add(callback);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    CoachHelper.onTrainingCallbacks.remove(callback.stopListening);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('ALLENAMENTI')),
-      body: allenamenti.isEmpty
-          ? Center(child: Text('non hai creato ancora nessun allenamento'))
-          : ListView(
-              children: allenamenti.values
-                  .where((a) => !a.dismissed)
-                  .map(
-                    (a) => CustomDismissible(
-                      key: ValueKey(a),
-                      onDismissed: (direction) => a.delete(),
-                      confirmDismiss: (direction) async {
-                        if (direction == DismissDirection.startToEnd)
-                          return await showDeleteConfirmDialog(
-                            context: context,
-                            name: a.name,
-                          );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  TrainingInfoRoute(allenamento: a)),
-                        ).then((value) => a.save());
-                        return false;
-                      },
-                      child: CustomExpansionTile(
-                        title: a.name,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 40),
-                            child: Column(
-                              children: <Widget>[
-                                Text(
-                                  a.descrizione == null || a.descrizione.isEmpty
-                                      ? 'nessuna descrizione'
-                                      : a.descrizione,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .overline
-                                      .copyWith(fontWeight: FontWeight.normal),
-                                  textAlign: TextAlign.justify,
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                              ]
-                                  .followedBy(a.ripetuteAsDescription(context))
-                                  .toList(),
-                            ),
-                          )
-                        ],
-                        leading: LeadingInfoWidget(
-                          info: a.countRipetute().toString(),
-                          bottom: singularPlural(
-                              'ripetut', 'a', 'e', a.countRipetute()),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Allenamento.create();
-          setState(() {});
-        },
-        child: Icon(Icons.add),
-      ),
-    );
-  }
 }
 
 class TrainingInfoRoute extends StatefulWidget {
