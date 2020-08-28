@@ -52,6 +52,12 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     assert(a != null);
     return CustomExpansionTile(
       title: a.name,
+      subtitle: s.athletes == null || s.athletes.isEmpty
+          ? null
+          : Text(
+              s.athletesAsList,
+              style: TextStyle(color: Theme.of(context).primaryColorDark),
+            ),
       trailing: IconButton(
         icon: Icon(Mdi.poll),
         onPressed: () => Navigator.push(

@@ -1,7 +1,12 @@
+import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/firestore.dart';
+import 'package:Atletica/schedule/athletes_picker.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/training/training_chip.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -18,58 +23,104 @@ class ScheduledTrainingDialog extends StatefulWidget {
 class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
   final List<Allenamento> trainings = List();
   final List<ScheduledTraining> prev = List();
+  final Map<Allenamento, List<Athlete>> athletes = Map();
+  Allenamento _selectAthletes;
 
   @override
   void initState() {
     userC.scheduledTrainings[widget.selectedDay]?.forEach((a) {
       trainings.add(a.work);
       prev.add(a);
+      athletes[a.work] = a.athletes
+          .map((a) => userC.rawAthletes[a])
+          .where((a) => a != null)
+          .toList();
     });
     super.initState();
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-        title: Text(DateFormat.yMMMMd('it').format(widget.selectedDay)),
-        content: Wrap(
-          children: allenamenti.values
-              .map(
-                (a) => GestureDetector(
-                  onTap: () => setState(() => trainings.contains(a)
-                      ? trainings.remove(a)
-                      : trainings.add(a)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: TrainingChip(
-                      training: a,
-                      enabled: trainings.contains(a),
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
+  Widget build(BuildContext context) {
+    final Widget title = _selectAthletes == null
+        ? Text(DateFormat.yMMMMd('it').format(widget.selectedDay))
+        : Row(
+            children: [
+              GestureDetector(
+                child: Icon(Icons.arrow_back),
+                onTap: () => setState(() => _selectAthletes = null),
+              ),
+              SizedBox(width: 8),
+              Text('SCEGLI'),
+            ],
+          );
+
+    final Widget content = _selectAthletes == null
+        ? Wrap(
+            alignment: WrapAlignment.center,
+            children: allenamenti.values
+                .map((a) => GestureDetector(
+                      onTap: () => setState(() => trainings.contains(a)
+                          ? trainings.remove(a)
+                          : trainings.add(a)),
+                      onLongPress: trainings.contains(a)
+                          ? () => setState(() => _selectAthletes = a)
+                          : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: TrainingChip(
+                          training: a,
+                          enabled: trainings.contains(a),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          )
+        : AthletesPicker(athletes[_selectAthletes] ??= [],
+            onChanged: (a) => setState(() {}));
+
+    return AlertDialog(
+      title: title,
+      content: content,
+      scrollable: true,
+      actions: [
+        FlatButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text('Annulla'),
         ),
-        actions: [
-          FlatButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Annulla'),
-          ),
+        if (_selectAthletes == null)
           FlatButton(
             onPressed: () {
-              for (Allenamento a in trainings)
-                if (prev.every((st) => st.workRef != a.reference))
+              final WriteBatch batch = firestore.batch();
+
+              for (Allenamento a in trainings) {
+                final ScheduledTraining st = prev.firstWhere(
+                  (st) => st.workRef == a.reference,
+                  orElse: () => null,
+                );
+
+                if (st == null)
                   ScheduledTraining.create(
                     work: a.reference,
                     date: widget.selectedDay,
+                    athletes: athletes[a],
+                    batch: batch,
                   );
+                else if (!listEquals<DocumentReference>(
+                  athletes[a].map((a) => a.reference).toList(),
+                  st.athletes,
+                )) st.update(athletes: athletes[a], batch: batch);
+              }
 
               for (ScheduledTraining st in prev)
                 if (trainings.every((a) => a.reference != st.workRef))
-                  st.reference.delete();
+                  batch.delete(st.reference);
+
+              batch.commit();
               Navigator.pop(context, true);
             },
             child: Text('Seleziona'),
           )
-        ],
-      );
+      ],
+    );
+  }
 }

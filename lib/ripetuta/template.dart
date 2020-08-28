@@ -42,11 +42,15 @@ class Template extends SimpleTemplate {
 }
 
 class RegularExpressions {
-  static final RegExp time =
-      RegExp("^\\s*\\d+\\s*('([0-5]?\\d\\s*\"\\s*\\d?\\d?)?|\"\\d?\\d?)\\s*\$");
+  static final RegExp time = RegExp(
+      "^\\s*\\d+\\s*(('\\s*([0-5]?\\d\\s*)?)?(\"\\s*\\d?\\d?|\\.\\d\\d?\\s*\"?))?\\s*\$");
   static final RegExp integer = RegExp(r'^\d+$');
   static final RegExp real = RegExp(r'^\d+(.\d+)?$');
 }
+
+/*
+^\s*\d+\s*('\s*([0-5]?\d\s*"\s*\d?\d?)$
+*/
 
 class Tipologia {
   final String name;
@@ -90,12 +94,23 @@ class Tipologia {
     targetValidator: RegularExpressions.time,
     targetScheme: "es: 1' 20\"50",
     targetParser: (target) {
+      // TODO: 56.45 & 56.45"
       String match = RegExp(r"\d+\s*'").stringMatch(target) ?? "0'";
       int min = int.tryParse(match?.substring(0, match.length - 1)) ?? 0;
-      match = RegExp(r'\d+\s*"\s*\d?\d?').stringMatch(target) ?? '0"';
-      int sec = int.tryParse(match.split('"')[0]) ?? 0;
-      int cent = int.tryParse(match.split('"')[1].padRight(2, '0')) ?? 0;
-      return min * 60 + sec + cent / 100;
+      double sec = 0;
+      if (RegExp("^\\s*\\d+\\s*(('\\s*([0-5]?\\d\\s*)?)?\"\\s*\\d?\\d?)?\\s*\$")
+              .hasMatch(target) &&
+          !RegExp(r"^\d+$").hasMatch(target)) {
+        match = RegExp(r'\d+\s*"\s*\d?\d?').stringMatch(target) ?? '0"';
+        sec = int.tryParse(match.split('"')[0]) ?? 0;
+        sec += (int.tryParse(match.split('"')[1].padRight(2, '0')) ?? 0) / 100;
+      } else {
+        match = RegExp(r'\d+\s*(.\s*\d\d?\s*)?"?').stringMatch(target) ?? '0';
+        match = match.replaceAll(RegExp(r'\s|"'), '');
+        sec = double.tryParse(match) ?? 0;
+      }
+
+      return min * 60 + sec;
     },
   );
   static final Tipologia corsaTemp = Tipologia(

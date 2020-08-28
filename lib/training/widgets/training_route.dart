@@ -64,67 +64,65 @@ class _TrainingRouteState extends State<TrainingRoute> {
   }
 }
 
-
+/// calss for displaying a `training` preview
 class _TrainingWidget extends StatelessWidget {
+  /// the `training` to display
   final Allenamento training;
-  final Key key;
+  final Key _key;
 
-  _TrainingWidget(this.training) : key = ValueKey(training);
+  _TrainingWidget(this.training) : _key = ValueKey(training);
 
   @override
   Widget build(BuildContext context) {
+    final String description = (training.descrizione?.isEmpty ?? true)
+        ? 'nessuna descrizione'
+        : training.descrizione;
 
+    final List<Widget> children = <Widget>[
+      Text(
+        description,
+        style: Theme.of(context)
+            .textTheme
+            .overline
+            .copyWith(fontWeight: FontWeight.normal),
+        textAlign: TextAlign.justify,
+      ),
+      const SizedBox(height: 10),
+    ];
+
+    TrainingDescription.fromTraining(context, training)
+        .forEach((r) => children.add(r));
 
     return CustomDismissible(
-        key: key,
-        onDismissed: (direction) => training.delete(),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd)
-            return await showDeleteConfirmDialog(
-              context: context,
-              name: training.name,
-            );
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TrainingInfoRoute(allenamento: training),
-            ),
-          ).then((value) => training.save());
-          return false;
-        },
-        child: CustomExpansionTile(
-          title: training.name,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                children: <Widget>[
-                  Text(
-                    training.descrizione == null || training.descrizione.isEmpty
-                        ? 'nessuna descrizione'
-                        : training.descrizione,
-                    style: Theme.of(context)
-                        .textTheme
-                        .overline
-                        .copyWith(fontWeight: FontWeight.normal),
-                    textAlign: TextAlign.justify,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                ]
-                    .followedBy(
-                        TrainingDescription.fromTraining(context, training))
-                    .toList(),
-              ),
-            )
-          ],
-          leading: LeadingInfoWidget(
-            info: training.countRipetute().toString(),
-            bottom:
-                singularPlural('ripetut', 'a', 'e', training.countRipetute()),
+      key: _key,
+      onDismissed: (direction) => training.delete(),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd)
+          return await showDeleteConfirmDialog(
+            context: context,
+            name: training.name,
+          );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TrainingInfoRoute(allenamento: training),
           ),
+        ).then((value) => training.save());
+        return false;
+      },
+      child: CustomExpansionTile(
+        title: training.name,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Column(children: children),
+          )
+        ],
+        leading: LeadingInfoWidget(
+          info: training.countRipetute().toString(),
+          bottom: singularPlural('ripetut', 'a', 'e', training.countRipetute()),
         ),
-      );
+      ),
+    );
   }
 }

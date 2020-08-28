@@ -37,7 +37,7 @@ class AthletesPicker extends StatelessWidget {
         ));
     }
 
-    return Column(children: children);
+    return Column(children: children, mainAxisSize: MainAxisSize.min);
   }
 }
 

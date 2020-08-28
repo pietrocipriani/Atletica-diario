@@ -40,21 +40,20 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         : userA.getResult(Date.fromDateTime(controller.selectedDay));
     final Allenamento a = s.work;
     if (a == null) return Container();
+    final bool greyed = s != compatible && compatible != null;
+
     return CustomExpansionTile(
       title: a.name,
-      titleColor: s == compatible || compatible == null
-          ? Colors.black
-          : Colors.grey[300],
+      titleColor: !greyed ? Colors.black : Colors.grey[300],
       trailing: IconButton(
         icon: Icon(Mdi.poll),
-        onPressed:
-            Date.now() >= s.date && (s == compatible || compatible == null)
-                ? () => showResultsEditDialog(
-                      context,
-                      result ?? Result.empty(a, s.date),
-                      (r) => userA.saveResult(results: r),
-                    )
-                : null,
+        onPressed: Date.now() >= s.date && !greyed
+            ? () => showResultsEditDialog(
+                  context,
+                  result ?? Result.empty(a, s.date),
+                  (r) => userA.saveResult(results: r),
+                )
+            : null,
         color: Colors.black,
         disabledColor: Colors.grey[300],
       ),
@@ -70,18 +69,9 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
           );
         },
       ),
-      children: TrainingDescription.fromTraining(
-        context,
-        a,
-        result,
-        s != compatible && compatible != null,
-      ).toList(),
+      children:
+          TrainingDescription.fromTraining(context, a, result, greyed).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
-      /*trailing: IconButton(
-        icon: Icon(Icons.play_arrow),
-        onPressed: () {},
-        color: Colors.black,
-      ),*/
     );
   }
 
@@ -150,6 +140,10 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
     if (userA.events[controller.selectedDay] != null)
       children = children
           .followedBy(userA.events[controller.selectedDay]
+              ?.where((st) =>
+                  st == compatibleST ||
+                  st.athletes.isEmpty ||
+                  st.athletes.contains(userA.athleteCoachReference))
               ?.map((st) => _trainingWidget(st, compatibleST)))
           .toList();
 

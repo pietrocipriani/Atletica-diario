@@ -1,5 +1,4 @@
 import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/results/result_widget.dart';
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';

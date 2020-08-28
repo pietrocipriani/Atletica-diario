@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/athlete/group.dart';
 import 'package:Atletica/date.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/training/allenamento.dart';
@@ -26,33 +28,71 @@ class ScheduledTraining {
   final DocumentReference workRef;
   final Date date;
   final DocumentReference plan;
+  final List<DocumentReference> athletes;
 
   ScheduledTraining.parse(DocumentSnapshot snap)
       : reference = snap.reference,
         workRef = snap['work'],
         date = Date.fromTimeStamp(snap['date']),
-        plan = snap['plan'];
+        plan = snap['plan'],
+        athletes = snap['athletes']?.cast<DocumentReference>() ??
+            <DocumentReference>[];
 
   /*ScheduledTraining._(this.reference, this.workRef, {DateTime date, this.plan})
       : this.date = Date.fromDateTime(date);*/
 
   Allenamento get work => allenamenti[workRef];
 
-  static FutureOr<void> create(
-      {@required DocumentReference work,
-      @required DateTime date,
-      Tabella plan,
-      WriteBatch batch}) {
-    print('creating training in date: ${date.toIso8601String()}');
+  static FutureOr<void> create({
+    @required DocumentReference work,
+    @required DateTime date,
+    Tabella plan,
+    List<Athlete> athletes,
+    WriteBatch batch,
+  }) {
     if (batch == null)
-      return userC.userReference
-          .collection('schedules')
-          .add({'work': work, 'date': date, 'plan': plan?.reference});
-    batch.setData(userC.userReference.collection('schedules').document(),
-        {'work': work, 'date': date, 'plan': plan.reference});
+      return userC.userReference.collection('schedules').add({
+        'work': work,
+        'date': date,
+        'plan': plan?.reference,
+        'athletes': athletes.map((a) => a.reference).toList(),
+      });
+    batch.setData(userC.userReference.collection('schedules').document(), {
+      'work': work,
+      'date': date,
+      'plan': plan?.reference,
+      'athletes': athletes.map((a) => a.reference).toList(),
+    });
+  }
+
+  FutureOr<void> update({List<Athlete> athletes, WriteBatch batch}) {
+    if (batch == null)
+      reference.updateData({
+        'athletes': athletes.map((a) => a.reference).toList(),
+      });
+    batch.updateData(reference, {
+      'athletes': athletes.map((a) => a.reference).toList(),
+    });
   }
 
   bool get isValid => date < Date.now(); // ?
 
   bool get isOk => workRef != null && date != null;
+
+  /// do not call in athlete role: crash
+  String get athletesAsList {
+    if (athletes == null) return '';
+    Iterable<Group> gs = Group.groups.where(
+      (group) => group.athletes.every(
+        (atleta) => athletes.contains(atleta.reference),
+      ),
+    );
+    Iterable<Athlete> atls = athletes.map((a) => userC.rawAthletes[a]).where(
+          (atleta) =>
+              atleta != null &&
+              atleta.isAthlete &&
+              gs.every((group) => !group.athletes.contains(atleta)),
+        );
+    return gs.map((g) => g.name).followedBy(atls.map((a) => a.name)).join(', ');
+  }
 }

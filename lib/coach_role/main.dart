@@ -4,7 +4,6 @@ import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/plan/tabella.dart';
 import 'package:Atletica/schedule/schedule_dialogs/scheduled_training_dialog.dart';
-import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/training/widgets/training_route.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
@@ -28,18 +27,19 @@ class _CoachMainPageState extends State<CoachMainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Atletica - Allenatore')),
-      body: HomePageWidget(
-          onSelectedDayChanged: (day) {
-            selectedDay = day;
-            WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-          }),
+      body: HomePageWidget(onSelectedDayChanged: (day) {
+        selectedDay = day;
+        WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+      }),
       floatingActionButton: _canAddEvents
           ? FloatingActionButton(
               onPressed: () async {
                 if (await showDialog<bool>(
-                  context: context,
-                  builder: (context) => ScheduledTrainingDialog(selectedDay),
-                )) setState(() {});
+                      context: context,
+                      builder: (context) =>
+                          ScheduledTrainingDialog(selectedDay),
+                    ) ??
+                    false) setState(() {});
               },
               child: Icon(Icons.add),
             )
