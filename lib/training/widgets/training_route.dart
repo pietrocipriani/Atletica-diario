@@ -39,7 +39,6 @@ class _TrainingRouteState extends State<TrainingRoute> {
       Center(child: Text('non hai creato ancora nessun allenamento'));
 
   static const Widget _fab = FloatingActionButton(
-    // TODO: controllare se si può togliere il setState
     onPressed: Allenamento.create,
     child: Icon(Icons.add),
   );

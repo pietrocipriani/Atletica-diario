@@ -116,8 +116,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
 
     for (final ScheduledTraining st in userA.events[controller.selectedDay])
       if (result.isCompatible(st)) return st;
-
-    // TODO: distinguish between missing and incompatible result
+    
     return null;
   }
 

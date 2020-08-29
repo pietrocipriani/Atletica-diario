@@ -72,7 +72,9 @@ class AthleteHelper extends FirebaseUserHelper {
               final ScheduledTraining st =
                   scheduledTrainings[doc.document.reference] =
                       ScheduledTraining.parse(doc.document);
-              (events[st.date.dateTime] ??= []).add(st);
+              if (st.athletes.isEmpty ||
+                  st.athletes.contains(userA.athleteCoachReference))
+                (events[st.date.dateTime] ??= []).add(st);
               break;
             case DocumentChangeType.removed:
               ScheduledTraining st =

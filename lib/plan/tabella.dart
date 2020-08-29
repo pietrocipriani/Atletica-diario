@@ -1,9 +1,12 @@
+import 'package:Atletica/athlete/atleta.dart';
+import 'package:Atletica/athlete/group.dart';
 import 'package:Atletica/date.dart';
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/schedule/athletes_picker.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
@@ -18,16 +21,20 @@ final Map<DocumentReference, Tabella> plans = <DocumentReference, Tabella>{};
 
 List<String> itMonths = dateTimeSymbolMap()['it'].MONTHS;
 
+// TODO: add athletes selection
 class Tabella {
   final DocumentReference reference;
   String name;
   List<Week> weeks = <Week>[];
+  final List<DocumentReference> athletes;
   DateTime start, stop;
 
   Tabella.parse(DocumentSnapshot raw)
       : reference = raw.reference,
         name = raw['name'],
         weeks = raw['weeks'].map<Week>((raw) => Week.parse(raw)).toList(),
+        athletes =
+            raw['athletes']?.cast<DocumentReference>() ?? <DocumentReference>[],
         start = raw['start']?.toDate(),
         stop = raw['stop']?.toDate() {
     plans[reference] = this;
@@ -42,16 +49,22 @@ class Tabella {
 
   static Future<void> create({
     @required String name,
+    List<Athlete> athletes,
     DateTime start,
     DateTime stop,
   }) {
-    return userC.userReference
-        .collection('plans')
-        .add({'name': name, 'weeks': [], 'start': start, 'stop': stop});
+    return userC.userReference.collection('plans').add({
+      'name': name,
+      'weeks': [],
+      'athletes': athletes?.map((a) => a.reference)?.toList(),
+      'start': start,
+      'stop': stop,
+    });
   }
 
   void _removeScheduledTrainings({
     @required final List<Week> newWeeks,
+    @required final List<Athlete> athletes,
     @required final Date start,
     @required final Date stop,
     @required final WriteBatch batch,
@@ -70,13 +83,17 @@ class Tabella {
         if (st.plan != reference) continue;
         bool delete = defaultDelete;
         delete |= st.workRef != scheduled;
-        if (delete) batch.delete(st.reference);
+        if (delete)
+          batch.delete(st.reference);
+        else
+          st.update(athletes: athletes, batch: batch);
       }
     }
   }
 
   void _addScheduledTrainings({
     @required final List<Week> weeks,
+    @required final List<Athlete> athletes,
     @required final Date start,
     @required final Date stop,
     @required final WriteBatch batch,
@@ -96,6 +113,7 @@ class Tabella {
       ScheduledTraining.create(
         work: training,
         date: current.dateTime,
+        athletes: athletes,
         plan: this,
         batch: batch,
       );
@@ -105,16 +123,23 @@ class Tabella {
   Future<void> update({
     String name,
     List<Week> weeks,
+    List<Athlete> athletes,
     DateTime start,
     DateTime stop,
   }) {
     weeks ??= this.weeks;
+    athletes ??= this
+        .athletes
+        .map((a) => userC.rawAthletes[a])
+        .where((a) => a != null)
+        .toList();
     start ??= this.start;
     stop ??= this.stop;
     final WriteBatch batch = firestore.batch();
     batch.updateData(reference, {
       'name': name ?? this.name,
       'weeks': weeks.map((week) => week.asMap).toList(),
+      'athletes': athletes?.map((a) => a.reference)?.toList(),
       'start': start,
       'stop': stop
     });
@@ -122,12 +147,14 @@ class Tabella {
       newWeeks: weeks,
       start: start == null ? null : Date.fromDateTime(start),
       stop: stop == null ? null : Date.fromDateTime(stop),
+      athletes: athletes,
       batch: batch,
     );
     _addScheduledTrainings(
       weeks: weeks,
-      start: Date.fromDateTime(start),
-      stop: Date.fromDateTime(stop),
+      athletes: athletes,
+      start: start == null ? null : Date.fromDateTime(start),
+      stop: stop == null ? null : Date.fromDateTime(stop),
       batch: batch,
     );
 
@@ -138,6 +165,7 @@ class Tabella {
     final WriteBatch batch = firestore.batch();
     _removeScheduledTrainings(
       newWeeks: <Week>[],
+      athletes: null,
       start: null,
       stop: null,
       batch: batch,
@@ -158,6 +186,11 @@ class Tabella {
     String name = plan?.name;
     DateTime start = plan?.start;
     DateTime stop = plan?.stop;
+    final List<Athlete> athletes = plan?.athletes
+            ?.map((a) => userC.rawAthletes[a])
+            ?.where((a) => a != null)
+            ?.toList() ??
+        <Athlete>[];
 
     DateTime firstAvaiableStartDay = Date.now().dateTime;
     firstAvaiableStartDay = firstAvaiableStartDay.subtract(
@@ -179,7 +212,7 @@ class Tabella {
     return StatefulBuilder(
       builder: (context, ss) => AlertDialog(
         title: Text(isNew ? 'AGGIUNGI' : 'MODIFICA'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        scrollable: true,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -246,7 +279,8 @@ class Tabella {
                   ),
                 )
               ],
-            )
+            ),
+            AthletesPicker(athletes, onChanged: (a) => ss(() {})),
           ],
         ),
         actions: <Widget>[
@@ -261,9 +295,19 @@ class Tabella {
                 ? null
                 : () async {
                     if (isNew)
-                      Tabella.create(name: name, start: start, stop: stop);
+                      Tabella.create(
+                        name: name,
+                        athletes: athletes,
+                        start: start,
+                        stop: stop,
+                      );
                     else
-                      plan.update(name: name, start: start, stop: stop);
+                      plan.update(
+                        name: name,
+                        athletes: athletes,
+                        start: start,
+                        stop: stop,
+                      );
                     Navigator.pop(context, true);
                   },
             child: Text(
@@ -274,11 +318,26 @@ class Tabella {
       ),
     );
   }
+
+  String get athletesAsList {
+    if (athletes == null) return '';
+    Iterable<Group> gs = Group.groups.where(
+      (group) => group.athletes.every(
+        (atleta) => athletes.contains(atleta.reference),
+      ),
+    );
+    Iterable<Athlete> atls = athletes.map((a) => userC.rawAthletes[a]).where(
+          (atleta) =>
+              atleta != null &&
+              atleta.isAthlete &&
+              gs.every((group) => !group.athletes.contains(atleta)),
+        );
+    return gs.map((g) => g.name).followedBy(atls.map((a) => a.name)).join(', ');
+  }
 }
 
 class Week {
   Map<int, DocumentReference> trainings;
-  // TODO: implementare giorni con allenamenti multipli
 
   Week({this.trainings}) {
     trainings ??= <int, DocumentReference>{};
@@ -380,54 +439,63 @@ class Week {
     }
   }
 
-  static Future<Week> fromDialog(BuildContext context) async {
+  static Future<Week> fromDialog(BuildContext context) {
     final Week week = Week();
-    await showDialog(
+    return showDialog<Week>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          scrollable: true,
           title: Text('definisci settimana'),
           content: Column(
-              children: days(context: context, week: week, setState: setState)
-                  .followedBy(<Widget>[
-            Container(
-              width: double.infinity,
-              height: 1,
-              color: Colors.grey[300],
-              margin: const EdgeInsets.all(8),
-            ),
-            Wrap(
-              alignment: WrapAlignment.start,
-              crossAxisAlignment: WrapCrossAlignment.start,
-              children: allenamenti.values
-                  .map(
-                    (allenamento) => Draggable<Allenamento>(
-                      maxSimultaneousDrags: 1,
-                      data: allenamento,
-                      feedback:
-                          TrainingChip(training: allenamento, elevation: 6),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: TrainingChip(training: allenamento),
-                      ),
-                      childWhenDragging: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: TrainingChip(
-                          training: allenamento,
-                          enabled: false,
+            mainAxisSize: MainAxisSize.min,
+            children: days(context: context, week: week, setState: setState)
+                .followedBy(<Widget>[
+              Container(
+                width: double.infinity,
+                height: 1,
+                color: Colors.grey[300],
+                margin: const EdgeInsets.all(8),
+              ),
+              Wrap(
+                alignment: WrapAlignment.center,
+                children: allenamenti.values
+                    .map(
+                      (allenamento) => Draggable<Allenamento>(
+                        maxSimultaneousDrags: 1,
+                        data: allenamento,
+                        feedback:
+                            TrainingChip(training: allenamento, elevation: 6),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: TrainingChip(training: allenamento),
+                        ),
+                        childWhenDragging: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: TrainingChip(
+                            training: allenamento,
+                            enabled: false,
+                          ),
                         ),
                       ),
-                    ),
-                  )
-                  .toList(),
+                    )
+                    .toList(),
+              ),
+            ]).toList(),
+          ),
+          actions: [
+            FlatButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: const Text('Annulla'),
             ),
-          ]).toList()),
+            FlatButton(
+              onPressed: () => Navigator.pop(context, week),
+              child: const Text('Conferma'),
+            )
+          ],
         ),
       ),
     );
-    return week;
   }
 
   @override
@@ -497,12 +565,21 @@ class _PlansRouteState extends State<PlansRoute>
                 },
                 onDismissed: (direction) => plan.delete(),
                 child: CustomExpansionTile(
+                  subtitle: (plan.athletes?.isEmpty ?? true)
+                      ? null
+                      : Text(
+                          plan.athletesAsList,
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark),
+                        ),
                   trailing: IconButton(
                     icon: Icon(Icons.add_circle, color: Colors.black),
                     onPressed: () async {
                       Week week = await Week.fromDialog(context);
-                      plan.weeks.add(week);
-                      plan.update();
+                      if (week != null) {
+                        plan.weeks.add(week);
+                        plan.update();
+                      }
                     },
                   ),
                   leading: Column(

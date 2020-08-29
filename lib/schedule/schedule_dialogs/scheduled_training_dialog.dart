@@ -87,39 +87,40 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
           onPressed: () => Navigator.pop(context, false),
           child: Text('Annulla'),
         ),
-        if (_selectAthletes == null)
-          FlatButton(
-            onPressed: () {
-              final WriteBatch batch = firestore.batch();
+        FlatButton(
+          onPressed: _selectAthletes == null
+              ? () {
+                  final WriteBatch batch = firestore.batch();
 
-              for (Allenamento a in trainings) {
-                final ScheduledTraining st = prev.firstWhere(
-                  (st) => st.workRef == a.reference,
-                  orElse: () => null,
-                );
+                  for (Allenamento a in trainings) {
+                    final ScheduledTraining st = prev.firstWhere(
+                      (st) => st.workRef == a.reference,
+                      orElse: () => null,
+                    );
 
-                if (st == null)
-                  ScheduledTraining.create(
-                    work: a.reference,
-                    date: widget.selectedDay,
-                    athletes: athletes[a],
-                    batch: batch,
-                  );
-                else if (!listEquals<DocumentReference>(
-                  athletes[a].map((a) => a.reference).toList(),
-                  st.athletes,
-                )) st.update(athletes: athletes[a], batch: batch);
-              }
+                    if (st == null)
+                      ScheduledTraining.create(
+                        work: a.reference,
+                        date: widget.selectedDay,
+                        athletes: athletes[a],
+                        batch: batch,
+                      );
+                    else if (!listEquals<DocumentReference>(
+                      athletes[a].map((a) => a.reference).toList(),
+                      st.athletes,
+                    )) st.update(athletes: athletes[a], batch: batch);
+                  }
 
-              for (ScheduledTraining st in prev)
-                if (trainings.every((a) => a.reference != st.workRef))
-                  batch.delete(st.reference);
+                  for (ScheduledTraining st in prev)
+                    if (trainings.every((a) => a.reference != st.workRef))
+                      batch.delete(st.reference);
 
-              batch.commit();
-              Navigator.pop(context, true);
-            },
-            child: Text('Seleziona'),
-          )
+                  batch.commit();
+                  Navigator.pop(context, true);
+                }
+              : () => setState(() => _selectAthletes = null),
+          child: Text('Seleziona'),
+        )
       ],
     );
   }

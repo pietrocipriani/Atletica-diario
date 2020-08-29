@@ -55,13 +55,13 @@ class ScheduledTraining {
         'work': work,
         'date': date,
         'plan': plan?.reference,
-        'athletes': athletes.map((a) => a.reference).toList(),
+        'athletes': athletes?.map((a) => a.reference)?.toList(),
       });
     batch.setData(userC.userReference.collection('schedules').document(), {
       'work': work,
       'date': date,
       'plan': plan?.reference,
-      'athletes': athletes.map((a) => a.reference).toList(),
+      'athletes': athletes?.map((a) => a.reference)?.toList(),
     });
   }
 

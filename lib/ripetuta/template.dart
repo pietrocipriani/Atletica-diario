@@ -94,7 +94,6 @@ class Tipologia {
     targetValidator: RegularExpressions.time,
     targetScheme: "es: 1' 20\"50",
     targetParser: (target) {
-      // TODO: 56.45 & 56.45"
       String match = RegExp(r"\d+\s*'").stringMatch(target) ?? "0'";
       int min = int.tryParse(match?.substring(0, match.length - 1)) ?? 0;
       double sec = 0;
