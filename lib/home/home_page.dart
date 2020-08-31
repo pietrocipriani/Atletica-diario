@@ -64,7 +64,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             context,
             MaterialPageRoute(
               builder: (context) => ResultsEditRoute(
-                Results(training: a, date: s.date),
+                Results(training: a, date: s.date, athletes: s.athletes),
               ),
             )),
         color: Colors.black,

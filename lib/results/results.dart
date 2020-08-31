@@ -5,6 +5,7 @@ import 'package:Atletica/results/result.dart';
 import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/training/allenamento.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class Results {
   /// the `key` is the reference for the Athlete
@@ -13,9 +14,14 @@ class Results {
   final Allenamento training;
   final int ripetuteCount;
 
-  Results({this.training, this.date})
+  Results(
+      {@required this.training,
+      @required this.date,
+      List<DocumentReference> athletes})
       : ripetuteCount = training.ripetute.length {
-    for (DocumentReference ref in userC.athletes.map((a) => a.reference))
+    if (athletes == null || athletes.isEmpty)
+      athletes = userC.athletes.map((a) => a.reference).where((a) => a != null);
+    for (DocumentReference ref in athletes)
       results[ref] = Result.empty(training, date);
   }
 
