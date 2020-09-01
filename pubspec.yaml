@@ -37,7 +37,7 @@ dependencies:
   dotted_border: ^1.0.5
   package_info: ^0.4.1
   soundpool: ^1.1.1
-  vibration: ^1.4.0
+  # vibration: ^1.4.0
   table_calendar: ^2.2.3
 
 
