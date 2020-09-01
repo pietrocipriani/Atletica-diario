@@ -8,22 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:package_info/package_info.dart';
-import 'package:vibration/vibration.dart';
 
 const double kListTileHeight = 72.0;
 
 // TODO: user sign out
 PackageInfo packageInfo;
 
-bool canVibrate, vibrationAmplitude, vibrationCustomPattern;
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   packageInfo = await PackageInfo.fromPlatform();
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
-  canVibrate = await Vibration.hasVibrator();
-  vibrationAmplitude = await Vibration.hasAmplitudeControl();
-  vibrationCustomPattern = await Vibration.hasCustomVibrationsSupport();
   runApp(MyApp());
 }
 
