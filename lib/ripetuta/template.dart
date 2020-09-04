@@ -1,4 +1,5 @@
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/ripetuta/time_pattern.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
@@ -56,7 +57,7 @@ class Tipologia {
   final String name;
   final Widget Function({Color color}) icon;
   final Function(double value) targetFormatter;
-  final RegExp targetValidator;
+  final bool Function(String s) targetValidator;
   final String targetScheme;
   final String targetSuffix;
   final double Function(String target) targetParser;
@@ -91,26 +92,9 @@ class Tipologia {
             (target < 60 || target != target.truncate()
                 ? ((target * 100).round() % 100).toString().padLeft(2, '0')
                 : ''),
-    targetValidator: RegularExpressions.time,
+    targetValidator: matchTimePattern,
     targetScheme: "es: 1' 20\"50",
-    targetParser: (target) {
-      String match = RegExp(r"\d+\s*'").stringMatch(target) ?? "0'";
-      int min = int.tryParse(match?.substring(0, match.length - 1)) ?? 0;
-      double sec = 0;
-      if (RegExp("^\\s*\\d+\\s*(('\\s*([0-5]?\\d\\s*)?)?\"\\s*\\d?\\d?)?\\s*\$")
-              .hasMatch(target) &&
-          !RegExp(r"^\d+$").hasMatch(target)) {
-        match = RegExp(r'\d+\s*"\s*\d?\d?').stringMatch(target) ?? '0"';
-        sec = int.tryParse(match.split('"')[0]) ?? 0;
-        sec += (int.tryParse(match.split('"')[1].padRight(2, '0')) ?? 0) / 100;
-      } else {
-        match = RegExp(r'\d+\s*(.\s*\d\d?\s*)?"?').stringMatch(target) ?? '0';
-        match = match.replaceAll(RegExp(r'\s|"'), '');
-        sec = double.tryParse(match) ?? 0;
-      }
-
-      return min * 60 + sec;
-    },
+    targetParser: parseTimePattern,
   );
   static final Tipologia corsaTemp = Tipologia(
     name: 'corsa a tempo',
@@ -134,7 +118,7 @@ class Tipologia {
       ],
     ),
     targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: RegularExpressions.integer,
+    targetValidator: (s) => RegularExpressions.integer.hasMatch(s),
     targetScheme: 'es: 5000 m',
     targetSuffix: 'm',
     targetParser: (target) => double.parse(target),
@@ -146,7 +130,7 @@ class Tipologia {
       color: color,
     ),
     targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: RegularExpressions.integer,
+    targetValidator: (s) => RegularExpressions.integer.hasMatch(s),
     targetScheme: 'es: 40 kg',
     targetSuffix: 'kg',
     targetParser: (target) => double.parse(target),
@@ -155,7 +139,7 @@ class Tipologia {
     name: 'esercizi',
     icon: ({color = Colors.black}) => Icon(Mdi.yoga, color: color),
     targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: RegularExpressions.integer,
+    targetValidator: (s) => RegularExpressions.integer.hasMatch(s),
     targetScheme: 'es: 20x',
     targetSuffix: 'x',
     targetParser: (target) => double.parse(target),

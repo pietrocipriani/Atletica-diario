@@ -212,12 +212,11 @@ class Ripetuta {
                   ),
                   autovalidate: true,
                   validator: (value) {
-                    if (template.tipologia.targetValidator.hasMatch(value))
-                      return null;
+                    if (template.tipologia.targetValidator(value)) return null;
                     return template.tipologia.targetScheme;
                   },
                   onChanged: (value) {
-                    if (template.tipologia.targetValidator.hasMatch(value))
+                    if (template.tipologia.targetValidator(value))
                       target = template.tipologia.targetParser(value);
                   },
                 )

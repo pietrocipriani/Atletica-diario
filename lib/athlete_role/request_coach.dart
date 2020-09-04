@@ -1,3 +1,5 @@
+import 'package:Atletica/atletica_me.dart/athlete.dart';
+import 'package:Atletica/atletica_me.dart/search.dart';
 import 'package:Atletica/global_widgets/animated_text.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
@@ -11,8 +13,8 @@ class RequestCoachRoute extends StatefulWidget {
 class _RequestCoachRoute extends State<RequestCoachRoute> {
   final Callback callback = Callback();
   final TextEditingController controller = TextEditingController();
-  final TextEditingController nameController =
-      TextEditingController(text: userA.name);
+
+  Athlete athlete;
 
   @override
   void initState() {
@@ -28,16 +30,14 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
   }
 
   bool get _hasText =>
-      controller.text != null &&
-      controller.text.isNotEmpty &&
-      nameController.text != null &&
-      nameController.text.isNotEmpty;
+      controller.text != null && controller.text.isNotEmpty && athlete != null;
 
   @override
   Widget build(BuildContext context) {
     if (userA.hasCoach)
       WidgetsBinding.instance
           .addPostFrameCallback((_) => Navigator.pop(context));
+
     return WillPopScope(
       onWillPop: () => Future.value(false),
       child: Padding(
@@ -56,6 +56,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                 if (userA.needsRequest)
                   TextFormField(
                     controller: controller,
+                    autofocus: false,
                     autovalidate: true,
                     validator: (str) => str == null || str.isEmpty
                         ? 'Inserire un UID'
@@ -68,12 +69,9 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                     onChanged: (value) => setState(() {}),
                   ),
                 if (userA.needsRequest)
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      helperText: "inserisci il tuo nome",
-                    ),
-                    onChanged: (value) => setState(() {}),
+                  SearchWidget(
+                    initialName: athlete?.name ?? userA.name,
+                    onSelected: (a) => setState(() => athlete = a),
                   ),
                 if (userA.hasRequest)
                   Row(
@@ -93,7 +91,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                       ? _hasText
                           ? () => userA.requestCoach(
                                 uid: controller.text,
-                                nickname: nameController.text,
+                                nickname: athlete.name,
                               )
                           : null
                       : userA.hasRequest

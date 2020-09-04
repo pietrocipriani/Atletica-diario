@@ -27,7 +27,7 @@ class AthleteHelper extends FirebaseUserHelper {
   StreamSubscription<DocumentSnapshot> _requestSubscription;
   DocumentReference get coach {
     final DocumentReference doc = athleteCoachReference?.parent()?.parent();
-    assert(RegExp(r'^users/[A-Za-z0-9]+$').hasMatch(doc.path));
+    assert(doc == null || RegExp(r'^users/[A-Za-z0-9]+$').hasMatch(doc.path));
     return doc;
   }
 

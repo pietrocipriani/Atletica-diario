@@ -52,9 +52,13 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
             key: (rip) => rip, value: (rip) => FocusNode()),
         keys = List.unmodifiable(rips);
 
-  bool _acceptable(String s) =>
-      s != null &&
-      (Tipologia.corsaDist.targetValidator.stringMatch(s) == s || s.isEmpty);
+  bool _acceptable(String s) {
+    final bool match = Tipologia.corsaDist.targetValidator(s);
+    print('is |$s| acceptable? $match');
+    print(
+        'I should return ${s != null} && ($match || ${s.isEmpty}) = ${s != null && (match || s.isEmpty)}');
+    return s != null && (match || s.isEmpty);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,9 +104,8 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
                       (key) => widget.results[key] == null,
                       orElse: () {
                         if (value != null &&
-                            Tipologia.corsaDist.targetValidator
-                                    .stringMatch(value) ==
-                                value) nextIterable = nextIterable.skip(1);
+                            Tipologia.corsaDist.targetValidator(value))
+                          nextIterable = nextIterable.skip(1);
                         if (nextIterable.isEmpty) return null;
                         return nextIterable.first;
                       },
