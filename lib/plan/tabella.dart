@@ -74,7 +74,8 @@ class Tabella {
         in userC.scheduledTrainings.entries) {
       if (e.value == null || now > e.key) continue;
       final Date date = Date.fromDateTime(e.key);
-      final bool defaultDelete = start == null || date < start || date > stop;
+      final bool defaultDelete =
+          start == null || date < start || date > stop || newWeeks.isEmpty;
       final int week =
           defaultDelete ? null : ((date - start).inDays ~/ 7) % newWeeks.length;
       final DocumentReference scheduled =
@@ -98,7 +99,7 @@ class Tabella {
     @required final Date stop,
     @required final WriteBatch batch,
   }) {
-    if (start == null) return;
+    if (start == null || weeks.isEmpty) return;
     final Date now = Date.now();
 
     for (Date current = start; current <= stop; current++) {

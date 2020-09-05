@@ -1,5 +1,5 @@
-import 'package:Atletica/atletica_me.dart/athlete.dart';
-import 'package:Atletica/atletica_me.dart/search.dart';
+import 'package:Atletica/atletica_me/athlete.dart';
+import 'package:Atletica/atletica_me/search.dart';
 import 'package:Atletica/global_widgets/animated_text.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/athlete_helper.dart';

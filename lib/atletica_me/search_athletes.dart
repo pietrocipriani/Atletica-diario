@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:Atletica/atletica_me.dart/athlete.dart';
+import 'package:Atletica/atletica_me/athlete.dart';
 import 'package:http/http.dart' as http;
 
 Future<Iterable<Athlete>> searchAthletes(final String query) async {

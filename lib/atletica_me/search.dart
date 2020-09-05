@@ -1,6 +1,6 @@
-import 'package:Atletica/atletica_me.dart/athlete.dart';
-import 'package:Atletica/atletica_me.dart/loading_widget.dart';
-import 'package:Atletica/atletica_me.dart/search_athletes.dart';
+import 'package:Atletica/atletica_me/athlete.dart';
+import 'package:Atletica/atletica_me/loading_widget.dart';
+import 'package:Atletica/atletica_me/search_athletes.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 
