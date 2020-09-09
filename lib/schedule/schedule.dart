@@ -32,10 +32,10 @@ class ScheduledTraining {
 
   ScheduledTraining.parse(DocumentSnapshot snap)
       : reference = snap.reference,
-        workRef = snap['work'],
-        date = Date.fromTimeStamp(snap['date']),
-        plan = snap['plan'],
-        athletes = snap['athletes']?.cast<DocumentReference>() ??
+        workRef = snap.data()['work'],
+        date = Date.fromTimeStamp(snap.data()['date']),
+        plan = snap.data()['plan'],
+        athletes = snap.data()['athletes']?.cast<DocumentReference>() ??
             <DocumentReference>[];
 
   /*ScheduledTraining._(this.reference, this.workRef, {DateTime date, this.plan})
@@ -57,7 +57,7 @@ class ScheduledTraining {
         'plan': plan?.reference,
         'athletes': athletes?.map((a) => a.reference)?.toList(),
       });
-    batch.setData(userC.userReference.collection('schedules').document(), {
+    batch.set(userC.userReference.collection('schedules').doc(), {
       'work': work,
       'date': date,
       'plan': plan?.reference,
@@ -67,10 +67,10 @@ class ScheduledTraining {
 
   FutureOr<void> update({List<Athlete> athletes, WriteBatch batch}) {
     if (batch == null)
-      reference.updateData({
+      reference.update({
         'athletes': athletes.map((a) => a.reference).toList(),
       });
-    batch.updateData(reference, {
+    batch.update(reference, {
       'athletes': athletes.map((a) => a.reference).toList(),
     });
   }

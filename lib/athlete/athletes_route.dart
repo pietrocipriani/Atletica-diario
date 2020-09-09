@@ -6,7 +6,6 @@ import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -18,14 +17,14 @@ class AthletesRoute extends StatefulWidget {
 final AppBar _appBar = AppBar(title: Text('ATLETI'));
 
 class _AthletesRouteState extends State<AthletesRoute> {
-  final Callback<Event> _callback = Callback<Event>();
+  final Callback _callback = Callback();
   Icon _requestIcon;
   TextStyle _subtitle1Bold, _overlineBoldPrimaryDark;
   bool _showUidInfo = false;
 
   @override
   void initState() {
-    _callback.f = (evt) => setState(() {});
+    _callback.f = (_) => setState(() {});
     CoachHelper.onRequestCallbacks.add(_callback);
     CoachHelper.onAthleteCallbacks.add(_callback);
 

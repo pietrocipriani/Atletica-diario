@@ -28,7 +28,8 @@ bool _shouldRemoveGroup(Group group, Group selectedGroup, Athlete atleta) {
 Widget dialog({@required BuildContext context, Athlete atleta}) {
   final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1;
   final TextStyle overlineSelected = Theme.of(context).textTheme.overline;
-  final TextStyle overline = overlineSelected.copyWith(fontWeight: FontWeight.normal);
+  final TextStyle overline =
+      overlineSelected.copyWith(fontWeight: FontWeight.normal);
   final TextStyle overlineLineThrough =
       overline.copyWith(decoration: TextDecoration.lineThrough);
 
@@ -70,7 +71,7 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
         children: <Widget>[
           TextFormField(
             controller: controller,
-            autovalidate: true,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             autofocus: true,
             validator: (str) => _validator(str, atleta, isNew),
             decoration: InputDecoration(labelText: 'Nome'),
@@ -83,7 +84,7 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
             label: TextFormField(
               onTap: () => ss(() => selectedGroup = null),
               controller: groupController,
-              autovalidate: true,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               maxLines: 1,
               validator: groupValidator,
               focusNode: addGroupNode,
@@ -111,7 +112,9 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
                     group.name,
                     style: _shouldRemoveGroup(group, selectedGroup, atleta)
                         ? overlineLineThrough
-                        : selectedGroup == group ? overlineSelected : overline,
+                        : selectedGroup == group
+                            ? overlineSelected
+                            : overline,
                   ),
                 ),
               ),
@@ -128,11 +131,12 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
               ? null
               : () async {
                   String group = selectedGroup?.name ?? groupController.text;
-                  print ('group: $group');
+                  print('group: $group');
                   if (atleta != null)
                     await atleta.update(
                         nickname: controller.text, group: group);
-                  else Athlete.create(nickname: controller.text, group: group);
+                  else
+                    Athlete.create(nickname: controller.text, group: group);
                   Navigator.pop(context, true);
                 },
           child: Text(mode),

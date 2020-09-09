@@ -12,10 +12,11 @@ class Result {
   final Map<SimpleRipetuta, double> results;
 
   Result(DocumentSnapshot raw)
-      : date = Date.parse(raw.documentID),
-        training = raw['training'],
+      : date = Date.parse(raw.id),
+        training = raw.data()['training'],
         results = Map.fromEntries(
-          raw['results']
+          raw
+              .data()['results']
               .map((r) => parseRawResult(r))
               .where((e) => e != null)
               .map<MapEntry<SimpleRipetuta, double>>(
@@ -34,8 +35,9 @@ class Result {
 
   /// `training` is ScheduledTraining or Allenamento
   bool isCompatible(dynamic training) {
-    assert (training is ScheduledTraining || training is Allenamento);
-    final Allenamento a = training is ScheduledTraining ? training.work : training;
+    assert(training is ScheduledTraining || training is Allenamento);
+    final Allenamento a =
+        training is ScheduledTraining ? training.work : training;
     return listEquals(
       results.keys.map((sr) => sr.name).toList(),
       a.ripetute.map((rip) => rip.template).toList(),

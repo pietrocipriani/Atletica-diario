@@ -79,7 +79,7 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
                   textAlign: TextAlign.right,
                   focusNode: nodes[r.key],
                   initialValue: Tipologia.corsaDist.targetFormatter(r.value),
-                  autovalidate: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   style: overline,
                   decoration: InputDecoration(
                     isDense: true,

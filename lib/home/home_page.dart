@@ -49,7 +49,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
 
   Widget _trainingWidget(final ScheduledTraining s) {
     final Allenamento a = s.work;
-    assert(a != null);
+    if (a == null) return Container();
     return CustomExpansionTile(
       title: a.name,
       subtitle: s.athletes == null || s.athletes.isEmpty

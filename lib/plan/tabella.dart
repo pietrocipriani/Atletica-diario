@@ -31,12 +31,12 @@ class Tabella {
 
   Tabella.parse(DocumentSnapshot raw)
       : reference = raw.reference,
-        name = raw['name'],
-        weeks = raw['weeks'].map<Week>((raw) => Week.parse(raw)).toList(),
-        athletes =
-            raw['athletes']?.cast<DocumentReference>() ?? <DocumentReference>[],
-        start = raw['start']?.toDate(),
-        stop = raw['stop']?.toDate() {
+        name = raw.data()['name'],
+        weeks = raw.data()['weeks'].map<Week>((raw) => Week.parse(raw)).toList(),
+        athletes = raw.data()['athletes']?.cast<DocumentReference>() ??
+            <DocumentReference>[],
+        start = raw.data()['start']?.toDate(),
+        stop = raw.data()['stop']?.toDate() {
     plans[reference] = this;
   }
 
@@ -137,7 +137,7 @@ class Tabella {
     start ??= this.start;
     stop ??= this.stop;
     final WriteBatch batch = firestore.batch();
-    batch.updateData(reference, {
+    batch.update(reference, {
       'name': name ?? this.name,
       'weeks': weeks.map((week) => week.asMap).toList(),
       'athletes': athletes?.map((a) => a.reference)?.toList(),
@@ -220,7 +220,7 @@ class Tabella {
             TextFormField(
               initialValue: name,
               autofocus: false,
-              autovalidate: true,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: InputDecoration(labelText: 'nome'),
               validator: validator,
               onChanged: (value) {

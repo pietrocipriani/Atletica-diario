@@ -210,7 +210,7 @@ class Ripetuta {
                     hintText: 'target',
                     suffixText: template.tipologia.targetSuffix,
                   ),
-                  autovalidate: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
                     if (template.tipologia.targetValidator(value)) return null;
                     return template.tipologia.targetScheme;

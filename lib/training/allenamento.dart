@@ -25,7 +25,7 @@ final List<String> shortWeekDays = dateTimeSymbolMap()['it'].SHORTWEEKDAYS;
 
 /// class for [trainings] representation
 class Allenamento {
-  /// `reference` to corresponding [firestore] document
+  /// `reference` to corresponding [firestore] doc
   final DocumentReference reference;
 
   /// `name` is the identifier for the current [training]
@@ -43,16 +43,17 @@ class Allenamento {
   ///
   /// adds `this` to `allenamenti`
   Allenamento.parse(DocumentSnapshot raw)
-      : assert(raw != null && raw['name'] != null),
+      : assert(raw != null && raw.data()['name'] != null),
         reference = raw.reference,
-        name = raw['name'],
-        descrizione = raw['description'],
-        serie = raw['serie']?.map<Serie>((raw) => Serie.parse(raw))?.toList() ??
-            <Serie>[] {
+        name = raw.data()['name'],
+        descrizione = raw.data()['description'],
+        serie =
+            raw.data()['serie']?.map<Serie>((raw) => Serie.parse(raw))?.toList() ??
+                <Serie>[] {
     allenamenti[reference] = this;
   }
 
-  /// adds a new [document] to [firestore/$userC/trainings/]
+  /// adds a new [doc] to [firestore/$userC/trainings/]
   ///
   /// [training] is initialized with a progressive `name`, `null` `description`
   /// and an empty `serie`
@@ -89,9 +90,9 @@ class Allenamento {
     return reference.delete();
   }
 
-  /// updates [firestore] document with new data
+  /// updates [firestore] doc with new data
   Future<void> save() {
-    return reference.setData({
+    return reference.set({
       'name': name,
       'description': descrizione,
       'serie': serie.map((serie) => serie.asMap).toList()

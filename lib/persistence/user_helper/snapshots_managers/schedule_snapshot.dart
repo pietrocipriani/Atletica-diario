@@ -17,7 +17,7 @@ Future<bool> scheduleSnapshot(
   DocumentSnapshot snapshot,
   DocumentChangeType changeType,
 ) async {
-  print ('${snapshot.documentID}: $changeType');
+  print ('${snapshot.id}: $changeType');
   switch (changeType) {
     case DocumentChangeType.modified:
       _remove(snapshot.reference);

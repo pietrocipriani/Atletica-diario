@@ -72,24 +72,24 @@ class Athlete {
   /// `athlete` is the reference to [users/$uid]
   Athlete.parse(DocumentSnapshot raw, bool exists)
       : reference = raw.reference,
-        uid = exists ? raw.documentID : null,
+        uid = exists ? raw.id : null,
         athlete = exists
-            ? firestore.collection('users').document(raw.documentID)
+            ? firestore.collection('users').doc(raw.id)
             : null {
-    name = raw['nickname'];
-    group = raw['group'];
+    name = raw.data()['nickname'];
+    group = raw.data()['group'];
     _trainingsCountSubscription =
         auth.userC.resultSnapshots(athlete: this).listen((e) {
       if (e == null) return;
       final QuerySnapshot cast = e;
-      for (DocumentChange change in cast.documentChanges) {
+      for (DocumentChange change in cast.docChanges) {
         if (change.type == DocumentChangeType.removed)
-          results.remove(change.document.documentID);
+          results.remove(change.doc.id);
         else
-          results[change.document.documentID] = Result(change.document);
+          results[change.doc.id] = Result(change.doc);
 
         if (change.type == DocumentChangeType.added)
-          _updatePbsTbs(change.document.documentID);
+          _updatePbsTbs(change.doc.id);
         else
           _reloadPbsTbs();
       }
@@ -107,7 +107,7 @@ class Athlete {
   //static Future<void> create({})
 
   Future<void> update({@required String nickname, @required String group}) =>
-      reference.updateData({'nickname': nickname, 'group': group});
+      reference.update({'nickname': nickname, 'group': group});
 
   static Future<void> create({
     @required String nickname,

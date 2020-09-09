@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 
 class SplashScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Material(
+  Widget build(BuildContext context) {
+    return Material(
         color: Colors.black,
         child: Column(
           children: <Widget>[
@@ -53,4 +54,5 @@ class SplashScreen extends StatelessWidget {
           ],
         ),
       );
+  }
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
@@ -7,17 +6,20 @@ import 'package:Atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-GoogleSignIn _googleSignIn = GoogleSignIn(signInOption: SignInOption.standard);
+GoogleSignIn _googleSignIn = GoogleSignIn(
+  signInOption: SignInOption.standard,
+  clientId:
+      '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com',
+);
 FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 GoogleSignInAccount _guser;
 GoogleSignInAuthentication _auth;
 
 dynamic _user;
 set user(dynamic user) {
-  assert(user == null || user is FirebaseUserHelper || user is FirebaseUser);
+  assert(user == null || user is FirebaseUserHelper || user is User);
   _user = user;
 }
 
@@ -28,15 +30,14 @@ CoachHelper get userC => _user is CoachHelper ? _user : null;
 dynamic get rawUser => _user;
 
 abstract class FirebaseUserHelper {
-  final FirebaseUser user;
-  final String uid, name, email;
+  final User user;
+  String get uid => user.uid;
+  String get name => user.displayName;
+  String get email => user.email;
   final DocumentReference userReference;
 
   FirebaseUserHelper({@required this.user, @required this.userReference})
-      : assert(user != null),
-        uid = user.uid,
-        name = user.displayName,
-        email = user.email;
+      : assert(user != null);
 }
 
 class BasicUser {
@@ -47,8 +48,8 @@ class BasicUser {
       : uid = raw['uid'],
         name = raw['name'];
   BasicUser.snapshot(DocumentSnapshot snap)
-      : uid = snap.documentID,
-        name = snap['name'];
+      : uid = snap.id,
+        name = snap.data()['name'];
 }
 
 class Request extends BasicUser {
@@ -61,7 +62,8 @@ class Request extends BasicUser {
 Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
-  user = await _firebaseAuth.currentUser();
+
+  user = _firebaseAuth.currentUser;
   if (rawUser != null) {
     await initFirestore();
     yield 1;
@@ -72,12 +74,13 @@ Stream<double> login({@required BuildContext context}) async* {
         await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
     if (_guser == null) await requestLoginDialog(context: context);
   } while (_guser == null);
-  
+
+
   yield 1 / N;
   _auth = await _guser.authentication;
   yield 2 / N;
   user = (await _firebaseAuth.signInWithCredential(
-    GoogleAuthProvider.getCredential(
+    GoogleAuthProvider.credential(
       idToken: _auth.idToken,
       accessToken: _auth.accessToken,
     ),
@@ -113,7 +116,7 @@ Future requestLoginDialog({@required BuildContext context}) {
       ),
       actions: <Widget>[
         FlatButton(
-          onPressed: Platform.isAndroid ? () => SystemNavigator.pop() : null,
+          onPressed: /*TODO: Platform.isAndroid ? () => SystemNavigator.pop() :*/ null,
           child: Text(
             'Exit',
             style: TextStyle(color: Colors.red),
