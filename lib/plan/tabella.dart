@@ -31,12 +31,12 @@ class Tabella {
 
   Tabella.parse(DocumentSnapshot raw)
       : reference = raw.reference,
-        name = raw.data()['name'],
-        weeks = raw.data()['weeks'].map<Week>((raw) => Week.parse(raw)).toList(),
-        athletes = raw.data()['athletes']?.cast<DocumentReference>() ??
-            <DocumentReference>[],
-        start = raw.data()['start']?.toDate(),
-        stop = raw.data()['stop']?.toDate() {
+        name = raw['name'],
+        weeks = raw['weeks'].map<Week>((raw) => Week.parse(raw)).toList(),
+        athletes =
+            raw['athletes']?.cast<DocumentReference>() ?? <DocumentReference>[],
+        start = raw['start']?.toDate(),
+        stop = raw['stop']?.toDate() {
     plans[reference] = this;
   }
 
@@ -137,7 +137,7 @@ class Tabella {
     start ??= this.start;
     stop ??= this.stop;
     final WriteBatch batch = firestore.batch();
-    batch.update(reference, {
+    batch.updateData(reference, {
       'name': name ?? this.name,
       'weeks': weeks.map((week) => week.asMap).toList(),
       'athletes': athletes?.map((a) => a.reference)?.toList(),
@@ -357,9 +357,9 @@ class Week {
       @required void Function(void Function()) setState}) sync* {
     final TextStyle overline = Theme.of(context).textTheme.overline;
     Widget builder(BuildContext context, int weekday, bool over) {
-      return allenamenti[week.trainings[weekday]] != null
+      return allenamenti(week.trainings[weekday]) != null
           ? TrainingChip(
-              training: allenamenti[week.trainings[weekday]],
+              training: allenamenti(week.trainings[weekday]),
               onDelete: () => setState(() => week.trainings[weekday] = null),
             )
           : Padding(
@@ -460,7 +460,7 @@ class Week {
               ),
               Wrap(
                 alignment: WrapAlignment.center,
-                children: allenamenti.values
+                children: trainingsValues
                     .map(
                       (allenamento) => Draggable<Allenamento>(
                         maxSimultaneousDrags: 1,
@@ -504,12 +504,12 @@ class Week {
     if (!extended)
       return trainings?.values
               ?.where((t) => t != null)
-              ?.map((a) => allenamenti[a])
+              ?.map((a) => allenamenti(a))
               ?.join(', ') ??
           'nessun allenamento';
     return () sync* {
       for (int i = 0; i < weekdays.length; i++)
-        yield '${weekdays[i]}: ${allenamenti[trainings[i]] ?? 'riposo'}';
+        yield '${weekdays[i]}: ${allenamenti(trainings[i]) ?? 'riposo'}';
     }()
         .join('\n');
   }
@@ -644,7 +644,7 @@ class _PlansRouteState extends State<PlansRoute>
                                         ),
                                       ),
                                       Text(
-                                        allenamenti[week.trainings[(i + 1) % 7]]
+                                        allenamenti(week.trainings[(i + 1) % 7])
                                                 ?.name ??
                                             'riposo',
                                         style: Theme.of(context)

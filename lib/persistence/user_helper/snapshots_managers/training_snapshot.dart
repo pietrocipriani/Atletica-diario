@@ -11,7 +11,7 @@ Future<bool> trainingSnapshot(
       Allenamento.parse(snapshot);
       break;
     case DocumentChangeType.removed:
-      allenamenti.remove(snapshot.reference);
+      removeTraining(snapshot.reference);
       break;
   }
   return true;

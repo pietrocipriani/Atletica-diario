@@ -12,11 +12,10 @@ class Result {
   final Map<SimpleRipetuta, double> results;
 
   Result(DocumentSnapshot raw)
-      : date = Date.parse(raw.id),
-        training = raw.data()['training'],
+      : date = Date.parse(raw.documentID),
+        training = raw['training'],
         results = Map.fromEntries(
-          raw
-              .data()['results']
+          raw['results']
               .map((r) => parseRawResult(r))
               .where((e) => e != null)
               .map<MapEntry<SimpleRipetuta, double>>(

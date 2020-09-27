@@ -19,7 +19,8 @@ GoogleSignInAuthentication _auth;
 
 dynamic _user;
 set user(dynamic user) {
-  assert(user == null || user is FirebaseUserHelper || user is User);
+  assert(user == null || user is FirebaseUserHelper || user is FirebaseUser,
+      'user is ${user.runtimeType}');
   _user = user;
 }
 
@@ -30,7 +31,7 @@ CoachHelper get userC => _user is CoachHelper ? _user : null;
 dynamic get rawUser => _user;
 
 abstract class FirebaseUserHelper {
-  final User user;
+  final FirebaseUser user;
   String get uid => user.uid;
   String get name => user.displayName;
   String get email => user.email;
@@ -48,8 +49,8 @@ class BasicUser {
       : uid = raw['uid'],
         name = raw['name'];
   BasicUser.snapshot(DocumentSnapshot snap)
-      : uid = snap.id,
-        name = snap.data()['name'];
+      : uid = snap.documentID,
+        name = snap['name'];
 }
 
 class Request extends BasicUser {
@@ -63,30 +64,32 @@ Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
 
-  user = _firebaseAuth.currentUser;
+  user = await _firebaseAuth.currentUser();
   if (rawUser != null) {
     await initFirestore();
     yield 1;
     return;
   }
+
   do {
     _guser =
         await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
     if (_guser == null) await requestLoginDialog(context: context);
   } while (_guser == null);
 
-
   yield 1 / N;
   _auth = await _guser.authentication;
   yield 2 / N;
+
   user = (await _firebaseAuth.signInWithCredential(
-    GoogleAuthProvider.credential(
+    GoogleAuthProvider.getCredential(
       idToken: _auth.idToken,
       accessToken: _auth.accessToken,
     ),
   ))
       .user;
   yield 3 / N;
+
   assert(rawUser != null);
   await initFirestore();
   yield 1;

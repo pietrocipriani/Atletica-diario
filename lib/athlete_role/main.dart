@@ -39,7 +39,9 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         ? null
         : userA.getResult(Date.fromDateTime(controller.selectedDay));
     final Allenamento a = s.work;
+    print ({0: 't', 1: 'e', 2: 's', 3:'t'}.entries.map((e) => e.value));
     if (a == null) return Container();
+    print('no container!');
     final bool greyed = s != compatible && compatible != null;
 
     return CustomExpansionTile(
@@ -116,7 +118,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
 
     for (final ScheduledTraining st in userA.events[controller.selectedDay])
       if (result.isCompatible(st)) return st;
-    
+
     return null;
   }
 

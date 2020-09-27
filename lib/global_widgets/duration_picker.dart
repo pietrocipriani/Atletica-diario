@@ -40,7 +40,7 @@ class _DurationPickerState extends State<DurationPicker>
       aspectRatio: 1,
       child: Stack(
         alignment: Alignment.center,
-        overflow: Overflow.clip,
+        clipBehavior: Clip.hardEdge,
         children: <Widget>[
           Container(
             width: 200,

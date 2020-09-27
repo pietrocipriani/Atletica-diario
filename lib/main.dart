@@ -3,6 +3,7 @@ import 'package:Atletica/global_widgets/splash_screen.dart';
 import 'package:Atletica/home/home_page.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/themes/light_theme.dart';
+//import 'package:firebase_core/firebase_core.dart';
 //import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,6 +15,7 @@ const double kListTileHeight = 72.0;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //await Firebase.initializeApp();
   //FlutterError.onError = Crashlytics.instance.recordFlutterError;
   runApp(MyApp());
 }

@@ -32,16 +32,16 @@ class ScheduledTraining {
 
   ScheduledTraining.parse(DocumentSnapshot snap)
       : reference = snap.reference,
-        workRef = snap.data()['work'],
-        date = Date.fromTimeStamp(snap.data()['date']),
-        plan = snap.data()['plan'],
-        athletes = snap.data()['athletes']?.cast<DocumentReference>() ??
+        workRef = snap['work'],
+        date = Date.fromTimeStamp(snap['date']),
+        plan = snap['plan'],
+        athletes = snap['athletes']?.cast<DocumentReference>() ??
             <DocumentReference>[];
 
   /*ScheduledTraining._(this.reference, this.workRef, {DateTime date, this.plan})
       : this.date = Date.fromDateTime(date);*/
 
-  Allenamento get work => allenamenti[workRef];
+  Allenamento get work => allenamenti(workRef);
 
   static FutureOr<void> create({
     @required DocumentReference work,
@@ -57,7 +57,7 @@ class ScheduledTraining {
         'plan': plan?.reference,
         'athletes': athletes?.map((a) => a.reference)?.toList(),
       });
-    batch.set(userC.userReference.collection('schedules').doc(), {
+    batch.setData(userC.userReference.collection('schedules').document(), {
       'work': work,
       'date': date,
       'plan': plan?.reference,
@@ -67,10 +67,10 @@ class ScheduledTraining {
 
   FutureOr<void> update({List<Athlete> athletes, WriteBatch batch}) {
     if (batch == null)
-      reference.update({
+      reference.updateData({
         'athletes': athletes.map((a) => a.reference).toList(),
       });
-    batch.update(reference, {
+    batch.updateData(reference, {
       'athletes': athletes.map((a) => a.reference).toList(),
     });
   }

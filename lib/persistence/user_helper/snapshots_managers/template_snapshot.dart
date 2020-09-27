@@ -11,13 +11,13 @@ Future<bool> templateSnapshot(
       Template.parse(snapshot);
       break;
     case DocumentChangeType.removed:
-      templates.remove(snapshot.id);
+      templates.remove(snapshot.documentID);
       break;
   }
   return true;
 }
 
 void addGlobalTemplates(DocumentSnapshot snapshot) {
-  for (String name in snapshot.data()['templates'])
+  for (String name in snapshot['templates'])
     templates[name] ??= Template(name: name);
 }

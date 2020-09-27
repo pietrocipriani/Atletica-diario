@@ -18,8 +18,8 @@ class SimpleTemplate {
   Future<void> create() {
     return user.userReference
         .collection('templates')
-        .doc(name)
-        .set({'lastTarget': lastTarget});
+        .document(name)
+        .setData({'lastTarget': lastTarget});
   }
 
   SimpleTemplate({@required this.name, this.tipologia, this.lastTarget});
@@ -30,7 +30,7 @@ class SimpleTemplate {
 
 class Template extends SimpleTemplate {
   Template.parse(DocumentSnapshot raw)
-      : this(name: raw.id, lastTarget: raw.data()['lastTarget']);
+      : this(name: raw.documentID, lastTarget: raw['lastTarget']);
 
   Template({@required String name, double lastTarget})
       : super(
@@ -100,7 +100,7 @@ class Tipologia {
     name: 'corsa a tempo',
     icon: ({color = Colors.black}) => Stack(
       alignment: Alignment.center,
-      overflow: Overflow.visible,
+      clipBehavior: Clip.none,
       children: <Widget>[
         Icon(
           Icons.directions_run,

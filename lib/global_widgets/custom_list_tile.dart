@@ -25,23 +25,25 @@ class CustomListTile extends StatelessWidget {
   final Color tileColor;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-        leading: leading,
-        title: DefaultTextStyle(
-          child: title,
-          style: Theme.of(context).textTheme.bodyText1,
+  Widget build(BuildContext context) => Container(
+        color: tileColor ?? Colors.transparent,
+        child: ListTile(
+          leading: leading,
+          title: DefaultTextStyle(
+            child: title,
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+          subtitle: subtitle == null
+              ? null
+              : DefaultTextStyle(
+                  child: subtitle,
+                  style: Theme.of(context).textTheme.overline,
+                ),
+          trailing: trailing,
+          isThreeLine: isThreeLine,
+          dense: dense,
+          onTap: onTap,
+          onLongPress: onLongPress,
         ),
-        tileColor: tileColor,
-        subtitle: subtitle == null
-            ? null
-            : DefaultTextStyle(
-                child: subtitle,
-                style: Theme.of(context).textTheme.overline,
-              ),
-        trailing: trailing,
-        isThreeLine: isThreeLine,
-        dense: dense,
-        onTap: onTap,
-        onLongPress: onLongPress,
       );
 }

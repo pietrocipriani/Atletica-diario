@@ -50,10 +50,10 @@ class _TrainingRouteState extends State<TrainingRoute> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('ALLENAMENTI')),
-      body: allenamenti.isEmpty
+      body: !hasTrainings
           ? _emptyMessage
           : ListView(
-              children: allenamenti.values
+              children: trainingsValues
                   .where(_shouldDisplay)
                   .map((training) => _TrainingWidget(training))
                   .toList(),

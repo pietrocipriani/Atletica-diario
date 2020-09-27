@@ -57,7 +57,7 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
     final Widget content = _selectAthletes == null
         ? Wrap(
             alignment: WrapAlignment.center,
-            children: allenamenti.values
+            children: trainingsValues
                 .map((a) => GestureDetector(
                       onTap: () => setState(() => trainings.contains(a)
                           ? trainings.remove(a)

@@ -72,27 +72,31 @@ class Athlete {
   /// `athlete` is the reference to [users/$uid]
   Athlete.parse(DocumentSnapshot raw, bool exists)
       : reference = raw.reference,
-        uid = exists ? raw.id : null,
-        athlete = exists
-            ? firestore.collection('users').doc(raw.id)
-            : null {
-    name = raw.data()['nickname'];
-    group = raw.data()['group'];
+        uid = exists ? raw.documentID : null,
+        athlete =
+            exists ? firestore.collection('users').document(raw.documentID) : null {
+    name = raw['nickname'];
+    group = raw['group'];
+
+    // TODO: it stopped working!
     _trainingsCountSubscription =
         auth.userC.resultSnapshots(athlete: this).listen((e) {
       if (e == null) return;
       final QuerySnapshot cast = e;
-      for (DocumentChange change in cast.docChanges) {
+      print(cast.documentChanges);
+      for (DocumentChange change in cast.documentChanges) {
+        print(change.type);
         if (change.type == DocumentChangeType.removed)
-          results.remove(change.doc.id);
+          results.remove(change.document.documentID);
         else
-          results[change.doc.id] = Result(change.doc);
+          results[change.document.documentID] = Result(change.document);
 
         if (change.type == DocumentChangeType.added)
-          _updatePbsTbs(change.doc.id);
+          _updatePbsTbs(change.document.documentID);
         else
           _reloadPbsTbs();
       }
+      print(results);
     });
   }
 
@@ -107,7 +111,7 @@ class Athlete {
   //static Future<void> create({})
 
   Future<void> update({@required String nickname, @required String group}) =>
-      reference.update({'nickname': nickname, 'group': group});
+      reference.updateData({'nickname': nickname, 'group': group});
 
   static Future<void> create({
     @required String nickname,

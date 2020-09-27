@@ -14,8 +14,24 @@ import 'package:intl/date_symbol_data_local.dart';
 /// Map [DocumentReference] [Allenamento] of the existing [trainings]
 ///
 /// populated by `CoachHelper` query snapshot listener
-final Map<DocumentReference, Allenamento> allenamenti =
-    <DocumentReference, Allenamento>{};
+final Map<DocumentReference, Allenamento> _allenamenti = {};
+dynamic allenamenti(final DocumentReference ref,
+    [final Allenamento allenamento]) {
+  if (allenamento == null) {
+    Allenamento tr;
+    _allenamenti.forEach((dr, a) {
+      if (tr != null) return;
+      if (dr == ref) tr = a;
+    });
+    return tr;
+  } else
+    _allenamenti[ref] = allenamento;
+}
+
+Iterable<Allenamento> get trainingsValues => _allenamenti.values;
+Allenamento removeTraining(final DocumentReference ref) =>
+    _allenamenti.remove(ref); // FIXME: doesn't work
+bool get hasTrainings => _allenamenti.isNotEmpty;
 
 /// list of `weekdays` names in [italian] locale
 final List<String> weekdays = dateTimeSymbolMap()['it'].WEEKDAYS;
@@ -43,14 +59,13 @@ class Allenamento {
   ///
   /// adds `this` to `allenamenti`
   Allenamento.parse(DocumentSnapshot raw)
-      : assert(raw != null && raw.data()['name'] != null),
+      : assert(raw != null && raw['name'] != null),
         reference = raw.reference,
-        name = raw.data()['name'],
-        descrizione = raw.data()['description'],
-        serie =
-            raw.data()['serie']?.map<Serie>((raw) => Serie.parse(raw))?.toList() ??
-                <Serie>[] {
-    allenamenti[reference] = this;
+        name = raw['name'],
+        descrizione = raw['description'],
+        serie = raw['serie']?.map<Serie>((raw) => Serie.parse(raw))?.toList() ??
+            <Serie>[] {
+    allenamenti(reference, this);
   }
 
   /// adds a new [doc] to [firestore/$userC/trainings/]
@@ -60,7 +75,7 @@ class Allenamento {
   static Future<void> create() =>
       user.userReference.collection('trainings').add({
         'name':
-            'training #${allenamenti.length + 1}', // TODO: check if not exists
+            'training #${_allenamenti.length + 1}', // TODO: check if not exists
         'description': null,
         'serie': []
       });
@@ -92,7 +107,7 @@ class Allenamento {
 
   /// updates [firestore] doc with new data
   Future<void> save() {
-    return reference.set({
+    return reference.setData({
       'name': name,
       'description': descrizione,
       'serie': serie.map((serie) => serie.asMap).toList()

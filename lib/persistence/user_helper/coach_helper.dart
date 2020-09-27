@@ -42,18 +42,18 @@ class CoachHelper extends FirebaseUserHelper {
         parse,
   ) async {
     bool modified = false;
-    for (DocumentChange doc in snap.docChanges)
-      if (await parse(doc.doc, doc.type)) modified = true;
+    for (DocumentChange doc in snap.documentChanges)
+      if (await parse(doc.document, doc.type)) modified = true;
     return modified;
   }
 
   CoachHelper({
-    @required User user,
+    @required FirebaseUser user,
     @required DocumentReference userReference,
   }) : super(user: user, userReference: userReference) {
     firestore
         .collection('global')
-        .doc('templates')
+        .document('templates')
         .get()
         .then((snapshot) => addGlobalTemplates(snapshot));
     userReference
@@ -96,8 +96,8 @@ class CoachHelper extends FirebaseUserHelper {
   ) {
     return userReference
         .collection('athletes')
-        .doc(athlete?.id)
-        .set({'nickname': nickname, 'group': group});
+        .document(athlete?.documentID)
+        .setData({'nickname': nickname, 'group': group});
   }
 
   Future<void> acceptRequest(
@@ -106,7 +106,7 @@ class CoachHelper extends FirebaseUserHelper {
     String group,
   ) async {
     await refuseRequest(request);
-    await request.update({'nickname': nickname, 'group': group});
+    await request.updateData({'nickname': nickname, 'group': group});
   }
 
   Future<void> refuseRequest(DocumentReference request) => request.delete();
@@ -119,13 +119,13 @@ class CoachHelper extends FirebaseUserHelper {
     rawAthletes[athlete]
         .resultsDoc
         .collection('results')
-        .doc(results.date.formattedAsIdentifier)
-        .set({
+        .document(results.date.formattedAsIdentifier)
+        .setData({
       'coach': uid,
       'training': results.training,
       'results':
           results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
-    }, SetOptions(merge: true));
+    }, merge: true);
   }
 
   Stream resultSnapshots({
@@ -133,11 +133,12 @@ class CoachHelper extends FirebaseUserHelper {
     String dateIdentifier,
   }) async* {
     final DocumentReference ref = athlete.resultsDoc;
+    print('listening: ${athlete.resultsDoc.path}/results');
     if (dateIdentifier == null)
       yield* ref
           .collection('results')
           .where('coach', isEqualTo: uid)
           .snapshots();
-    yield* ref.collection('results').doc(dateIdentifier).snapshots();
+    yield* ref.collection('results').document(dateIdentifier).snapshots();
   }
 }
