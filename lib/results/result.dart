@@ -12,7 +12,7 @@ class Result {
   final Map<SimpleRipetuta, double> results;
 
   Result(DocumentSnapshot raw)
-      : date = Date.parse(raw.documentID),
+      : date = Date.parse(raw.id),
         training = raw['training'],
         results = Map.fromEntries(
           raw['results']

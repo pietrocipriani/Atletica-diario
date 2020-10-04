@@ -53,7 +53,7 @@ class _TrainingRouteState extends State<TrainingRoute> {
       body: !hasTrainings
           ? _emptyMessage
           : ListView(
-              children: trainingsValues
+              children: allenamenti.values
                   .where(_shouldDisplay)
                   .map((training) => _TrainingWidget(training))
                   .toList(),

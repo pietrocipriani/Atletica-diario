@@ -19,7 +19,7 @@ GoogleSignInAuthentication _auth;
 
 dynamic _user;
 set user(dynamic user) {
-  assert(user == null || user is FirebaseUserHelper || user is FirebaseUser,
+  assert(user == null || user is FirebaseUserHelper || user is User,
       'user is ${user.runtimeType}');
   _user = user;
 }
@@ -31,7 +31,7 @@ CoachHelper get userC => _user is CoachHelper ? _user : null;
 dynamic get rawUser => _user;
 
 abstract class FirebaseUserHelper {
-  final FirebaseUser user;
+  final User user;
   String get uid => user.uid;
   String get name => user.displayName;
   String get email => user.email;
@@ -49,7 +49,7 @@ class BasicUser {
       : uid = raw['uid'],
         name = raw['name'];
   BasicUser.snapshot(DocumentSnapshot snap)
-      : uid = snap.documentID,
+      : uid = snap.id,
         name = snap['name'];
 }
 
@@ -64,7 +64,7 @@ Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
 
-  user = await _firebaseAuth.currentUser();
+  user = _firebaseAuth.currentUser;
   if (rawUser != null) {
     await initFirestore();
     yield 1;
@@ -82,7 +82,7 @@ Stream<double> login({@required BuildContext context}) async* {
   yield 2 / N;
 
   user = (await _firebaseAuth.signInWithCredential(
-    GoogleAuthProvider.getCredential(
+    GoogleAuthProvider.credential(
       idToken: _auth.idToken,
       accessToken: _auth.accessToken,
     ),

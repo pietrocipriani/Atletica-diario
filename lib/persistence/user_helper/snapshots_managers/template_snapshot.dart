@@ -11,7 +11,7 @@ Future<bool> templateSnapshot(
       Template.parse(snapshot);
       break;
     case DocumentChangeType.removed:
-      templates.remove(snapshot.documentID);
+      templates.remove(snapshot.id);
       break;
   }
   return true;

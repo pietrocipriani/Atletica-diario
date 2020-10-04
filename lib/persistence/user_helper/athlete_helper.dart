@@ -26,7 +26,7 @@ class AthleteHelper extends FirebaseUserHelper {
   DocumentReference _athleteCoachReference;
   StreamSubscription<DocumentSnapshot> _requestSubscription;
   DocumentReference get coach {
-    final DocumentReference doc = athleteCoachReference?.parent()?.parent();
+    final DocumentReference doc = athleteCoachReference?.parent?.parent;
     assert(doc == null || RegExp(r'^users/[A-Za-z0-9]+$').hasMatch(doc.path));
     return doc;
   }
@@ -38,7 +38,7 @@ class AthleteHelper extends FirebaseUserHelper {
     _athleteCoachReference = reference;
     _requestSubscription = reference?.snapshots()?.listen((snap) {
       if (snap.data == null)
-        userReference.updateData({'coach': null});
+        userReference.update({'coach': null});
       else {
         accepted = snap['nickname'] != null && snap['group'] != null;
         coachCallAll();
@@ -47,7 +47,7 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   Result getResult(Date date) => results[
-      userReference.collection('results').document(date.formattedAsIdentifier)];
+      userReference.collection('results').doc(date.formattedAsIdentifier)];
 
   StreamSubscription<QuerySnapshot> _schedulesSubscription;
   StreamSubscription<QuerySnapshot> _trainingsSubscription;
@@ -60,25 +60,25 @@ class AthleteHelper extends FirebaseUserHelper {
     if (accepted) {
       _schedulesSubscription =
           coach.collection('schedules').snapshots().listen((snap) {
-        for (DocumentChange doc in snap.documentChanges) {
+        for (DocumentChange doc in snap.docChanges) {
           switch (doc.type) {
             case DocumentChangeType.modified:
               final ScheduledTraining st =
-                  scheduledTrainings[doc.document.reference];
+                  scheduledTrainings[doc.doc.reference];
               events[st.date.dateTime]?.remove(st);
               continue ca;
             ca:
             case DocumentChangeType.added:
               final ScheduledTraining st =
-                  scheduledTrainings[doc.document.reference] =
-                      ScheduledTraining.parse(doc.document);
+                  scheduledTrainings[doc.doc.reference] =
+                      ScheduledTraining.parse(doc.doc);
               if (st.athletes.isEmpty ||
                   st.athletes.contains(userA.athleteCoachReference))
                 (events[st.date.dateTime] ??= []).add(st);
               break;
             case DocumentChangeType.removed:
               ScheduledTraining st =
-                  scheduledTrainings.remove(doc.document.reference);
+                  scheduledTrainings.remove(doc.doc.reference);
               events[st.date.dateTime]?.remove(st);
               break;
           }
@@ -88,8 +88,8 @@ class AthleteHelper extends FirebaseUserHelper {
       _trainingsSubscription =
           coach.collection('trainings').snapshots().listen((snap) async {
         bool ok = false;
-        for (DocumentChange changed in snap.documentChanges)
-          ok |= await trainingSnapshot(changed.document, changed.type);
+        for (DocumentChange changed in snap.docChanges)
+          ok |= await trainingSnapshot(changed.doc, changed.type);
         if (ok) resultsCallAll();
       });
     } else {
@@ -105,7 +105,7 @@ class AthleteHelper extends FirebaseUserHelper {
   bool get needsRequest => athleteCoachReference == null;
 
   AthleteHelper({
-    @required FirebaseUser user,
+    @required User user,
     @required DocumentReference userReference,
   }) : super(user: user, userReference: userReference) {
     print(userReference.path);
@@ -118,9 +118,9 @@ class AthleteHelper extends FirebaseUserHelper {
           ? null
           : firestore
               .collection('users')
-              .document(snap['coach'])
+              .doc(snap['coach'])
               .collection('athletes')
-              .document(user.uid);
+              .doc(user.uid);
       final DocumentSnapshot athleteCoachSnapshot =
           await athleteCoachReference?.get();
       accepted = athleteCoachSnapshot.data != null &&
@@ -132,8 +132,8 @@ class AthleteHelper extends FirebaseUserHelper {
     userReference.collection('results').snapshots().listen((snap) {
       print(results);
       bool modified = false;
-      for (DocumentChange change in snap.documentChanges)
-        modified |= resultSnapshot(change.document, change.type);
+      for (DocumentChange change in snap.docChanges)
+        modified |= resultSnapshot(change.doc, change.type);
       if (modified) resultsCallAll();
       print(results.values);
       print(results.entries.map((e) => e.value));
@@ -145,15 +145,15 @@ class AthleteHelper extends FirebaseUserHelper {
     if (uid == null || uid == user.uid) return false;
     final DocumentReference request = firestore
         .collection('users')
-        .document(uid)
+        .doc(uid)
         .collection('athletes')
-        .document(user.uid);
+        .doc(user.uid);
     if (athleteCoachReference == request) return false;
     final WriteBatch batch = firestore.batch();
 
     if (athleteCoachReference != null) batch.delete(athleteCoachReference);
-    batch.updateData(userReference, {'coach': uid});
-    batch.setData(request, {'nickname': nickname}, merge: true);
+    batch.update(userReference, {'coach': uid});
+    batch.set(request, {'nickname': nickname}, SetOptions(merge: true));
 
     await batch.commit();
     return true;
@@ -162,13 +162,13 @@ class AthleteHelper extends FirebaseUserHelper {
   Future<void> saveResult({@required Result results}) async {
     userReference
         .collection('results')
-        .document(results.date.formattedAsIdentifier)
-        .setData({
-      'coach': coach.documentID,
+        .doc(results.date.formattedAsIdentifier)
+        .set({
+      'coach': coach.id,
       'training': results.training,
       'results':
           results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
-    }, merge: true);
+    }, SetOptions(merge: true));
   }
 
   Future<void> deleteCoachSubscription() => athleteCoachReference?.delete();

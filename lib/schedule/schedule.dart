@@ -41,7 +41,7 @@ class ScheduledTraining {
   /*ScheduledTraining._(this.reference, this.workRef, {DateTime date, this.plan})
       : this.date = Date.fromDateTime(date);*/
 
-  Allenamento get work => allenamenti(workRef);
+  Allenamento get work => allenamenti[workRef];
 
   static FutureOr<void> create({
     @required DocumentReference work,
@@ -57,7 +57,7 @@ class ScheduledTraining {
         'plan': plan?.reference,
         'athletes': athletes?.map((a) => a.reference)?.toList(),
       });
-    batch.setData(userC.userReference.collection('schedules').document(), {
+    batch.set(userC.userReference.collection('schedules').doc(), {
       'work': work,
       'date': date,
       'plan': plan?.reference,
@@ -67,10 +67,10 @@ class ScheduledTraining {
 
   FutureOr<void> update({List<Athlete> athletes, WriteBatch batch}) {
     if (batch == null)
-      reference.updateData({
+      reference.update({
         'athletes': athletes.map((a) => a.reference).toList(),
       });
-    batch.updateData(reference, {
+    batch.update(reference, {
       'athletes': athletes.map((a) => a.reference).toList(),
     });
   }

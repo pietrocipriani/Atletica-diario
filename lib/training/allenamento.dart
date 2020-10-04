@@ -14,24 +14,8 @@ import 'package:intl/date_symbol_data_local.dart';
 /// Map [DocumentReference] [Allenamento] of the existing [trainings]
 ///
 /// populated by `CoachHelper` query snapshot listener
-final Map<DocumentReference, Allenamento> _allenamenti = {};
-dynamic allenamenti(final DocumentReference ref,
-    [final Allenamento allenamento]) {
-  if (allenamento == null) {
-    Allenamento tr;
-    _allenamenti.forEach((dr, a) {
-      if (tr != null) return;
-      if (dr == ref) tr = a;
-    });
-    return tr;
-  } else
-    _allenamenti[ref] = allenamento;
-}
-
-Iterable<Allenamento> get trainingsValues => _allenamenti.values;
-Allenamento removeTraining(final DocumentReference ref) =>
-    _allenamenti.remove(ref); // FIXME: doesn't work
-bool get hasTrainings => _allenamenti.isNotEmpty;
+final Map<DocumentReference, Allenamento> allenamenti = {};
+bool get hasTrainings => allenamenti.isNotEmpty;
 
 /// list of `weekdays` names in [italian] locale
 final List<String> weekdays = dateTimeSymbolMap()['it'].WEEKDAYS;
@@ -65,7 +49,7 @@ class Allenamento {
         descrizione = raw['description'],
         serie = raw['serie']?.map<Serie>((raw) => Serie.parse(raw))?.toList() ??
             <Serie>[] {
-    allenamenti(reference, this);
+    allenamenti[reference] = this;
   }
 
   /// adds a new [doc] to [firestore/$userC/trainings/]
@@ -75,7 +59,7 @@ class Allenamento {
   static Future<void> create() =>
       user.userReference.collection('trainings').add({
         'name':
-            'training #${_allenamenti.length + 1}', // TODO: check if not exists
+            'training #${allenamenti.length + 1}', // TODO: check if not exists
         'description': null,
         'serie': []
       });
@@ -107,7 +91,7 @@ class Allenamento {
 
   /// updates [firestore] doc with new data
   Future<void> save() {
-    return reference.setData({
+    return reference.set({
       'name': name,
       'description': descrizione,
       'serie': serie.map((serie) => serie.asMap).toList()

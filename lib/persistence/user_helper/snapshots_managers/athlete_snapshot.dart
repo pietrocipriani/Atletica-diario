@@ -13,7 +13,7 @@ Future<bool> athleteSnapshot(
 
       bool exists = (await firestore
               .collection('users')
-              .document(snapshot.documentID)
+              .doc(snapshot.id)
               .get())
           .exists;
       userC.rawAthletes[snapshot.reference] = Athlete.parse(snapshot, exists);

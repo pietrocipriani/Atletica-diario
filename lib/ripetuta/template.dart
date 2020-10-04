@@ -18,8 +18,8 @@ class SimpleTemplate {
   Future<void> create() {
     return user.userReference
         .collection('templates')
-        .document(name)
-        .setData({'lastTarget': lastTarget});
+        .doc(name)
+        .set({'lastTarget': lastTarget});
   }
 
   SimpleTemplate({@required this.name, this.tipologia, this.lastTarget});
@@ -30,7 +30,7 @@ class SimpleTemplate {
 
 class Template extends SimpleTemplate {
   Template.parse(DocumentSnapshot raw)
-      : this(name: raw.documentID, lastTarget: raw['lastTarget']);
+      : this(name: raw.id, lastTarget: raw['lastTarget']);
 
   Template({@required String name, double lastTarget})
       : super(
