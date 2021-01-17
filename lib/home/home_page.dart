@@ -109,7 +109,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             weekendStyle: Theme.of(context).textTheme.overline,
           ),
           weekendDays: [DateTime.sunday],
-          onDaySelected: (day, events) =>
+          onDaySelected: (day, events, holidays) =>
               widget.onSelectedDayChanged?.call(day),
           onCalendarCreated: (first, last, format) => widget
               .onSelectedDayChanged

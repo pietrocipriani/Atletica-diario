@@ -177,7 +177,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
               weekendStyle: Theme.of(context).textTheme.overline,
             ),
             events: userA.events,
-            onDaySelected: (d, evts) => setState(() {}),
+            onDaySelected: (d, evts, holidays) => setState(() {}),
           ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
