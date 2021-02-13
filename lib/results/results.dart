@@ -20,7 +20,7 @@ class Results {
       List<DocumentReference> athletes})
       : ripetuteCount = training.ripetute.length {
     if (athletes == null || athletes.isEmpty)
-      athletes = userC.athletes.map((a) => a.reference).where((a) => a != null);
+      athletes = userC.athletes.map((a) => a.reference).where((a) => a != null).toList();
     for (DocumentReference ref in athletes)
       results[ref] = Result.empty(training, date);
   }
