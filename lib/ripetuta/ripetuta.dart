@@ -223,13 +223,13 @@ class Ripetuta {
             ],
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               onPressed: () {
                 Navigator.pop(context, null);
               },
               child: Text('Annulla'),
             ),
-            FlatButton(
+            TextButton(
               onPressed: template == null
                   ? null
                   : () async {

@@ -30,11 +30,11 @@ AlertDialog _deleteConfirmDialog({
     textAlign: TextAlign.justify,
   );
 
-  final Widget cancel = FlatButton(
+  final Widget cancel = TextButton(
     onPressed: () => Navigator.pop(context, false),
     child: Text('Annulla', style: TextStyle(color: Colors.grey)),
   );
-  final Widget confirm = FlatButton(
+  final Widget confirm = TextButton(
     onPressed: () => Navigator.pop(context, true),
     child: Text('Elimina', style: TextStyle(color: Colors.red)),
   );

@@ -1,4 +1,5 @@
 import 'package:Atletica/athlete/athletes_route.dart';
+import 'package:Atletica/date.dart';
 import 'package:Atletica/home/home_page.dart';
 import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
@@ -17,10 +18,8 @@ class _CoachMainPageState extends State<CoachMainPage> {
   DateTime selectedDay;
 
   bool get _canAddEvents {
-    DateTime now = DateTime.now().toUtc();
-    now = DateTime.utc(now.year, now.month, now.day, 12);
-
-    return !(selectedDay?.isBefore(now) ?? false);
+    if (selectedDay == null) return false;
+    return (Date.now() - selectedDay).inDays < 7;
   }
 
   @override

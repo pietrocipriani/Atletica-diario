@@ -36,7 +36,7 @@ class ModeSelectorRoute extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.overline,
                       ),
-                      RaisedButton(
+                      ElevatedButton(
                         onPressed: () async {
                           await setRole(COACH_ROLE);
                           Navigator.pushReplacement(
@@ -70,7 +70,7 @@ class ModeSelectorRoute extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.overline,
                       ),
-                      RaisedButton(
+                      ElevatedButton(
                         onPressed: () async {
                           await setRole(ATHLETE_ROLE);
                           Navigator.pushReplacement(

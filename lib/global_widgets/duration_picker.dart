@@ -145,10 +145,10 @@ Future<Duration> showDurationDialog(
       content: DurationPicker(initialDuration, (duration) => d = duration),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       actions: <Widget>[
-        FlatButton(
+        TextButton(
             onPressed: () => Navigator.pop(context, initialDuration),
             child: Text('Annulla')),
-        FlatButton(
+        TextButton(
             onPressed: () => Navigator.pop(context, d),
             child: Text('Modifica'))
       ],

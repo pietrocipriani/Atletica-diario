@@ -39,7 +39,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         ? null
         : userA.getResult(Date.fromDateTime(controller.selectedDay));
     final Allenamento a = s.work;
-    print ({0: 't', 1: 'e', 2: 's', 3:'t'}.entries.map((e) => e.value));
+    print({0: 't', 1: 'e', 2: 's', 3: 't'}.entries.map((e) => e.value));
     if (a == null) return Container();
     print('no container!');
     final bool greyed = s != compatible && compatible != null;
@@ -148,47 +148,72 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
               ?.map((st) => _trainingWidget(st, compatibleST)))
           .toList();
 
-    return Scaffold(
-      appBar: AppBar(title: Text('Atletica - Atleta')),
-      body: Column(
-        children: [
-          TableCalendar(
-            calendarController: controller,
-            availableCalendarFormats: {
-              CalendarFormat.month: 'mese',
-              CalendarFormat.week: 'settimana'
-            },
-            calendarStyle: CalendarStyle(
-              selectedColor: Theme.of(context).primaryColor,
-              todayColor: Theme.of(context).primaryColorLight,
-              markersColor: Theme.of(context).primaryColorDark,
-              todayStyle: const TextStyle(color: Colors.black),
-              outsideStyle: TextStyle(color: Colors.grey[300]),
-              outsideWeekendStyle: TextStyle(color: Colors.red[100]),
-            ),
-            locale: 'it',
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            weekendDays: [DateTime.sunday],
-            headerStyle: HeaderStyle(
-              formatButtonShowsNext: false,
-              formatButtonVisible: false,
-              centerHeaderTitle: true,
-            ),
-            daysOfWeekStyle: DaysOfWeekStyle(
-              weekdayStyle: Theme.of(context).textTheme.overline,
-              weekendStyle: Theme.of(context).textTheme.overline,
-            ),
-            events: userA.events,
-            onDaySelected: (d, evts, holidays) => setState(() {}),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            height: 1,
-            color: Colors.grey[300],
-          ),
-          Expanded(child: ListView(children: children)),
-        ],
+    final TableCalendar calendar = TableCalendar(
+      calendarController: controller,
+      availableCalendarFormats: {
+        CalendarFormat.month: 'mese',
+        CalendarFormat.week: 'settimana'
+      },
+      calendarStyle: CalendarStyle(
+        selectedColor: Theme.of(context).primaryColor,
+        todayColor: Theme.of(context).primaryColorLight,
+        markersColor: Theme.of(context).primaryColorDark,
+        todayStyle: const TextStyle(color: Colors.black),
+        outsideStyle: TextStyle(color: Colors.grey[300]),
+        outsideWeekendStyle: TextStyle(color: Colors.red[100]),
       ),
+      locale: 'it',
+      startingDayOfWeek: StartingDayOfWeek.monday,
+      weekendDays: [DateTime.sunday],
+      headerStyle: HeaderStyle(
+        formatButtonShowsNext: false,
+        formatButtonVisible: false,
+        centerHeaderTitle: true,
+      ),
+      daysOfWeekStyle: DaysOfWeekStyle(
+        weekdayStyle: Theme.of(context).textTheme.overline,
+        weekendStyle: Theme.of(context).textTheme.overline,
+      ),
+      events: userA.events,
+      onDaySelected: (d, evts, holidays) => setState(() {}),
     );
+
+    return OrientationBuilder(builder: (context, orientation) {
+      final Widget body = orientation == Orientation.portrait
+          ? Column(children: [
+              calendar,
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                height: 1,
+                color: Colors.grey[300],
+              ),
+              Expanded(child: ListView(children: children)),
+            ])
+          : Padding(
+              padding: MediaQuery.of(context).padding,
+              child: Row(children: [
+                AspectRatio(child: calendar, aspectRatio: 1),
+                Container(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
+                  width: 1,
+                  color: Colors.grey[300],
+                ),
+                Expanded(
+                  child: ListView(
+                    children: children,
+                    padding: const EdgeInsets.all(0),
+                  ),
+                ),
+              ]),
+            );
+
+      return Scaffold(
+        appBar: orientation == Orientation.portrait
+            ? AppBar(title: Text('Atletica - Atleta'))
+            : null,
+        body: body,
+      );
+    });
   }
 }

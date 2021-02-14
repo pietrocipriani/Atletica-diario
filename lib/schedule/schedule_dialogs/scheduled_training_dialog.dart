@@ -21,8 +21,8 @@ class ScheduledTrainingDialog extends StatefulWidget {
 }
 
 class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
-  final List<Allenamento> trainings = List();
-  final List<ScheduledTraining> prev = List();
+  final List<Allenamento> trainings = [];
+  final List<ScheduledTraining> prev = [];
   final Map<Allenamento, List<Athlete>> athletes = Map();
   Allenamento _selectAthletes;
 
@@ -83,11 +83,11 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
       content: content,
       scrollable: true,
       actions: [
-        FlatButton(
+        TextButton(
           onPressed: () => Navigator.pop(context, false),
           child: Text('Annulla'),
         ),
-        FlatButton(
+        TextButton(
           onPressed: _selectAthletes == null
               ? () {
                   final WriteBatch batch = firestore.batch();

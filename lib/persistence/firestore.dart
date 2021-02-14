@@ -24,7 +24,7 @@ Future<void> initFirestore([final String runas]) async {
   if (!snapshot.exists)
     await userDoc.setData({'name': rawUser.displayName});
   else if (snapshot['runas'] != null && snapshot['runas'].isNotEmpty)
-    return initFirestore(snapshot['runas']);
+    return await initFirestore(snapshot['runas']);
   else if (snapshot['role'] != null) {
     print(snapshot['role']);
     if (snapshot['role'] == COACH_ROLE)

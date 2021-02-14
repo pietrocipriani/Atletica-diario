@@ -32,7 +32,7 @@ double parseTimePattern(String s) {
     return parsed * 60 + parseTimePattern(s);
   } else if (l1 == '"' || l1 == '.') {
     if (s.isEmpty) return parsed.toDouble();
-    return parsed + int.parse(digits.stringMatch(s)) / 100;
+    return parsed + int.parse(digits.stringMatch(s).padRight(2, '0')) / 100;
   } else
     return null;
 }
