@@ -64,7 +64,6 @@ Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
 
-  user = await _firebaseAuth.currentUser();
   if (rawUser != null) {
     await initFirestore();
     yield 1;
