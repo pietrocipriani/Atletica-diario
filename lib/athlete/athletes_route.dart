@@ -81,7 +81,11 @@ class _AthletesRouteState extends State<AthletesRoute> {
   Widget _requestWidget(Athlete request) {
     final Widget title = Text(request.name, style: _subtitle1Bold);
 
-    final Widget content = CustomListTile(leading: _requestIcon, title: title);
+    final Widget content = CustomListTile(
+      leading: _requestIcon,
+      title: title,
+      onTap: () => Athlete.fromDialog (context: context, request: request),
+    );
     final FutureOr<void> Function(DismissDirection dir) onDismissed =
         (direction) async {
       await userC.refuseRequest(request.reference);

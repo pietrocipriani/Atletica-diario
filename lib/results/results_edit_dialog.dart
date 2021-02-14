@@ -15,14 +15,14 @@ Future<void> showResultsEditDialog(
         title: Text('Modifica i risultati'),
         scrollable: true,
         actions: <Widget>[
-          FlatButton(
+          TextButton(
             onPressed: () {
               // TODO: remove changes
               Navigator.pop(context);
             },
             child: Text('Chiudi'),
           ),
-          FlatButton(
+          TextButton(
             onPressed: () async {
               await save(results);
               Navigator.pop(context);

@@ -56,7 +56,7 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
     child: Text('seleziona il gruppo:', style: bodyText1),
   );
 
-  final Widget cancel = FlatButton(
+  final Widget cancel = TextButton(
     onPressed: () => Navigator.pop(context, false),
     child: Text('Annulla'),
   );
@@ -124,7 +124,7 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       actions: <Widget>[
         cancel,
-        FlatButton(
+        TextButton(
           onPressed: _validator(controller.text, atleta, isNew) != null ||
                   (selectedGroup == null &&
                       groupValidator(groupController.text) != null)

@@ -231,7 +231,7 @@ class Tabella {
               children: <Widget>[
                 Text('dal'),
                 Expanded(
-                  child: FlatButton(
+                  child: TextButton(
                     onPressed: () async {
                       start = await showDatePicker(
                             context: context,
@@ -255,7 +255,7 @@ class Tabella {
                 ),
                 Text('al'),
                 Expanded(
-                  child: FlatButton(
+                  child: TextButton(
                     onPressed: stop == null && start == null
                         ? null
                         : () async {
@@ -285,13 +285,13 @@ class Tabella {
           ],
         ),
         actions: <Widget>[
-          FlatButton(
+          TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Annulla',
             ),
           ),
-          FlatButton(
+          TextButton(
             onPressed: validator() != null || (start == null) != (stop == null)
                 ? null
                 : () async {
@@ -485,11 +485,11 @@ class Week {
             ]).toList(),
           ),
           actions: [
-            FlatButton(
+            TextButton(
               onPressed: () => Navigator.pop(context, null),
               child: const Text('Annulla'),
             ),
-            FlatButton(
+            TextButton(
               onPressed: () => Navigator.pop(context, week),
               child: const Text('Conferma'),
             )

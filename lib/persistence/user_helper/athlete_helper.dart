@@ -120,7 +120,7 @@ class AthleteHelper extends FirebaseUserHelper {
               .collection('users')
               .document(snap['coach'])
               .collection('athletes')
-              .document(user.uid);
+              .document(userReference.documentID);
       final DocumentSnapshot athleteCoachSnapshot =
           await athleteCoachReference?.get();
       accepted = athleteCoachSnapshot.data != null &&

@@ -118,7 +118,7 @@ Future requestLoginDialog({@required BuildContext context}) {
         style: Theme.of(context).textTheme.overline,
       ),
       actions: <Widget>[
-        FlatButton(
+        TextButton(
           onPressed: /*TODO: Platform.isAndroid ? () => SystemNavigator.pop() :*/ null,
           child: Text(
             'Exit',

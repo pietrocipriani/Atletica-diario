@@ -83,11 +83,11 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
       content: content,
       scrollable: true,
       actions: [
-        FlatButton(
+        TextButton(
           onPressed: () => Navigator.pop(context, false),
           child: Text('Annulla'),
         ),
-        FlatButton(
+        TextButton(
           onPressed: _selectAthletes == null
               ? () {
                   final WriteBatch batch = firestore.batch();
