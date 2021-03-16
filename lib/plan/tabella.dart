@@ -87,7 +87,7 @@ class Tabella {
         if (delete)
           batch.delete(st.reference);
         else
-          st.update(athletes: athletes, batch: batch);
+          st.update(athletes: athletes, batch: batch);  //TODO: non vengono più eliminati gli atleti vecchi
       }
     }
   }
@@ -108,16 +108,20 @@ class Tabella {
       if (current < now || training == null) continue;
       if (userC.scheduledTrainings[current.dateTime]
               ?.any((st) => st.workRef == training) ??
-          false) continue;
-
-      // TODO: if already exists, check for `plan`
-      ScheduledTraining.create(
-        work: training,
-        date: current.dateTime,
-        athletes: athletes,
-        plan: this,
-        batch: batch,
-      );
+          false) {
+        final ScheduledTraining st = userC.scheduledTrainings[current.dateTime]
+            .firstWhere((st) => st.workRef == training);
+        st.update(athletes: athletes, batch: batch);
+      } else {
+        // TODO: if already exists, check for `plan`
+        ScheduledTraining.create(
+          work: training,
+          date: current.dateTime,
+          athletes: athletes,
+          plan: this,
+          batch: batch,
+        );
+      }
     }
   }
 

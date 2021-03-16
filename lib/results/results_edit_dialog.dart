@@ -2,6 +2,15 @@ import 'package:Atletica/results/result.dart';
 import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
+import 'package:mdi/mdi.dart';
+
+final List<IconData> icons = const [
+  Mdi.emoticonExcitedOutline,
+  Mdi.emoticonNeutralOutline,
+  Mdi.emoticonConfusedOutline,
+  Mdi.emoticonSadOutline,
+  Mdi.emoticonDeadOutline,
+];
 
 Future<void> showResultsEditDialog(
   BuildContext context,
@@ -53,6 +62,7 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
         keys = List.unmodifiable(rips);
 
   bool _acceptable(String s) {
+    if (s == null || s.isEmpty) return true;
     final bool match = Tipologia.corsaDist.targetValidator(s);
     print('is |$s| acceptable? $match');
     print(
@@ -65,11 +75,14 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
     final TextStyle overline = Theme.of(context).textTheme.overline;
     final TextStyle overlineBC = overline.copyWith(
         color: Theme.of(context).primaryColorDark, fontWeight: FontWeight.bold);
+
+    final Color emojiSelected = Theme.of(context).primaryColorDark;
+    final Color emojiDisabled = Colors.grey[300];
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Column(
-        children: widget.results.asIterable.map((r) {
+        children: widget.results.asIterable.map<Widget>((r) {
           return Row(
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
@@ -116,8 +129,29 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
               ),
             ],
           );
-        }).toList(),
+        }).followedBy([
+          Container(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: Iterable<int>.generate(icons.length, (i) => i)
+                .map((i) => fatigueEmoji(i, i == widget.results.fatigue))
+                .toList(),
+          )
+        ]).toList(),
       ),
+    );
+  }
+
+  Widget fatigueEmoji(final int value, final bool selected) {
+    return IconButton(
+      icon: Icon(
+        icons[value],
+        size: 42,
+        color: selected
+            ? Color.lerp(Colors.green, Colors.red, value / icons.length)
+            : Colors.grey[300],
+      ),
+      onPressed: () => setState(() => widget.results.fatigue = selected ? null : value),
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:Atletica/results/results.dart';
 import 'package:Atletica/results/results_edit_dialog.dart';
 import 'package:Atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
+import 'package:mdi/mdi.dart';
 
 class ResultsEditRoute extends StatelessWidget {
   final Results results;
@@ -26,6 +27,7 @@ class ResultsEditRoute extends StatelessWidget {
       ),
       body: ListView(
         children: results.results.keys
+            .where((a) => userC.rawAthletes.containsKey(a))
             .map((a) => StreamBuilder(
                 stream: userC.resultSnapshots(
                   athlete: userC.rawAthletes[a],
@@ -35,7 +37,9 @@ class ResultsEditRoute extends StatelessWidget {
                   bool ok = true;
                   if (snapshot.data?.data != null) {
                     ok = results.update(
-                        a, snapshot.data['results'].cast<String>());
+                        a,
+                        snapshot.data['results'].cast<String>(),
+                        snapshot.data['fatigue']);
                   }
 
                   if (!ok) return Container();
@@ -46,7 +50,6 @@ class ResultsEditRoute extends StatelessWidget {
 
                   final Athlete athlete = userC.rawAthletes[a];
                   final Result res = results.results[a];
-
                   return CustomDismissible(
                     key: ValueKey(hashList([results, a])),
                     direction: DismissDirection.endToStart,
@@ -60,6 +63,16 @@ class ResultsEditRoute extends StatelessWidget {
                     },
                     child: CustomExpansionTile(
                       title: userC.rawAthletes[a].name,
+                      leading: Icon(
+                        results.results[a].fatigue == null
+                            ? Mdi.emoticonNeutralOutline
+                            : icons[results.results[a].fatigue],
+                        size: 42,
+                        color: results.results[a].fatigue == null
+                            ? Colors.grey[300]
+                            : Color.lerp(Colors.green, Colors.red,
+                                results.results[a].fatigue / icons.length),
+                      ),
                       trailing: LeadingInfoWidget(
                         info: '$count/${results.ripetuteCount}',
                         bottom: singularPlural('risultat', 'o', 'i', count),
