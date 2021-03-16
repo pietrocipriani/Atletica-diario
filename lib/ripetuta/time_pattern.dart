@@ -19,6 +19,7 @@ bool matchTimePattern(String s, [bool onlySec = false]) {
 }
 
 double parseTimePattern(String s) {
+  if (s == null || s.isEmpty) return null;
   final RegExp digits = RegExp(r'\s*\d+\s*');
   String raw = digits.stringMatch(s);
   int parsed = int.parse(raw);

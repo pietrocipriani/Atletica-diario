@@ -10,6 +10,7 @@ class Result {
   final Date date;
   final String training;
   final Map<SimpleRipetuta, double> results;
+  int fatigue;
 
   Result(DocumentSnapshot raw)
       : date = Date.parse(raw.documentID),
@@ -22,7 +23,8 @@ class Result {
                 (e) => MapEntry<SimpleRipetuta, double>(
                     SimpleRipetuta(e.key), e.value),
               ),
-        );
+        ),
+        fatigue = raw['fatigue'];
 
   Result.empty(Allenamento training, this.date)
       : training = training.name,
@@ -30,7 +32,8 @@ class Result {
           training.ripetute,
           key: (r) => SimpleRipetuta.from(r),
           value: (_) => null,
-        );
+        ),
+        fatigue = null;
 
   /// `training` is ScheduledTraining or Allenamento
   bool isCompatible(dynamic training) {

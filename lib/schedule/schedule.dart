@@ -66,12 +66,13 @@ class ScheduledTraining {
   }
 
   FutureOr<void> update({List<Athlete> athletes, WriteBatch batch}) {
+    
     if (batch == null)
       reference.updateData({
-        'athletes': athletes.map((a) => a.reference).toList(),
+        'athletes': FieldValue.arrayUnion(athletes.map((a) => a.reference).toList()),
       });
     batch.updateData(reference, {
-      'athletes': athletes.map((a) => a.reference).toList(),
+      'athletes': FieldValue.arrayUnion(athletes.map((a) => a.reference).toList()),
     });
   }
 

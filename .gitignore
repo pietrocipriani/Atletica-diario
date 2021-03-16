@@ -28,7 +28,7 @@
 .packages
 .pub-cache/
 .pub/
-.metals/
+.metals/metals.lock.db
 /build/
 
 # Web related
@@ -47,3 +47,4 @@ app.*.map.json
 
 
 atletica-adminsdk.json
+.metals/metals.lock.db
