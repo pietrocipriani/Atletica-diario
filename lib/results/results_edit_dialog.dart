@@ -76,8 +76,6 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
     final TextStyle overlineBC = overline.copyWith(
         color: Theme.of(context).primaryColorDark, fontWeight: FontWeight.bold);
 
-    final Color emojiSelected = Theme.of(context).primaryColorDark;
-    final Color emojiDisabled = Colors.grey[300];
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),

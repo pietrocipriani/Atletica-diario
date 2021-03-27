@@ -1,7 +1,7 @@
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:Atletica/recupero/recupero_dialog.dart';
 import 'package:Atletica/ripetuta/template.dart';
-import 'package:Atletica/global_widgets/duration_picker.dart';
 import 'package:Atletica/recupero/recupero.dart';
 import 'package:Atletica/training/serie.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
@@ -356,13 +356,8 @@ class Ripetuta {
                   icon: Icon(Icons.timer),
                   onPressed: ripetizioni > 1
                       ? () async {
-                          final Duration duration = await showDurationDialog(
-                            context,
-                            Duration(seconds: recupero.recupero),
-                          );
-                          if (duration == null) return;
-                          setState(
-                              () => recupero = Recupero(duration.inSeconds));
+                          await showRecoverDialog(context, recupero);
+                          setState(() {});
                         }
                       : null,
                   color: Colors.black,
