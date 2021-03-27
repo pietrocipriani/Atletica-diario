@@ -1,11 +1,13 @@
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/global_widgets/duration_picker.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/recupero/recupero.dart';
+import 'package:Atletica/recupero/recupero_dialog.dart';
+import 'package:Atletica/recupero/recupero_widget.dart';
 import 'package:Atletica/ripetuta/ripetuta.dart';
 import 'package:Atletica/training/serie.dart';
+import 'package:Atletica/training/widgets/tags_selector_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,22 +17,31 @@ import 'package:intl/date_symbol_data_local.dart';
 ///
 /// populated by `CoachHelper` query snapshot listener
 final Map<DocumentReference, Allenamento> _allenamenti = {};
+final Map<String, Map<String, Map<DocumentReference, Allenamento>>>
+    trainingsTree = {};
 dynamic allenamenti(final DocumentReference ref,
     [final Allenamento allenamento]) {
-  if (allenamento == null) {
-    Allenamento tr;
-    _allenamenti.forEach((dr, a) {
-      if (tr != null) return;
-      if (dr == ref) tr = a;
-    });
-    return tr;
-  } else
+  if (allenamento == null)
+    return _allenamenti[ref];
+  else {
+    final Allenamento prev = _allenamenti[ref];
     _allenamenti[ref] = allenamento;
+    if (prev != null &&
+        (prev.tag1 != allenamento.tag1 || prev.tag2 != allenamento.tag2))
+      trainingsTree[prev.tag1][prev.tag2].remove(prev.reference);
+    ((trainingsTree[allenamento.tag1] ??= {})[allenamento.tag2] ??= {})[ref] =
+        allenamento;
+  }
 }
 
 Iterable<Allenamento> get trainingsValues => _allenamenti.values;
-Allenamento removeTraining(final DocumentReference ref) =>
-    _allenamenti.remove(ref); // FIXME: doesn't work
+Allenamento removeTraining(final DocumentReference ref) {
+  final Allenamento tr = _allenamenti.remove(ref);
+  if (tr == null) return null;
+
+  return trainingsTree[tr.tag1][tr.tag2].remove(ref);
+}
+
 bool get hasTrainings => _allenamenti.isNotEmpty;
 
 /// list of `weekdays` names in [italian] locale
@@ -47,7 +58,11 @@ class Allenamento {
   /// `name` is the identifier for the current [training]
   ///
   /// `descrizione` contains [notes] & [description] for the current [training]
-  String name, descrizione;
+  ///
+  /// `tag1` is a tag for trainings folding
+  ///
+  /// `tag2` is a tag for trainings subfolding
+  String name, descrizione, tag1, tag2;
 
   /// `serie` is a `List` containing all the `Serie`s composing the [training]
   List<Serie> serie = <Serie>[];
@@ -64,7 +79,9 @@ class Allenamento {
         name = raw['name'],
         descrizione = raw['description'],
         serie = raw['serie']?.map<Serie>((raw) => Serie.parse(raw))?.toList() ??
-            <Serie>[] {
+            <Serie>[],
+        tag1 = raw['tag1'] ?? 'generico',
+        tag2 = raw['tag2'] ?? 'generico' {
     allenamenti(reference, this);
   }
 
@@ -72,12 +89,14 @@ class Allenamento {
   ///
   /// [training] is initialized with a progressive `name`, `null` `description`
   /// and an empty `serie`
-  static Future<void> create() =>
+  static Future<void> create([final String tag1, final String tag2]) =>
       user.userReference.collection('trainings').add({
         'name':
             'training #${_allenamenti.length + 1}', // TODO: check if not exists
         'description': null,
-        'serie': []
+        'serie': [],
+        'tag1': tag1 ?? 'generico',
+        'tag2': tag2 ?? 'generico',
       });
 
   /// returns `index`th `Ripetuta` for `this`
@@ -110,7 +129,9 @@ class Allenamento {
     return reference.setData({
       'name': name,
       'description': descrizione,
-      'serie': serie.map((serie) => serie.asMap).toList()
+      'serie': serie.map((serie) => serie.asMap).toList(),
+      'tag1': tag1,
+      'tag2': tag2,
     });
   }
 
@@ -200,6 +221,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
       body: Column(
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
+          TagsSelectorWidget(widget.allenamento),
           AnimatedContainer(
             duration: Duration(milliseconds: 200),
             height: collapsedDescription ? kToolbarHeight : 200,
@@ -287,8 +309,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                         yield CompositedTransformFollower(
                                           showWhenUnlinked: false,
                                           link: rip.link,
-                                          child: rip.nextRecupero
-                                              .widget(context, setState),
+                                          child: RecuperoWidget(
+                                              recupero: rip.nextRecupero),
                                           offset: const Offset(0, -16),
                                         );
                                     }()
@@ -321,16 +343,9 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                       ),
                                       onPressed: serie.ripetizioni > 1
                                           ? () async {
-                                              final Duration duration =
-                                                  await showDurationDialog(
-                                                context,
-                                                Duration(
-                                                    seconds: serie
-                                                        .recupero.recupero),
-                                              );
-                                              if (duration == null) return;
-                                              setState(() => serie.recupero =
-                                                  Recupero(duration.inSeconds));
+                                              await showRecoverDialog(
+                                                  context, serie.recupero);
+                                              setState(() {});
                                             }
                                           : null,
                                       disabledColor: Colors.grey[300],
@@ -474,7 +489,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                     yield CompositedTransformFollower(
                       link: serie.link,
                       showWhenUnlinked: false,
-                      child: serie.nextRecupero.widget(context, setState),
+                      child: RecuperoWidget(recupero: serie.nextRecupero),
                       offset: const Offset(0, -16),
                     );
                 }()

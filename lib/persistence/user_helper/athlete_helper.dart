@@ -32,11 +32,13 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   DocumentReference get athleteCoachReference => _athleteCoachReference;
+
+  bool justRequested = false;
   set athleteCoachReference(DocumentReference reference) {
     if (reference == _athleteCoachReference) return;
     _requestSubscription?.cancel();
     _athleteCoachReference = reference;
-    _requestSubscription = reference?.snapshots()?.listen((snap) {
+    _requestSubscription = reference?.snapshots()?.skip(justRequested ? 1 : 0)?.listen((snap) {
       if (snap.data == null)
         userReference.updateData({'coach': null});
       else {
@@ -44,6 +46,7 @@ class AthleteHelper extends FirebaseUserHelper {
         coachCallAll();
       }
     });
+    justRequested = false;
   }
 
   Result getResult(Date date) => results[
@@ -114,6 +117,7 @@ class AthleteHelper extends FirebaseUserHelper {
 
   void _init() {
     userReference.snapshots().listen((snap) async {
+      print ('received update: ${snap.data}');
       athleteCoachReference = snap['coach'] == null
           ? null
           : firestore
@@ -123,7 +127,7 @@ class AthleteHelper extends FirebaseUserHelper {
               .document(userReference.documentID);
       final DocumentSnapshot athleteCoachSnapshot =
           await athleteCoachReference?.get();
-      accepted = athleteCoachSnapshot.data != null &&
+      accepted = athleteCoachSnapshot?.data != null &&
           athleteCoachSnapshot['nickname'] != null &&
           athleteCoachSnapshot['group'] != null;
       coachCallAll();
@@ -142,20 +146,21 @@ class AthleteHelper extends FirebaseUserHelper {
 
   Future<bool> requestCoach(
       {@required String uid, @required String nickname}) async {
-    if (uid == null || uid == user.uid) return false;
+    if (uid == null || uid == userReference.documentID) return false;
     final DocumentReference request = firestore
         .collection('users')
         .document(uid)
         .collection('athletes')
-        .document(user.uid);
+        .document(userReference.documentID);
     if (athleteCoachReference == request) return false;
     final WriteBatch batch = firestore.batch();
 
     if (athleteCoachReference != null) batch.delete(athleteCoachReference);
-    batch.updateData(userReference, {'coach': uid});
     batch.setData(request, {'nickname': nickname}, merge: true);
-
+    batch.updateData(userReference, {'coach': uid});
+    justRequested = true;
     await batch.commit();
+    
     return true;
   }
 

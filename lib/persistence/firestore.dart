@@ -14,12 +14,7 @@ Future<void> initFirestore([final String runas]) async {
   //firestore.settings(persistenceEnabled: true);
   final DocumentReference userDoc = userFromUid(runas ?? rawUser.uid);
   DocumentSnapshot snapshot;
-  try{
   snapshot = await userDoc.get();
-  }catch(e) {
-    print(e);
-    throw e;
-  }
 
   if (!snapshot.exists)
     await userDoc.setData({'name': rawUser.displayName});

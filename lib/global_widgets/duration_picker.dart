@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 class DurationPicker extends StatefulWidget {
   final Duration initialDuration;
-  final void Function (Duration d) onDurationChanged;
+  final void Function(Duration d) onDurationChanged;
 
-  DurationPicker(this.initialDuration, this.onDurationChanged);
+  DurationPicker(final int duration, this.onDurationChanged)
+      : initialDuration = Duration(seconds: duration);
 
   @override
   _DurationPickerState createState() => _DurationPickerState();
@@ -29,9 +30,9 @@ class _DurationPickerState extends State<DurationPicker>
     super.initState();
   }
 
-  void _onFinishChange () {
+  void _onFinishChange() {
     setState(() => selected = false);
-    widget.onDurationChanged?.call(Duration(seconds: duration*30));
+    widget.onDurationChanged?.call(Duration(seconds: duration * 30));
   }
 
   @override
@@ -47,7 +48,7 @@ class _DurationPickerState extends State<DurationPicker>
             height: 200,
             alignment: Alignment.center,
             child: Text(
-              '${(duration ~/ 2).toString().padLeft(2, '0')}:${((duration % 2)*30).round().toString().padLeft(2, '0')}',
+              '${(duration ~/ 2).toString().padLeft(2, '0')}:${((duration % 2) * 30).round().toString().padLeft(2, '0')}',
               style: Theme.of(context).textTheme.headline2,
             ),
             decoration: BoxDecoration(
@@ -66,7 +67,9 @@ class _DurationPickerState extends State<DurationPicker>
               strokeWidth: 10,
             ),
           ),
-          CustomPaint(painter: TimerPainter(roundsColors: Theme.of(context).primaryColor),),
+          CustomPaint(
+            painter: TimerPainter(roundsColors: Theme.of(context).primaryColor),
+          ),
           Transform.rotate(
             angle: 2 * pi * duration / kROUND_TIME,
             child: Transform.translate(
@@ -100,11 +103,13 @@ class _DurationPickerState extends State<DurationPicker>
                 });
             },
             onTapUp: (details) {
-              if (((details.localPosition - center).distance - 100).abs() > 10) {
+              if (((details.localPosition - center).distance - 100).abs() >
+                  10) {
                 _onFinishChange();
                 return;
               }
-              double angle = (details.localPosition - center).direction + pi / 2;
+              double angle =
+                  (details.localPosition - center).direction + pi / 2;
               angle %= 2 * pi;
               int newDuration = (angle * kROUND_TIME / (2 * pi)).round();
               newDuration += duration ~/ kROUND_TIME * kROUND_TIME;
@@ -115,14 +120,15 @@ class _DurationPickerState extends State<DurationPicker>
             onLongPressEnd: (details) => _onFinishChange(),
             onPanUpdate: (details) {
               if (!selected) return;
-              double currentAngle = (details.localPosition - center).direction + pi/2;
+              double currentAngle =
+                  (details.localPosition - center).direction + pi / 2;
               int newDuration = (currentAngle * kROUND_TIME / (pi * 2)).round();
               newDuration += duration ~/ kROUND_TIME * kROUND_TIME;
               int delta1 = newDuration - duration;
               int delta2 = delta1 - kROUND_TIME * delta1.sign;
               if (delta2.abs() < delta1.abs()) newDuration += kROUND_TIME;
               newDuration = max(newDuration, 0);
-              newDuration = min(newDuration, kMAX_ROUNDS*kROUND_TIME);
+              newDuration = min(newDuration, kMAX_ROUNDS * kROUND_TIME);
 
               if ((newDuration - duration).abs() > 2) return;
 
@@ -135,51 +141,28 @@ class _DurationPickerState extends State<DurationPicker>
   }
 }
 
-Future<Duration> showDurationDialog(
-    BuildContext context, Duration initialDuration) async {
-  Duration d = initialDuration;
-  return await showDialog<Duration>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('SELEZIONA IL RECUPERO'),
-      content: DurationPicker(initialDuration, (duration) => d = duration),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      actions: <Widget>[
-        TextButton(
-            onPressed: () => Navigator.pop(context, initialDuration),
-            child: Text('Annulla')),
-        TextButton(
-            onPressed: () => Navigator.pop(context, d),
-            child: Text('Modifica'))
-      ],
-    ),
-  );
-}
-
 class TimerPainter extends CustomPainter {
   final Color roundsColors, stepsColor;
   final Paint p = new Paint();
 
-  TimerPainter ({@required this.roundsColors, this.stepsColor = Colors.black}) {
+  TimerPainter({@required this.roundsColors, this.stepsColor = Colors.black}) {
     p.style = PaintingStyle.stroke;
     p.strokeWidth = 1;
   }
 
-
-
   @override
   void paint(Canvas canvas, Size size) {
-    Offset center = size.center(Offset(0,0));
+    Offset center = size.center(Offset(0, 0));
     p.color = stepsColor;
     for (int i = 0; i < _DurationPickerState.kROUND_TIME; i++) {
-      double angle = i * 2*pi / _DurationPickerState.kROUND_TIME - pi/2;
+      double angle = i * 2 * pi / _DurationPickerState.kROUND_TIME - pi / 2;
       Offset start = Offset.fromDirection(angle, 100.0 - 4.0);
-      Offset end = Offset.fromDirection(angle, 100.0 - 13.0 + (i%2)*5);
+      Offset end = Offset.fromDirection(angle, 100.0 - 13.0 + (i % 2) * 5);
       canvas.drawLine(start + center, end + center, p);
     }
     p.color = roundsColors;
     for (int i = 0; i < _DurationPickerState.kMAX_ROUNDS; i++) {
-      double angle = i * 2*pi / _DurationPickerState.kMAX_ROUNDS - pi/2;
+      double angle = i * 2 * pi / _DurationPickerState.kMAX_ROUNDS - pi / 2;
       Offset start = Offset.fromDirection(angle, 100.0 - 15.0);
       Offset end = Offset.fromDirection(angle, 100.0 - 25.0);
       canvas.drawLine(start + center, end + center, p);
@@ -188,5 +171,4 @@ class TimerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
-
 }

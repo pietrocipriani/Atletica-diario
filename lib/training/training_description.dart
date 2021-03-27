@@ -133,19 +133,22 @@ class TrainingDescription {
               overlineC,
               disabled,
             );
-            yield _rowRec(
-              context,
-              j == r.ripetizioni
-                  ? r == s.ripetute.last
-                      ? i == s.ripetizioni
-                          ? s == training.serie.last ? null : s.nextRecupero
-                          : s.recupero
-                      : r.nextRecupero
-                  : r.recupero,
-              j == r.ripetizioni && r == s.ripetute.last,
-              overline,
-              disabled,
-            );
+            if (r != s.ripetute.last || i < s.ripetizioni || j < r.ripetizioni)
+              yield _rowRec(
+                context,
+                j == r.ripetizioni
+                    ? r == s.ripetute.last
+                        ? i == s.ripetizioni
+                            ? s == training.serie.last
+                                ? null
+                                : s.nextRecupero
+                            : s.recupero
+                        : r.nextRecupero
+                    : r.recupero,
+                j == r.ripetizioni && r == s.ripetute.last,
+                overline,
+                disabled,
+              );
           }
   }
 }

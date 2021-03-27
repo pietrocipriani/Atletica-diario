@@ -1,6 +1,7 @@
 import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/firestore.dart';
+import 'package:Atletica/plan/widgets/trainings_wrapper.dart';
 import 'package:Atletica/schedule/athletes_picker.dart';
 import 'package:Atletica/schedule/schedule.dart';
 import 'package:Atletica/training/allenamento.dart';
@@ -55,25 +56,22 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
           );
 
     final Widget content = _selectAthletes == null
-        ? Wrap(
-            alignment: WrapAlignment.center,
-            children: trainingsValues
-                .map((a) => GestureDetector(
-                      onTap: () => setState(() => trainings.contains(a)
-                          ? trainings.remove(a)
-                          : trainings.add(a)),
-                      onLongPress: trainings.contains(a)
-                          ? () => setState(() => _selectAthletes = a)
-                          : null,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: TrainingChip(
-                          training: a,
-                          enabled: trainings.contains(a),
-                        ),
-                      ),
-                    ))
-                .toList(),
+        ? TrainingsWrapper(
+            builder: (a) => GestureDetector(
+              onTap: () => setState(() => trainings.contains(a)
+                  ? trainings.remove(a)
+                  : trainings.add(a)),
+              onLongPress: trainings.contains(a)
+                  ? () => setState(() => _selectAthletes = a)
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: TrainingChip(
+                  training: a,
+                  enabled: trainings.contains(a),
+                ),
+              ),
+            ),
           )
         : AthletesPicker(athletes[_selectAthletes] ??= [],
             onChanged: (a) => setState(() {}));
