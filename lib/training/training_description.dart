@@ -133,7 +133,10 @@ class TrainingDescription {
               overlineC,
               disabled,
             );
-            if (r != s.ripetute.last || i < s.ripetizioni || j < r.ripetizioni)
+            if (s != training.serie.last ||
+                r != s.ripetute.last ||
+                i < s.ripetizioni ||
+                j < r.ripetizioni)
               yield _rowRec(
                 context,
                 j == r.ripetizioni

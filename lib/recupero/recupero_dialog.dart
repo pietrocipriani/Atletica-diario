@@ -76,7 +76,7 @@ class _RecuperoDialogState extends State<RecuperoDialog> {
           ]),
           widget.recupero.recupero is int
               ? DurationPicker(widget.recupero.recupero,
-                  (duration) => widget.recupero.recupero = duration)
+                  (duration) => widget.recupero.recupero = duration.inSeconds)
               : AutoCompleteTextField<Template>(
                   itemSubmitted: (value) =>
                       setState(() => widget.recupero.recupero = value.name),
