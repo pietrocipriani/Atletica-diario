@@ -43,11 +43,6 @@ class _TrainingRouteState extends State<TrainingRoute> {
   static const Widget _emptyMessage =
       Center(child: Text('non hai creato ancora nessun allenamento'));
 
-  static const Widget _fab = FloatingActionButton(
-    onPressed: Allenamento.create,
-    child: Icon(Icons.add),
-  );
-
   /// returns `true` if `a` can be shown, otherwise `false`
   static bool _shouldDisplay(Allenamento a) => !a.dismissed;
 
@@ -82,6 +77,11 @@ class _TrainingRouteState extends State<TrainingRoute> {
 
   @override
   Widget build(BuildContext context) {
+    final Widget _fab = FloatingActionButton(
+      onPressed: () => Allenamento.create(widget.tag1, widget.tag2),
+      child: Icon(Icons.add),
+    );
+    
     return Scaffold(
       appBar: AppBar(title: Text(_title)),
       body: !_hasItems ? _emptyMessage : ListView(children: _children.toList()),
