@@ -1,3 +1,4 @@
+import 'package:Atletica/global_widgets/resizable_text_field.dart';
 import 'package:Atletica/results/result.dart';
 import 'package:Atletica/results/simple_training.dart';
 import 'package:Atletica/ripetuta/template.dart';
@@ -134,7 +135,12 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
             children: Iterable<int>.generate(icons.length, (i) => i)
                 .map((i) => fatigueEmoji(i, i == widget.results.fatigue))
                 .toList(),
-          )
+          ),
+          ResizableTextField(
+            onChanged: (v) => widget.results.info = v,
+            initialText: widget.results.info,
+            hint: 'inserisci un commento',
+          ),
         ]).toList(),
       ),
     );
@@ -149,7 +155,8 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
             ? Color.lerp(Colors.green, Colors.red, value / icons.length)
             : Colors.grey[300],
       ),
-      onPressed: () => setState(() => widget.results.fatigue = selected ? null : value),
+      onPressed: () =>
+          setState(() => widget.results.fatigue = selected ? null : value),
     );
   }
 }

@@ -81,7 +81,7 @@ class _TrainingRouteState extends State<TrainingRoute> {
       onPressed: () => Allenamento.create(widget.tag1, widget.tag2),
       child: Icon(Icons.add),
     );
-    
+
     return Scaffold(
       appBar: AppBar(title: Text(_title)),
       body: !_hasItems ? _emptyMessage : ListView(children: _children.toList()),
@@ -100,8 +100,11 @@ class _PathWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final String tag1 = path ?? tag;
     final String tag2 = path == null ? null : tag;
-    final int trainingsCount = trainingsValues.where((t) =>
-        (tag1 == null || tag1 == t.tag1) && (tag2 == null || tag2 == t.tag2)).length;
+    final int trainingsCount = trainingsValues
+        .where((t) =>
+            (tag1 == null || tag1 == t.tag1) &&
+            (tag2 == null || tag2 == t.tag2))
+        .length;
     return CustomListTile(
       title: Text(
         tag,
@@ -156,8 +159,7 @@ class _TrainingWidget extends StatelessWidget {
       const SizedBox(height: 10),
     ];
 
-    TrainingDescription.fromTraining(context, training)
-        .forEach((r) => children.add(r));
+    children.addAll(TrainingDescription.fromTraining(context, training));
 
     return CustomDismissible(
       key: _key,

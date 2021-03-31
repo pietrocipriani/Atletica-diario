@@ -1,6 +1,7 @@
 import 'package:Atletica/global_widgets/custom_dismissible.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:Atletica/global_widgets/resizable_text_field.dart';
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/recupero/recupero.dart';
 import 'package:Atletica/recupero/recupero_dialog.dart';
@@ -19,6 +20,11 @@ import 'package:intl/date_symbol_data_local.dart';
 final Map<DocumentReference, Allenamento> _allenamenti = {};
 final Map<String, Map<String, Map<DocumentReference, Allenamento>>>
     trainingsTree = {};
+void trainingsReset() {
+  _allenamenti.clear();
+  trainingsTree.clear();
+}
+
 dynamic allenamenti(final DocumentReference ref,
     [final Allenamento allenamento]) {
   if (allenamento == null)
@@ -222,39 +228,10 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
           TagsSelectorWidget(widget.allenamento),
-          AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            height: collapsedDescription ? kToolbarHeight : 200,
-            child: Row(
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(
-                    collapsedDescription
-                        ? Icons.expand_more
-                        : Icons.expand_less,
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                  onPressed: () => setState(
-                    () => collapsedDescription = !collapsedDescription,
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: _descriptionController,
-                      maxLines: 1000,
-                      autofocus: false,
-                      decoration: InputDecoration(
-                        hintText: 'inserisci la descrizione (opzionale)',
-                      ),
-                      onChanged: (text) =>
-                          widget.allenamento.descrizione = text,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          ResizableTextField(
+            onChanged: (text) => widget.allenamento.descrizione = text,
+            initialText: widget.allenamento.descrizione ?? '',
+            hint: 'inserisci la descrizione (opzionale)',
           ),
           Expanded(
             child: SingleChildScrollView(

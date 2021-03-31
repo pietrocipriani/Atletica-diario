@@ -10,6 +10,7 @@ class CustomExpansionTile extends StatefulWidget {
     @required this.title,
     this.titleColor = Colors.black,
     this.subtitle,
+    this.hiddenSubtitle,
     this.backgroundColor,
     this.childrenBackgroudColor,
     this.onExpansionChanged,
@@ -26,6 +27,7 @@ class CustomExpansionTile extends StatefulWidget {
   final String title;
   final Color titleColor;
   final Widget subtitle;
+  final String hiddenSubtitle;
   final ValueChanged<bool> onExpansionChanged;
   final List<Widget> children;
   final Color backgroundColor, childrenBackgroudColor;
@@ -140,16 +142,34 @@ class _ExpansionTileState extends State<CustomExpansionTile>
   @override
   Widget build(BuildContext context) {
     final bool closed = !_isExpanded && _controller.isDismissed;
+    Widget child = closed
+        ? null
+        : Container(
+            padding: widget.childrenPadding,
+            color: widget.childrenBackgroudColor,
+            child: Column(children: widget.children),
+          );
+    if (!closed &&
+        widget.hiddenSubtitle != null &&
+        widget.hiddenSubtitle.isNotEmpty)
+      child = Column(children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            widget.hiddenSubtitle,
+            style: Theme.of(context)
+                .textTheme
+                .overline
+                .copyWith(fontWeight: FontWeight.normal),
+            textAlign: TextAlign.justify,
+          ),
+        ),
+        child
+      ]);
     return AnimatedBuilder(
       animation: _controller.view,
       builder: _buildChildren,
-      child: closed
-          ? null
-          : Container(
-              padding: widget.childrenPadding,
-              color: widget.childrenBackgroudColor,
-              child: Column(children: widget.children),
-            ),
+      child: child,
     );
   }
 }

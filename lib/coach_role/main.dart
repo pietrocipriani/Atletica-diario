@@ -1,8 +1,10 @@
 import 'package:Atletica/athlete/athletes_route.dart';
 import 'package:Atletica/date.dart';
+import 'package:Atletica/global_widgets/splash_screen.dart';
 import 'package:Atletica/home/home_page.dart';
 import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
+import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/plan/widgets/plans_route.dart';
 import 'package:Atletica/schedule/schedule_dialogs/scheduled_training_dialog.dart';
 import 'package:Atletica/training/widgets/training_route.dart';
@@ -25,7 +27,22 @@ class _CoachMainPageState extends State<CoachMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Atletica - Allenatore')),
+      appBar: AppBar(
+        title: Text('Atletica - Allenatore'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.swap_vert),
+            onPressed: () async {
+              await userC.userReference.updateData({'role': 'athlete'});
+              user = userC.user;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SplashScreen()),
+              );
+            },
+          )
+        ],
+      ),
       body: HomePageWidget(onSelectedDayChanged: (day) {
         selectedDay = day;
         WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));

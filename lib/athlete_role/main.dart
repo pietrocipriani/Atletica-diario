@@ -1,4 +1,7 @@
 import 'package:Atletica/athlete_role/request_coach.dart';
+import 'package:Atletica/global_widgets/splash_screen.dart';
+import 'package:Atletica/persistence/firestore.dart';
+import 'package:Atletica/results/pbs_page_route.dart';
 import 'package:Atletica/results/result.dart';
 import 'package:Atletica/date.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
@@ -71,8 +74,20 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
           );
         },
       ),
-      children:
-          TrainingDescription.fromTraining(context, a, result, greyed).toList(),
+      children: [
+        Text(
+          a.descrizione,
+          style: Theme.of(context)
+              .textTheme
+              .overline
+              .copyWith(fontWeight: FontWeight.normal),
+          textAlign: TextAlign.justify,
+        ),
+        const SizedBox(height: 10),
+      ]
+          .followedBy(
+              TrainingDescription.fromTraining(context, a, result, greyed))
+          .toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
     );
   }
@@ -210,7 +225,31 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
 
       return Scaffold(
         appBar: orientation == Orientation.portrait
-            ? AppBar(title: Text('Atletica - Atleta'))
+            ? AppBar(
+                title: Text('Atletica - Atleta'),
+                actions: [
+                  IconButton(
+                    icon: Icon(Mdi.podium),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PbsPageRoute()),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.swap_vert),
+                    onPressed: () async {
+                      await userA.userReference.updateData({'role': 'coach'});
+                      user = userA.user;
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => SplashScreen()),
+                      );
+                    },
+                  ),
+                ],
+              )
             : null,
         body: body,
       );
