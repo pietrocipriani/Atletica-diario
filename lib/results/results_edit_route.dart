@@ -37,9 +37,11 @@ class ResultsEditRoute extends StatelessWidget {
                   bool ok = true;
                   if (snapshot.data?.data != null) {
                     ok = results.update(
-                        a,
-                        snapshot.data['results'].cast<String>(),
-                        snapshot.data['fatigue']);
+                      a,
+                      snapshot.data['results'].cast<String>(),
+                      snapshot.data['fatigue'],
+                      snapshot.data['info'],
+                    );
                   }
 
                   if (!ok) return Container();
@@ -79,6 +81,7 @@ class ResultsEditRoute extends StatelessWidget {
                       ),
                       childrenBackgroudColor: Theme.of(context).primaryColor,
                       childrenPadding: const EdgeInsets.all(8),
+                      hiddenSubtitle: res.info,
                       children: res.asIterable
                           .map((e) => CustomListTile(
                                 title: Text(e.key.name,

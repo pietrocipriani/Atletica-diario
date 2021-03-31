@@ -1,6 +1,8 @@
 import 'package:Atletica/persistence/auth.dart';
 import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:Atletica/plan/tabella.dart';
+import 'package:Atletica/training/allenamento.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const String COACH_ROLE = 'coach', ATHLETE_ROLE = 'athlete';
@@ -11,6 +13,8 @@ DocumentReference userFromUid(final String uid) =>
     firestore.collection('users').document(uid);
 
 Future<void> initFirestore([final String runas]) async {
+  trainingsReset();
+  plans.clear();
   //firestore.settings(persistenceEnabled: true);
   final DocumentReference userDoc = userFromUid(runas ?? rawUser.uid);
   DocumentSnapshot snapshot;

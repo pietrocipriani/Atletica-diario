@@ -2,9 +2,11 @@ import 'package:Atletica/athlete/atleta.dart';
 import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:Atletica/global_widgets/custom_list_tile.dart';
 import 'package:Atletica/results/result.dart';
+import 'package:Atletica/results/results_edit_dialog.dart';
 import 'package:Atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mdi/mdi.dart';
 
 MapEntry<String, double> parseRawResult(String rawResult) {
   if (rawResult == null) return null;
@@ -29,6 +31,15 @@ class ResultWidget extends StatelessWidget {
         subtitle: Text(
           DateFormat.yMMMMd('it').format(res.date.dateTime),
           style: TextStyle(color: Theme.of(context).primaryColorDark),
+        ),
+        hiddenSubtitle: res.info,
+        leading: Icon(
+          res.fatigue == null ? Mdi.emoticonNeutralOutline : icons[res.fatigue],
+          size: 42,
+          color: res.fatigue == null
+              ? Colors.grey[300]
+              : Color.lerp(
+                  Colors.green, Colors.red, res.fatigue / icons.length),
         ),
         childrenBackgroudColor: Theme.of(context).primaryColor,
         childrenPadding: const EdgeInsets.all(8),

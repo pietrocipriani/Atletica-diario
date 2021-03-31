@@ -38,14 +38,19 @@ class AthleteHelper extends FirebaseUserHelper {
     if (reference == _athleteCoachReference) return;
     _requestSubscription?.cancel();
     _athleteCoachReference = reference;
-    _requestSubscription = reference?.snapshots()?.skip(justRequested ? 1 : 0)?.listen((snap) {
-      if (snap.data == null)
-        userReference.updateData({'coach': null});
-      else {
-        accepted = snap['nickname'] != null && snap['group'] != null;
-        coachCallAll();
-      }
-    });
+    DocumentSnapshot last;
+    _requestSubscription = reference?.snapshots()?.timeout(
+      const Duration(milliseconds: 10),
+      onTimeout: (sink) {
+        if (last == null) return;
+        if (last.data == null)
+          userReference.updateData({'coach': null});
+        else {
+          accepted = last['nickname'] != null && last['group'] != null;
+          coachCallAll();
+        }
+      },
+    )?.listen((snap) => last = snap);
     justRequested = false;
   }
 
@@ -117,7 +122,7 @@ class AthleteHelper extends FirebaseUserHelper {
 
   void _init() {
     userReference.snapshots().listen((snap) async {
-      print ('received update: ${snap.data}');
+      print('received update: ${snap.data}');
       athleteCoachReference = snap['coach'] == null
           ? null
           : firestore
@@ -145,7 +150,9 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   Future<bool> requestCoach(
-      {@required String uid, @required String nickname}) async {
+      // TODO: check if coach has `role`: 'coach'
+      {@required String uid,
+      @required String nickname}) async {
     if (uid == null || uid == userReference.documentID) return false;
     final DocumentReference request = firestore
         .collection('users')
@@ -156,11 +163,11 @@ class AthleteHelper extends FirebaseUserHelper {
     final WriteBatch batch = firestore.batch();
 
     if (athleteCoachReference != null) batch.delete(athleteCoachReference);
-    batch.setData(request, {'nickname': nickname}, merge: true);
     batch.updateData(userReference, {'coach': uid});
+    batch.setData(request, {'nickname': nickname}, merge: true);
     justRequested = true;
     await batch.commit();
-    
+
     return true;
   }
 
@@ -174,6 +181,7 @@ class AthleteHelper extends FirebaseUserHelper {
       'results':
           results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
       'fatigue': results.fatigue,
+      'info': results.info,
     }, merge: true);
   }
 

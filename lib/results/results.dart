@@ -25,11 +25,12 @@ class Results {
       results[ref] = Result.empty(training, date);
   }
 
-  bool update(DocumentReference athlete, List<String> results, [final int fatigue]) {
+  bool update(DocumentReference athlete, List<String> results, [final int fatigue, final String info]) {
     final Result updated = Result.empty(training, date);
 
     if (results.length != training.ripetute.length) return false;
     updated.fatigue = fatigue;
+    updated.info = info;
     int count = 0;
     for (SimpleRipetuta rip in updated.ripetute) {
       final MapEntry e = parseRawResult(results[count++]);

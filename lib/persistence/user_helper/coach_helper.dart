@@ -126,6 +126,7 @@ class CoachHelper extends FirebaseUserHelper {
       'results':
           results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
       'fatigue': results.fatigue,
+      'info': results.info,
     }, merge: true);
   }
 
