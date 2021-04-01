@@ -1,9 +1,8 @@
-
 class Recupero {
-  static final int DEFAULT_TIME = 3*60;
+  static const int DEFAULT_TIME = 3 * 60;
   dynamic _recupero;
 
-  Recupero([this._recupero = 3*60])
+  Recupero([this._recupero = 3 * 60])
       : assert(_recupero is String || (_recupero is int && _recupero >= 0));
   dynamic get recupero => _recupero;
   set recupero(final dynamic recupero) {
@@ -16,8 +15,10 @@ class Recupero {
   }
 
   void switchType([final String defaultLength = '']) {
-    if (recupero is int) recupero = defaultLength;
-    else recupero = DEFAULT_TIME;
+    if (recupero is int)
+      recupero = defaultLength;
+    else
+      recupero = DEFAULT_TIME;
   }
 
   @override

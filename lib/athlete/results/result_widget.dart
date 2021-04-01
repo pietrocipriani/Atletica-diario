@@ -41,7 +41,7 @@ class ResultWidget extends StatelessWidget {
               : Color.lerp(
                   Colors.green, Colors.red, res.fatigue / icons.length),
         ),
-        childrenBackgroudColor: Theme.of(context).primaryColor,
+        childrenBackgroundColor: Theme.of(context).primaryColor,
         childrenPadding: const EdgeInsets.all(8),
         children: res.asIterable
             .map((e) => CustomListTile(

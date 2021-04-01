@@ -41,10 +41,15 @@ class Result {
     assert(training is ScheduledTraining || training is Allenamento);
     final Allenamento a =
         training is ScheduledTraining ? training.work : training;
+    if (a == null) return false;
     return listEquals(
       results.keys.map((sr) => sr.name).toList(),
       a.ripetute.map((rip) => rip.template).toList(),
     );
+  }
+
+  double resultAt(int index) {
+    return results.values.elementAt(index);
   }
 
   bool equals(Result result) {

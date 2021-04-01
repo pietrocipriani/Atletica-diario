@@ -12,7 +12,7 @@ class CustomExpansionTile extends StatefulWidget {
     this.subtitle,
     this.hiddenSubtitle,
     this.backgroundColor,
-    this.childrenBackgroudColor,
+    this.childrenBackgroundColor,
     this.onExpansionChanged,
     this.children = const <Widget>[],
     this.trailing,
@@ -30,7 +30,7 @@ class CustomExpansionTile extends StatefulWidget {
   final String hiddenSubtitle;
   final ValueChanged<bool> onExpansionChanged;
   final List<Widget> children;
-  final Color backgroundColor, childrenBackgroudColor;
+  final Color backgroundColor, childrenBackgroundColor;
   final Widget trailing;
   final bool initiallyExpanded;
   final EdgeInsets childrenPadding;
@@ -108,6 +108,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
           ),
           leading: widget.leading,
           onTap: _handleTap,
+          tileColor: widget.backgroundColor,
           subtitle: widget.subtitle,
           trailing: widget.trailing ??
               RotationTransition(
@@ -146,8 +147,11 @@ class _ExpansionTileState extends State<CustomExpansionTile>
         ? null
         : Container(
             padding: widget.childrenPadding,
-            color: widget.childrenBackgroudColor,
-            child: Column(children: widget.children),
+            color: widget.childrenBackgroundColor,
+            child: Column(
+              children: widget.children,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+            ),
           );
     if (!closed &&
         widget.hiddenSubtitle != null &&

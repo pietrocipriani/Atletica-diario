@@ -79,7 +79,7 @@ class ResultsEditRoute extends StatelessWidget {
                         info: '$count/${results.ripetuteCount}',
                         bottom: singularPlural('risultat', 'o', 'i', count),
                       ),
-                      childrenBackgroudColor: Theme.of(context).primaryColor,
+                      childrenBackgroundColor: Theme.of(context).primaryColor,
                       childrenPadding: const EdgeInsets.all(8),
                       hiddenSubtitle: res.info,
                       children: res.asIterable

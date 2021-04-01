@@ -15,7 +15,6 @@ final Map<DocumentReference, Tabella> plans = <DocumentReference, Tabella>{};
 
 List<String> itMonths = dateTimeSymbolMap()['it'].MONTHS;
 
-// TODO: add athletes selection
 class Tabella {
   final DocumentReference reference;
   String name;
