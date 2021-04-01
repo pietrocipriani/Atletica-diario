@@ -187,13 +187,10 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
   bool editTitle = false;
   bool collapsedDescription = true;
   TextEditingController _titleController;
-  TextEditingController _descriptionController;
 
   @override
   void initState() {
     _titleController = TextEditingController(text: widget.allenamento.name);
-    _descriptionController =
-        TextEditingController(text: widget.allenamento.descrizione);
     super.initState();
   }
 

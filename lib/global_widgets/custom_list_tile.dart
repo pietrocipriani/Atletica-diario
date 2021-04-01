@@ -29,10 +29,12 @@ class CustomListTile extends StatelessWidget {
         color: tileColor ?? Colors.transparent,
         child: ListTile(
           leading: leading,
-          title: DefaultTextStyle(
-            child: title,
-            style: Theme.of(context).textTheme.bodyText1,
-          ),
+          title: title == null
+              ? Container()
+              : DefaultTextStyle(
+                  child: title,
+                  style: Theme.of(context).textTheme.bodyText1,
+                ),
           subtitle: subtitle == null
               ? null
               : DefaultTextStyle(

@@ -4,7 +4,6 @@ import 'package:Atletica/global_widgets/splash_screen.dart';
 import 'package:Atletica/home/home_page.dart';
 import 'package:Atletica/main.dart';
 import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/firestore.dart';
 import 'package:Atletica/plan/widgets/plans_route.dart';
 import 'package:Atletica/schedule/schedule_dialogs/scheduled_training_dialog.dart';
 import 'package:Atletica/training/widgets/training_route.dart';
