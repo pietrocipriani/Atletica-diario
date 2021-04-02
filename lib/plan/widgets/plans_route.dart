@@ -1,7 +1,7 @@
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/plan/tabella.dart';
-import 'package:Atletica/plan/widgets/plan_widget.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/plan/widgets/plan_widget.dart';
 import 'package:flutter/material.dart';
 
 class PlansRoute extends StatefulWidget {

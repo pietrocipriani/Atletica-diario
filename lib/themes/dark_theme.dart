@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-final Brightness _brightness = Brightness.light;
+final Brightness _brightness = Brightness.dark;
 final MaterialColor _primarySwatch = Colors.amber;
-final Color _disabledColor = Colors.grey[300];
+final Color _disabledColor = Colors.grey[700];
 
 final TextTheme _textTheme = TextTheme(
   overline: TextStyle(
     fontWeight: FontWeight.bold,
-    color: Colors.black,
+    color: Colors.white,
     fontSize: 10,
   ),
 );
@@ -41,11 +41,16 @@ final ElevatedButtonThemeData _elevatedButtonTheme = ElevatedButtonThemeData(
   ),
 );
 
-final IconThemeData _iconTheme = IconThemeData(color: Colors.black, opacity: 1);
+final IconThemeData _iconTheme = IconThemeData(color: Colors.white, opacity: 1);
 
-ThemeData lightTheme = ThemeData(
+ThemeData darkTheme = ThemeData(
   brightness: _brightness,
   primarySwatch: _primarySwatch,
+  primaryColor: _primarySwatch,
+  primaryColorDark: _primarySwatch[700],
+  primaryColorLight: _primarySwatch.withOpacity(0.2),
+  accentColor: _primarySwatch[500],
+  toggleableActiveColor: _primarySwatch[600],
   disabledColor: _disabledColor,
   dialogTheme: _dialogTheme,
   iconTheme: _iconTheme,

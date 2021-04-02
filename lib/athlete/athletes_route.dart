@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:Atletica/athlete/athlete_widget.dart';
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/athlete/athlete_widget.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -78,6 +78,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
         ),
       );
 
+  // FIXME: unmounted error
   Widget _requestWidget(Athlete request) {
     final Widget title = Text(request.name, style: _subtitle1Bold);
 
@@ -112,10 +113,6 @@ class _AthletesRouteState extends State<AthletesRoute> {
       Icons.new_releases,
       color: Theme.of(context).primaryColorDark,
     );
-    _subtitle1Bold ??= Theme.of(context)
-        .textTheme
-        .subtitle1
-        .copyWith(fontWeight: FontWeight.bold);
     _overlineBoldPrimaryDark ??= Theme.of(context).textTheme.overline.copyWith(
         fontWeight: FontWeight.bold, color: Theme.of(context).primaryColorDark);
 
@@ -132,7 +129,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
             onPressed: () => setState(() => _showUidInfo = !_showUidInfo),
             color: _showUidInfo
                 ? Theme.of(context).primaryColorDark
-                : Colors.black,
+                : null,
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -162,7 +159,6 @@ class _AthletesRouteState extends State<AthletesRoute> {
         userC.athletes.map(
           (atleta) => AthleteWidget(
             atleta: atleta,
-            subtitle1Bold: _subtitle1Bold,
             overlineBoldPrimaryDark: _overlineBoldPrimaryDark,
             onModified: () => setState(() {}),
           ),

@@ -1,12 +1,12 @@
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/global_widgets/leading_info_widget.dart';
-import 'package:Atletica/main.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/results/pbs/pb.dart';
-import 'package:Atletica/results/pbs/simple_result_widget.dart';
-import 'package:Atletica/results/pbs/tag.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:atletica/global_widgets/leading_info_widget.dart';
+import 'package:atletica/main.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/results/pbs/pb.dart';
+import 'package:atletica/results/pbs/simple_result_widget.dart';
+import 'package:atletica/results/pbs/tag.dart';
+import 'package:atletica/results/result.dart';
+import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 
 final Map<TagsEvaluator, String> filters =
@@ -49,8 +49,9 @@ class PbsWidget extends StatefulWidget {
 class _PbsPageRouteState extends State<PbsWidget> {
   @override
   Widget build(BuildContext context) {
-    final Color fg = Theme.of(context).scaffoldBackgroundColor;
-    final Color bg = Theme.of(context).primaryColor;
+    final ThemeData theme = Theme.of(context);
+    final Color fg = theme.scaffoldBackgroundColor;
+    final Color bg = theme.primaryColor;
     return ListView(
       children: widget._sorted
           .map(
@@ -61,6 +62,7 @@ class _PbsPageRouteState extends State<PbsWidget> {
                   .map((r) => SimpleResultWidget(
                         r: r,
                         bg: fg,
+                        defaultColor: theme.primaryColorDark,
                         onTap: (tag, evaluator) =>
                             setState(() => filters[evaluator] = tag),
                       ))

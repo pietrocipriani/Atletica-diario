@@ -1,5 +1,5 @@
-import 'package:Atletica/recupero/recupero.dart';
-import 'package:Atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/recupero/recupero.dart';
+import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:flutter/material.dart';
 
 class Serie {

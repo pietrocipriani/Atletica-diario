@@ -1,12 +1,13 @@
-import 'package:Atletica/athlete/athletes_route.dart';
-import 'package:Atletica/date.dart';
-import 'package:Atletica/global_widgets/splash_screen.dart';
-import 'package:Atletica/home/home_page.dart';
-import 'package:Atletica/main.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/plan/widgets/plans_route.dart';
-import 'package:Atletica/schedule/schedule_dialogs/scheduled_training_dialog.dart';
-import 'package:Atletica/training/widgets/training_route.dart';
+import 'package:atletica/athlete/athletes_route.dart';
+import 'package:atletica/date.dart';
+import 'package:atletica/global_widgets/logout_button.dart';
+import 'package:atletica/global_widgets/swap_button.dart';
+import 'package:atletica/home/home_page.dart';
+import 'package:atletica/main.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/plan/widgets/plans_route.dart';
+import 'package:atletica/schedule/schedule_dialogs/scheduled_training_dialog.dart';
+import 'package:atletica/training/widgets/training_route.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
@@ -28,19 +29,7 @@ class _CoachMainPageState extends State<CoachMainPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Atletica - Allenatore'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.swap_vert),
-            onPressed: () async {
-              await userC.userReference.updateData({'role': 'athlete'});
-              user = userC.user;
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => SplashScreen()),
-              );
-            },
-          )
-        ],
+        actions: [LogoutButton(context: context), SwapButton(context: context)],
       ),
       body: HomePageWidget(onSelectedDayChanged: (day) {
         selectedDay = day;

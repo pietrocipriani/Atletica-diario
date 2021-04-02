@@ -1,13 +1,13 @@
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
-import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/global_widgets/leading_info_widget.dart';
-import 'package:Atletica/main.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/training/training_description.dart';
+import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:atletica/global_widgets/leading_info_widget.dart';
+import 'package:atletica/main.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 
 /// [Route] which displays the list of existing [Allenamento] (coach)

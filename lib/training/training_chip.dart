@@ -1,4 +1,4 @@
-import 'package:Atletica/training/allenamento.dart';
+import 'package:atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
 
 /// return a [Chip] relative to a given [Allenamento]
@@ -24,22 +24,24 @@ class TrainingChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Material(
       color: Colors.transparent,
       child: Chip(
         elevation: elevation,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        backgroundColor: theme.dialogBackgroundColor,
         shape: StadiumBorder(
           side: BorderSide(
-            color: enabled ? Theme.of(context).primaryColor : Colors.grey[300],
+            color: enabled ? theme.primaryColor : theme.disabledColor,
           ),
         ),
         label: Text(
           training.name,
-          style: Theme.of(context).textTheme.overline.copyWith(
-              color: enabled ? null : Colors.grey[300],
-              fontWeight: FontWeight.bold),
+          style: theme.textTheme.overline.copyWith(
+            color: enabled ? null : theme.disabledColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         onDeleted: onDelete,
       ),

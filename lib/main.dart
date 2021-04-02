@@ -1,8 +1,9 @@
-import 'package:Atletica/global_widgets/mode_selector_route.dart';
-import 'package:Atletica/global_widgets/splash_screen.dart';
-import 'package:Atletica/home/home_page.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/themes/light_theme.dart';
+import 'package:atletica/global_widgets/mode_selector_route.dart';
+import 'package:atletica/global_widgets/splash_screen.dart';
+import 'package:atletica/home/home_page.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/themes/dark_theme.dart';
+import 'package:atletica/themes/light_theme.dart';
 //import 'package:firebase_core/firebase_core.dart';
 //import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Atletica',
       theme: lightTheme, // TODO: add dark Theme
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
       home: SplashScreen(),
       supportedLocales: [Locale('it')],
       localizationsDelegates: [

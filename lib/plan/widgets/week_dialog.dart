@@ -1,8 +1,8 @@
-import 'package:Atletica/plan/week.dart';
-import 'package:Atletica/plan/widgets/draggable_days_week_widget.dart';
-import 'package:Atletica/plan/widgets/trainings_wrapper.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/training/training_chip.dart';
+import 'package:atletica/plan/week.dart';
+import 'package:atletica/plan/widgets/draggable_days_week_widget.dart';
+import 'package:atletica/plan/widgets/trainings_wrapper.dart';
+import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training_chip.dart';
 import 'package:flutter/material.dart';
 
 class WeekDialog extends StatelessWidget {
@@ -17,7 +17,7 @@ class WeekDialog extends StatelessWidget {
           Container(
             width: double.infinity,
             height: 1,
-            color: Colors.grey[300],
+            color: Theme.of(context).disabledColor,
             margin: const EdgeInsets.all(8),
           ),
           TrainingsWrapper(

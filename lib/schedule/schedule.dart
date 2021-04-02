@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/date.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/plan/tabella.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/group.dart';
+import 'package:atletica/date.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/plan/tabella.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

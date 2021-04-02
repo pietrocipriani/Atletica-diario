@@ -1,8 +1,8 @@
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/plan/tabella.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/user_helper/athlete_helper.dart';
+import 'package:atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/training/allenamento.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const String COACH_ROLE = 'coach', ATHLETE_ROLE = 'athlete';

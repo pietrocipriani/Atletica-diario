@@ -1,6 +1,6 @@
-import 'package:Atletica/plan/week.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/training/training_chip.dart';
+import 'package:atletica/plan/week.dart';
+import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training_chip.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +28,7 @@ class _DraggableDaysWeekWidgetState extends State<DraggableDaysWeekWidget> {
                 padding: const EdgeInsets.all(0),
                 color: over
                     ? Theme.of(context).primaryColorDark
-                    : Colors.grey[300],
+                    : Theme.of(context).disabledColor,
                 radius: Radius.circular(20),
                 dashPattern: [6, 4],
                 child: Container(

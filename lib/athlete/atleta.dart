@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:Atletica/athlete/athlete_dialog.dart';
-import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/persistence/auth.dart' as auth;
-import 'package:Atletica/persistence/firestore.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/results/simple_training.dart';
+import 'package:atletica/athlete/athlete_dialog.dart';
+import 'package:atletica/athlete/group.dart';
+import 'package:atletica/persistence/auth.dart' as auth;
+import 'package:atletica/persistence/firestore.dart';
+import 'package:atletica/results/result.dart';
+import 'package:atletica/results/simple_training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

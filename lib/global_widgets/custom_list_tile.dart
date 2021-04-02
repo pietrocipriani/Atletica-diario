@@ -33,7 +33,7 @@ class CustomListTile extends StatelessWidget {
               ? Container()
               : DefaultTextStyle(
                   child: title,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
           subtitle: subtitle == null
               ? null

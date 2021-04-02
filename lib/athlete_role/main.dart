@@ -1,15 +1,17 @@
-import 'package:Atletica/athlete_role/request_coach.dart';
-import 'package:Atletica/global_widgets/splash_screen.dart';
-import 'package:Atletica/results/pbs/pbs_page_route.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/date.dart';
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
-import 'package:Atletica/results/results_edit_dialog.dart';
-import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/training/training_description.dart';
+import 'package:atletica/athlete_role/request_coach.dart';
+import 'package:atletica/global_widgets/custom_calendar.dart';
+import 'package:atletica/global_widgets/logout_button.dart';
+import 'package:atletica/global_widgets/swap_button.dart';
+import 'package:atletica/results/pbs/pbs_page_route.dart';
+import 'package:atletica/results/result.dart';
+import 'package:atletica/date.dart';
+import 'package:atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/user_helper/athlete_helper.dart';
+import 'package:atletica/results/results_edit_dialog.dart';
+import 'package:atletica/schedule/schedule.dart';
+import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -45,10 +47,9 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
     if (a == null) return Container();
     print('no container!');
     final bool greyed = s != compatible && compatible != null;
-
     return CustomExpansionTile(
       title: a.name,
-      titleColor: !greyed ? Colors.black : Colors.grey[300],
+      titleColor: !greyed ? null : Theme.of(context).disabledColor,
       trailing: IconButton(
         icon: Icon(Mdi.poll),
         onPressed: Date.now() >= s.date && !greyed
@@ -58,8 +59,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
                   (r) => userA.saveResult(results: r),
                 )
             : null,
-        color: Colors.black,
-        disabledColor: Colors.grey[300],
+        color: IconTheme.of(context).color,
       ),
       leading: Radio<ScheduledTraining>(
         value: s,
@@ -74,14 +74,15 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         },
       ),
       children: [
-        Text(
-          a.descrizione,
-          style: Theme.of(context)
-              .textTheme
-              .overline
-              .copyWith(fontWeight: FontWeight.normal),
-          textAlign: TextAlign.justify,
-        ),
+        if (a.descrizione != null)
+          Text(
+            a.descrizione,
+            style: Theme.of(context)
+                .textTheme
+                .overline
+                .copyWith(fontWeight: FontWeight.normal),
+            textAlign: TextAlign.justify,
+          ),
         const SizedBox(height: 10),
       ]
           .followedBy(
@@ -95,7 +96,6 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
     if (result?.training == null) return Container();
     return CustomExpansionTile(
       title: '${result.training} (prev)',
-      titleColor: Colors.black,
       trailing: IconButton(
         icon: Icon(Mdi.poll),
         onPressed: Date.now() >= result.date
@@ -105,8 +105,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
                   (r) => userA.saveResult(results: r),
                 )
             : null,
-        color: Colors.black,
-        disabledColor: Colors.grey[300],
+        color: IconTheme.of(context).color,
       ),
       leading: Radio<ScheduledTraining>(
         value: null,
@@ -145,6 +144,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
           MaterialPageRoute(builder: (context) => RequestCoachRoute()),
         ),
       );
+    final ThemeData theme = Theme.of(context);
     final ScheduledTraining compatibleST = _compatibleST;
     final Result result = controller.selectedDay == null
         ? null
@@ -162,32 +162,8 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
               ?.map((st) => _trainingWidget(st, compatibleST)))
           .toList();
 
-    final TableCalendar calendar = TableCalendar(
-      calendarController: controller,
-      availableCalendarFormats: {
-        CalendarFormat.month: 'mese',
-        CalendarFormat.week: 'settimana'
-      },
-      calendarStyle: CalendarStyle(
-        selectedColor: Theme.of(context).primaryColor,
-        todayColor: Theme.of(context).primaryColorLight,
-        markersColor: Theme.of(context).primaryColorDark,
-        todayStyle: const TextStyle(color: Colors.black),
-        outsideStyle: TextStyle(color: Colors.grey[300]),
-        outsideWeekendStyle: TextStyle(color: Colors.red[100]),
-      ),
-      locale: 'it',
-      startingDayOfWeek: StartingDayOfWeek.monday,
-      weekendDays: [DateTime.sunday],
-      headerStyle: HeaderStyle(
-        formatButtonShowsNext: false,
-        formatButtonVisible: false,
-        centerHeaderTitle: true,
-      ),
-      daysOfWeekStyle: DaysOfWeekStyle(
-        weekdayStyle: Theme.of(context).textTheme.overline,
-        weekendStyle: Theme.of(context).textTheme.overline,
-      ),
+    final CustomCalendar calendar = CustomCalendar(
+      controller: controller,
       events: userA.events,
       onDaySelected: (d, evts, holidays) => setState(() {}),
     );
@@ -199,7 +175,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                 height: 1,
-                color: Colors.grey[300],
+                color: theme.disabledColor,
               ),
               Expanded(child: ListView(children: children)),
             ])
@@ -211,7 +187,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
                   margin:
                       const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
                   width: 1,
-                  color: Colors.grey[300],
+                  color: theme.disabledColor,
                 ),
                 Expanded(
                   child: ListView(
@@ -236,17 +212,8 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
                       );
                     },
                   ),
-                  IconButton(
-                    icon: Icon(Icons.swap_vert),
-                    onPressed: () async {
-                      await userA.userReference.updateData({'role': 'coach'});
-                      user = userA.user;
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => SplashScreen()),
-                      );
-                    },
-                  ),
+                  LogoutButton(context: context),
+                  SwapButton(context: context),
                 ],
               )
             : null,

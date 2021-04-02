@@ -35,7 +35,7 @@ class CustomDismissible extends StatelessWidget {
         child: Icon(firstBackgroundIcon ?? Icons.delete),
       ),
       secondaryBackground: Container(
-        color: secondBackgroundColor ?? Colors.lightGreen[200],
+        color: secondBackgroundColor ?? Colors.lightGreen.withOpacity(0.3),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
         child: Icon(secondBackgroundIcon ?? Icons.edit),

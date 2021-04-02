@@ -1,21 +1,20 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/results/results_route.dart';
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
-import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/global_widgets/leading_info_widget.dart';
-import 'package:Atletica/main.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/results/results_route.dart';
+import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:atletica/global_widgets/leading_info_widget.dart';
+import 'package:atletica/main.dart';
 import 'package:flutter/material.dart';
 
 class AthleteWidget extends StatelessWidget {
   final Athlete atleta;
-  final TextStyle subtitle1Bold, overlineBoldPrimaryDark;
+  final TextStyle overlineBoldPrimaryDark;
   final void Function() onModified;
 
   AthleteWidget({
     Key key,
     @required this.atleta,
-    @required this.subtitle1Bold,
     @required this.overlineBoldPrimaryDark,
     this.onModified,
   }) : super(key: key);
@@ -31,7 +30,7 @@ class AthleteWidget extends StatelessWidget {
           builder: (context) => ResultsRouteList(atleta),
         ),
       ),
-      title: Text(atleta.name, style: subtitle1Bold),
+      title: Text(atleta.name),
       subtitle: Text(atleta.group, style: overlineBoldPrimaryDark),
       trailing: LeadingInfoWidget(
         info: '${atleta.trainingsCount}',

@@ -1,11 +1,12 @@
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
-import 'package:Atletica/results/results.dart';
-import 'package:Atletica/results/results_edit_route.dart';
-import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/training/training_description.dart';
+import 'package:atletica/global_widgets/custom_calendar.dart';
+import 'package:atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/results/results.dart';
+import 'package:atletica/results/results_edit_route.dart';
+import 'package:atletica/schedule/schedule.dart';
+import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -67,7 +68,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                 Results(training: a, date: s.date, athletes: s.athletes),
               ),
             )),
-        color: Colors.black,
+        color: IconTheme.of(context).color,
       ),
       children: TrainingDescription.fromTraining(context, a).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
@@ -81,34 +82,11 @@ class _HomePageWidgetState extends State<HomePageWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Column(
       children: [
-        TableCalendar(
-          calendarController: _calendarController,
-          availableCalendarFormats: {
-            CalendarFormat.month: 'mese',
-            CalendarFormat.week: 'settimana'
-          },
-          locale: 'it',
-          headerStyle: HeaderStyle(
-            centerHeaderTitle: true,
-            formatButtonVisible: false,
-          ),
-          calendarStyle: CalendarStyle(
-            selectedColor: Theme.of(context).primaryColor,
-            todayColor: Theme.of(context).primaryColorLight,
-            markersColor: Theme.of(context).primaryColorDark,
-            todayStyle: const TextStyle(color: Colors.black),
-            outsideStyle: TextStyle(color: Colors.grey[300]),
-            outsideWeekendStyle: TextStyle(color: Colors.red[100]),
-          ),
-          simpleSwipeConfig: const SimpleSwipeConfig(verticalThreshold: 15),
-          startingDayOfWeek: StartingDayOfWeek.monday,
-          daysOfWeekStyle: DaysOfWeekStyle(
-            weekdayStyle: Theme.of(context).textTheme.overline,
-            weekendStyle: Theme.of(context).textTheme.overline,
-          ),
-          weekendDays: [DateTime.sunday],
+        CustomCalendar(
+          controller: _calendarController,
           onDaySelected: (day, events, holidays) =>
               widget.onSelectedDayChanged?.call(day),
           onCalendarCreated: (first, last, format) => widget
@@ -119,7 +97,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
           height: 1,
-          color: Colors.grey[300],
+          color: theme.disabledColor,
         ),
         Expanded(
           child: ListView(

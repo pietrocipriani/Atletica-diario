@@ -1,5 +1,5 @@
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/schedule/schedule.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 void _remove(final DocumentReference ref) {
