@@ -1,8 +1,8 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/date.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/plan/tabella.dart';
-import 'package:Atletica/schedule/athletes_picker.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/date.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/schedule/athletes_picker.dart';
 import 'package:flutter/material.dart';
 
 class PlanDialog extends StatefulWidget {

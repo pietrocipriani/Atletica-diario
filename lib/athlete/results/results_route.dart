@@ -1,6 +1,6 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/results/result_widget.dart';
-import 'package:Atletica/results/pbs/pbs_page_route.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/results/result_widget.dart';
+import 'package:atletica/results/pbs/pbs_page_route.dart';
 import 'package:flutter/material.dart';
 
 class ResultsRouteList extends StatefulWidget {

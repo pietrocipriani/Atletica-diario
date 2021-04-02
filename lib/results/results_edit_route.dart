@@ -1,14 +1,14 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
-import 'package:Atletica/global_widgets/leading_info_widget.dart';
-import 'package:Atletica/main.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/results/results.dart';
-import 'package:Atletica/results/results_edit_dialog.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/global_widgets/leading_info_widget.dart';
+import 'package:atletica/main.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/results/result.dart';
+import 'package:atletica/results/results.dart';
+import 'package:atletica/results/results_edit_dialog.dart';
+import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 

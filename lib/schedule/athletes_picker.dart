@@ -1,5 +1,5 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/group.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/group.dart';
 import 'package:flutter/material.dart';
 
 class AthletesPicker extends StatelessWidget {

@@ -1,9 +1,9 @@
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/plan/tabella.dart';
-import 'package:Atletica/plan/week.dart';
-import 'package:Atletica/plan/widgets/week_widget.dart';
+import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/plan/week.dart';
+import 'package:atletica/plan/widgets/week_widget.dart';
 import 'package:flutter/material.dart';
 
 class PlanWidget extends StatefulWidget {
@@ -37,7 +37,7 @@ class _PlanWidgetState extends State<PlanWidget> {
                   style: TextStyle(color: Theme.of(context).primaryColorDark),
                 ),
           trailing: IconButton(
-            icon: Icon(Icons.add_circle, color: Colors.black),
+            icon: Icon(Icons.add_circle),
             onPressed: () async {
               final Week week = await Week.fromDialog(context);
               if (week != null) {
@@ -45,6 +45,7 @@ class _PlanWidgetState extends State<PlanWidget> {
                 widget.plan.update();
               }
             },
+            color: IconTheme.of(context).color,
           ),
           leading: Column(
             mainAxisAlignment: MainAxisAlignment.center,

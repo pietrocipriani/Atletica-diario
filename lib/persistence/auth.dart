@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:Atletica/persistence/firestore.dart';
-import 'package:Atletica/persistence/user_helper/athlete_helper.dart';
-import 'package:Atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/persistence/firestore.dart';
+import 'package:atletica/persistence/user_helper/athlete_helper.dart';
+import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +59,6 @@ class Request extends BasicUser {
       : super(uid: uid, name: name);
 }
 
-// FIXME: sometimes returns null... no error printed
 Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
@@ -124,12 +123,16 @@ Future requestLoginDialog({@required BuildContext context}) {
             style: TextStyle(color: Colors.red),
           ),
         ),
-        FlatButton.icon(
+        TextButton.icon(
           onPressed: () {
             Navigator.pop(ctx);
             login(context: context);
           },
-          shape: StadiumBorder(side: BorderSide(color: Colors.grey[300])),
+          style: ButtonStyle(
+            shape: MaterialStateProperty.all(StadiumBorder(
+              side: BorderSide(color: Theme.of(context).disabledColor),
+            )),
+          ),
           icon: CircleAvatar(
             radius: 12,
             backgroundColor: Colors.transparent,

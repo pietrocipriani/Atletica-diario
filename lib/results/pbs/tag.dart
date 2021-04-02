@@ -1,6 +1,5 @@
-// TODO: what if sr.training matches another fixed tag? about filters
-import 'package:Atletica/results/pbs/pb.dart';
-import 'package:Atletica/results/pbs/pbs_page_route.dart';
+import 'package:atletica/results/pbs/pb.dart';
+import 'package:atletica/results/pbs/pbs_page_route.dart';
 import 'package:flutter/material.dart';
 
 final List<TagsEvaluator> tags = [
@@ -33,18 +32,21 @@ class TagsEvaluator {
 class Tags extends StatelessWidget {
   final void Function(String tag, TagsEvaluator evaluator) onTap;
   final SimpleResult simpleResult;
-  Tags(this.simpleResult, {this.onTap});
+  final Color defaultColor;
+  Tags(this.simpleResult, this.defaultColor, {this.onTap});
 
   @override
   Widget build(BuildContext context) => Wrap(
       crossAxisAlignment: WrapCrossAlignment.end,
       children: tags
           .map((tag) {
-            String value = tag.evaluate(simpleResult);
+            final String value = tag.evaluate(simpleResult);
+            if (value == null) return null;
             return _Tag(
               value,
               tag,
               filters.values.contains(value),
+              defaultColor,
               onTap: onTap,
             );
           })
@@ -57,7 +59,14 @@ class _Tag extends StatelessWidget {
   final bool selected;
   final String value;
   final TagsEvaluator evaluator;
-  _Tag(this.value, this.evaluator, this.selected, {this.onTap});
+  final Color defaultColor;
+  _Tag(
+    this.value,
+    this.evaluator,
+    this.selected,
+    this.defaultColor, {
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +78,7 @@ class _Tag extends StatelessWidget {
         onTap: () => onTap?.call(selected ? null : this.value, evaluator),
         child: Text(
           selected ? '\u2713 $value' : value,
-          style: TextStyle(color: evaluator.color(this.value)),
+          style: TextStyle(color: evaluator.color(this.value) ?? defaultColor),
         ),
       ),
     );

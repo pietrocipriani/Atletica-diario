@@ -1,14 +1,14 @@
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/global_widgets/resizable_text_field.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/recupero/recupero.dart';
-import 'package:Atletica/recupero/recupero_dialog.dart';
-import 'package:Atletica/recupero/recupero_widget.dart';
-import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/training/serie.dart';
-import 'package:Atletica/training/widgets/tags_selector_widget.dart';
+import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_expansion_tile.dart';
+import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:atletica/global_widgets/resizable_text_field.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/recupero/recupero.dart';
+import 'package:atletica/recupero/recupero_dialog.dart';
+import 'package:atletica/recupero/recupero_widget.dart';
+import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/training/serie.dart';
+import 'package:atletica/training/widgets/tags_selector_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -196,11 +196,13 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: editTitle
             ? TextFormField(
-                style: Theme.of(context).textTheme.headline6,
+                style: theme.textTheme.headline6
+                    .copyWith(color: theme.colorScheme.onPrimary),
                 controller: _titleController,
               )
             : Text(widget.allenamento.name),
@@ -253,7 +255,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                 Container(
                                   padding: const EdgeInsets.only(
                                       top: 4, bottom: 20, right: 4, left: 4),
-                                  color: Theme.of(context).primaryColor,
+                                  color: theme.primaryColor,
                                   child: Stack(
                                     children: () sync* {
                                       yield Column(
@@ -296,12 +298,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                 'serie #${widget.allenamento.serie.indexOf(serie) + 1}',
                             subtitle: Text(
                               '${serie.ripetuteCount} ripetut${serie.ripetuteCount == 1 ? 'a' : 'e'}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .overline
-                                  .copyWith(
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
+                              style: TextStyle(color: theme.primaryColorDark),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -322,8 +319,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                               setState(() {});
                                             }
                                           : null,
-                                      disabledColor: Colors.grey[300],
-                                      color: Colors.black,
+                                      disabledColor: theme.disabledColor,
+                                      color: theme.iconTheme.color,
                                     ),
                                     if (serie.ripetizioni > 1)
                                       Text(
@@ -335,16 +332,14 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                   ],
                                 ),
                                 IconButton(
-                                  icon: Icon(
-                                    Icons.add_circle,
-                                    color: Colors.black,
-                                  ),
+                                  icon: Icon(Icons.add_circle),
                                   onPressed: () async {
                                     Ripetuta rip = await Ripetuta.fromDialog(
                                         context: context);
                                     if (rip == null) return;
                                     setState(() => serie.ripetute.add(rip));
                                   },
+                                  color: theme.iconTheme.color,
                                 ),
                               ],
                             ),
@@ -374,9 +369,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                         Icons.expand_less,
                                         color: serie ==
                                                 widget.allenamento.serie.first
-                                            ? Colors.grey[300]
-                                            : Theme.of(context)
-                                                .primaryColorDark,
+                                            ? theme.disabledColor
+                                            : theme.primaryColorDark,
                                       ),
                                     ),
                                     InkWell(
@@ -398,9 +392,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                         Icons.expand_more,
                                         color: serie ==
                                                 widget.allenamento.serie.last
-                                            ? Colors.grey[300]
-                                            : Theme.of(context)
-                                                .primaryColorDark,
+                                            ? theme.disabledColor
+                                            : theme.primaryColorDark,
                                       ),
                                     ),
                                   ],

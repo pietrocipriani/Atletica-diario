@@ -1,9 +1,9 @@
-import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
-import 'package:Atletica/recupero/recupero_dialog.dart';
-import 'package:Atletica/ripetuta/template.dart';
-import 'package:Atletica/recupero/recupero.dart';
-import 'package:Atletica/training/serie.dart';
+import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/recupero/recupero_dialog.dart';
+import 'package:atletica/ripetuta/template.dart';
+import 'package:atletica/recupero/recupero.dart';
+import 'package:atletica/training/serie.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 
@@ -89,15 +89,11 @@ class Ripetuta {
                     text: TextSpan(
                       text: suggestion.name.substring(
                           0, suggestion.name.indexOf(controller.text)),
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
+                      style: Theme.of(context).textTheme.subtitle2,
                       children: [
                         TextSpan(
                           text: controller.text,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextSpan(
                           text: suggestion.name.substring(
@@ -255,122 +251,118 @@ class Ripetuta {
     BuildContext context,
     void Function(void Function()) setState, {
     @required Serie serie,
-  }) =>
-      CustomDismissible(
-        key: ValueKey(this),
-        direction: DismissDirection.startToEnd,
-        onDismissed: (direction) => setState(() => serie.ripetute.remove(this)),
-        child: Container(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: CustomListTile(
-            leading: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    InkWell(
-                      onTap: this == serie.ripetute.first
-                          ? null
-                          : () {
-                              int index = serie.ripetute.indexOf(this);
-                              serie.ripetute.insert(
-                                  index - 1, serie.ripetute.removeAt(index));
-                              setState(() {});
-                            },
-                      child: Icon(
-                        Icons.expand_less,
-                        color: this == serie.ripetute.first
-                            ? Colors.grey[300]
-                            : Theme.of(context).primaryColorDark,
-                      ),
+  }) {
+    final ThemeData theme = Theme.of(context);
+    return CustomDismissible(
+      key: ValueKey(this),
+      direction: DismissDirection.startToEnd,
+      onDismissed: (direction) => setState(() => serie.ripetute.remove(this)),
+      child: Container(
+        color: theme.scaffoldBackgroundColor,
+        child: CustomListTile(
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  InkWell(
+                    onTap: this == serie.ripetute.first
+                        ? null
+                        : () {
+                            int index = serie.ripetute.indexOf(this);
+                            serie.ripetute.insert(
+                                index - 1, serie.ripetute.removeAt(index));
+                            setState(() {});
+                          },
+                    child: Icon(
+                      Icons.expand_less,
+                      color: this == serie.ripetute.first
+                          ? theme.disabledColor
+                          : theme.primaryColorDark,
                     ),
-                    InkWell(
-                      onTap: this == serie.ripetute.last
-                          ? null
-                          : () {
-                              int index = serie.ripetute.indexOf(this);
-                              serie.ripetute.insert(
-                                  index + 1, serie.ripetute.removeAt(index));
-                              setState(() {});
-                            },
-                      child: Icon(
-                        Icons.expand_more,
-                        color: this == serie.ripetute.last
-                            ? Colors.grey[300]
-                            : Theme.of(context).primaryColorDark,
+                  ),
+                  InkWell(
+                    onTap: this == serie.ripetute.last
+                        ? null
+                        : () {
+                            int index = serie.ripetute.indexOf(this);
+                            serie.ripetute.insert(
+                                index + 1, serie.ripetute.removeAt(index));
+                            setState(() {});
+                          },
+                    child: Icon(
+                      Icons.expand_more,
+                      color: this == serie.ripetute.last
+                          ? theme.disabledColor
+                          : theme.primaryColorDark,
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => setState(() => ripetizioni = ripetizioni % 20 + 1),
+                onLongPress: () => setState(() => ripetizioni = 1),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text('x', style: theme.textTheme.overline),
+                    Text(
+                      ripetizioni.toString(),
+                      style: theme.textTheme.headline5.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Color.lerp(
+                          theme.primaryColorDark,
+                          Colors.redAccent[700],
+                          ripetizioni / 20,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                InkWell(
-                  onTap: () =>
-                      setState(() => ripetizioni = ripetizioni % 20 + 1),
-                  onLongPress: () => setState(() => ripetizioni = 1),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Text('x', style: Theme.of(context).textTheme.overline),
-                      Text(
-                        ripetizioni.toString(),
-                        style: Theme.of(context).textTheme.headline5.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Color.lerp(
-                                Theme.of(context).primaryColorDark,
-                                Colors.redAccent[700],
-                                ripetizioni / 20,
-                              ),
-                            ),
-                      ),
-                    ],
+              ),
+            ],
+          ),
+          title: Text(template),
+          subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              if (templates[template] != null)
+                Text(
+                  templates[template].tipologia.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColorDark,
                   ),
                 ),
-              ],
-            ),
-            title: Text(template),
-            subtitle: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                if (templates[template] != null)
-                  Text(
-                    templates[template].tipologia.name,
-                    style: Theme.of(context).textTheme.overline.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                  ),
-                if (templates[template] != null)
-                  Text(
-                    templates[template].tipologia.targetFormatter(target),
-                    style: Theme.of(context).textTheme.overline.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  )
-              ],
-            ),
-            trailing: Stack(
-              alignment: Alignment.bottomCenter,
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.timer),
-                  onPressed: ripetizioni > 1
-                      ? () async {
-                          await showRecoverDialog(context, recupero);
-                          setState(() {});
-                        }
-                      : null,
-                  color: Colors.black,
-                  disabledColor: Colors.grey[300],
+              if (templates[template] != null)
+                Text(templates[template].tipologia.targetFormatter(target))
+            ],
+          ),
+          trailing: Stack(
+            alignment: Alignment.bottomCenter,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.timer),
+                onPressed: ripetizioni > 1
+                    ? () async {
+                        await showRecoverDialog(context, recupero);
+                        setState(() {});
+                      }
+                    : null,
+                color: theme.iconTheme.color,
+                disabledColor: theme.disabledColor,
+              ),
+              if (ripetizioni > 1)
+                Text(
+                  recupero.toString(),
+                  style: theme.textTheme.overline,
                 ),
-                if (ripetizioni > 1)
-                  Text(
-                    recupero.toString(),
-                    style: Theme.of(context).textTheme.overline,
-                  ),
-              ],
-            ),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
 }

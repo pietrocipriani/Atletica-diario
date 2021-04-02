@@ -1,5 +1,5 @@
-import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/schedule/schedule.dart';
+import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/schedule/schedule.dart';
 
 class SimpleTraining {
   final ScheduledTraining training;

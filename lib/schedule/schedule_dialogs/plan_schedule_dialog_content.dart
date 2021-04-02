@@ -1,5 +1,5 @@
-/*import 'package:Atletica/plan/tabella.dart';
-import 'package:Atletica/schedule/schedule.dart';
+/*import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/schedule/schedule.dart';
 import 'package:flutter/material.dart';
 
 class PlanScheduleDialogContent extends StatelessWidget {

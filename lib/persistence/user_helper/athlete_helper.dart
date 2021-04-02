@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/date.dart';
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/persistence/firestore.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/result_snapshot.dart';
-import 'package:Atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
-import 'package:Atletica/schedule/schedule.dart';
+import 'package:atletica/results/result.dart';
+import 'package:atletica/date.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/firestore.dart';
+import 'package:atletica/persistence/user_helper/snapshots_managers/result_snapshot.dart';
+import 'package:atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
+import 'package:atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -150,9 +150,7 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   Future<bool> requestCoach(
-      // TODO: check if coach has `role`: 'coach'
-      {@required String uid,
-      @required String nickname}) async {
+      {@required String uid, @required String nickname}) async {
     if (uid == null || uid == userReference.documentID) return false;
     final DocumentReference request = firestore
         .collection('users')

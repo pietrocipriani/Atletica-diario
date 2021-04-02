@@ -1,4 +1,4 @@
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:flutter/material.dart';
 
 const Duration _kExpand = Duration(milliseconds: 200);
@@ -8,7 +8,7 @@ class CustomExpansionTile extends StatefulWidget {
     Key key,
     this.leading,
     @required this.title,
-    this.titleColor = Colors.black,
+    this.titleColor,
     this.subtitle,
     this.hiddenSubtitle,
     this.backgroundColor,
@@ -19,8 +19,7 @@ class CustomExpansionTile extends StatefulWidget {
     this.initiallyExpanded = false,
     this.childrenPadding = EdgeInsets.zero,
   })  : assert(initiallyExpanded != null &&
-            childrenPadding != null &&
-            titleColor != null),
+            childrenPadding != null),
         super(key: key);
 
   final Widget leading;

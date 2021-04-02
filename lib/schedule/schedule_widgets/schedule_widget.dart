@@ -1,7 +1,7 @@
-/*import 'package:Atletica/global_widgets/custom_dismissible.dart';
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
-import 'package:Atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:Atletica/schedule/schedule.dart';
+/*import 'package:atletica/global_widgets/custom_dismissible.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:atletica/schedule/schedule.dart';
 import 'package:flutter/material.dart';
 
 abstract class ScheduleWidget<T extends Schedule> extends StatelessWidget {

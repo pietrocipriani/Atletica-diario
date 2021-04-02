@@ -21,12 +21,16 @@ AlertDialog _deleteConfirmDialog({
 
   final Widget content = RichText(
     text: TextSpan(
-        text: 'Sei sicuro di voler eliminare ',
-        style: TextStyle(color: Colors.black),
-        children: [
-          TextSpan(text: name, style: bold),
-          TextSpan(text: '? Una volta cancellato non sarà più recuperabile!'),
-        ]),
+      text: 'Sei sicuro di voler eliminare ',
+      children: [
+        TextSpan(text: name, style: bold),
+        TextSpan(text: '? Una volta cancellato non sarà più recuperabile!'),
+      ],
+      style: Theme.of(context)
+          .textTheme
+          .overline
+          .copyWith(fontWeight: FontWeight.normal),
+    ),
     textAlign: TextAlign.justify,
   );
 

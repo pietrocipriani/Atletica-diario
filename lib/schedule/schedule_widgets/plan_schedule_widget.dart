@@ -1,5 +1,5 @@
-/*import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/schedule/schedule_widgets/schedule_widget.dart';
+/*import 'package:atletica/schedule/schedule.dart';
+import 'package:atletica/schedule/schedule_widgets/schedule_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mdi/mdi.dart';

@@ -1,6 +1,6 @@
-import 'package:Atletica/athlete/atleta.dart';
-import 'package:Atletica/athlete/group.dart';
-import 'package:Atletica/persistence/auth.dart';
+import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/group.dart';
+import 'package:atletica/persistence/auth.dart';
 import 'package:flutter/material.dart';
 
 String _validator(String value, Athlete atleta, bool isNew) {

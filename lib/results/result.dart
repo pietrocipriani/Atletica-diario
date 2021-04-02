@@ -1,8 +1,8 @@
-import 'package:Atletica/athlete/results/result_widget.dart';
-import 'package:Atletica/date.dart';
-import 'package:Atletica/results/simple_training.dart';
-import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:atletica/athlete/results/result_widget.dart';
+import 'package:atletica/date.dart';
+import 'package:atletica/results/simple_training.dart';
+import 'package:atletica/schedule/schedule.dart';
+import 'package:atletica/training/allenamento.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 

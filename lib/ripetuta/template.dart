@@ -1,5 +1,5 @@
-import 'package:Atletica/persistence/auth.dart';
-import 'package:Atletica/ripetuta/time_pattern.dart';
+import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/ripetuta/time_pattern.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';

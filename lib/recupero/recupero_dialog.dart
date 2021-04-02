@@ -1,6 +1,6 @@
-import 'package:Atletica/global_widgets/duration_picker.dart';
-import 'package:Atletica/recupero/recupero.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:atletica/global_widgets/duration_picker.dart';
+import 'package:atletica/recupero/recupero.dart';
+import 'package:atletica/ripetuta/template.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
@@ -93,9 +93,7 @@ class _RecuperoDialogState extends State<RecuperoDialog> {
                       text: TextSpan(
                         text: suggestion.name.substring(
                             0, suggestion.name.indexOf(_lengthController.text)),
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
+                        style: Theme.of(context).textTheme.subtitle2,
                         children: [
                           TextSpan(
                             text: _lengthController.text,

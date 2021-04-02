@@ -1,5 +1,5 @@
-/*import 'package:Atletica/schedule/schedule.dart';
-import 'package:Atletica/training/allenamento.dart';
+/*import 'package:atletica/schedule/schedule.dart';
+import 'package:atletica/training/allenamento.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

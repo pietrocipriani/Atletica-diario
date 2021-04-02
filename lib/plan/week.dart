@@ -1,5 +1,5 @@
-import 'package:Atletica/plan/widgets/week_dialog.dart';
-import 'package:Atletica/training/allenamento.dart';
+import 'package:atletica/plan/widgets/week_dialog.dart';
+import 'package:atletica/training/allenamento.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

@@ -1,7 +1,7 @@
-import 'package:Atletica/global_widgets/resizable_text_field.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/results/simple_training.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:atletica/global_widgets/resizable_text_field.dart';
+import 'package:atletica/results/result.dart';
+import 'package:atletica/results/simple_training.dart';
+import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
@@ -153,7 +153,7 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
         size: 42,
         color: selected
             ? Color.lerp(Colors.green, Colors.red, value / icons.length)
-            : Colors.grey[300],
+            : Theme.of(context).disabledColor,
       ),
       onPressed: () =>
           setState(() => widget.results.fatigue = selected ? null : value),

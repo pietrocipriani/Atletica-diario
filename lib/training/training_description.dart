@@ -1,10 +1,10 @@
-import 'package:Atletica/recupero/recupero.dart';
-import 'package:Atletica/results/result.dart';
-import 'package:Atletica/results/simple_training.dart';
-import 'package:Atletica/ripetuta/ripetuta.dart';
-import 'package:Atletica/ripetuta/template.dart';
-import 'package:Atletica/training/allenamento.dart';
-import 'package:Atletica/training/serie.dart';
+import 'package:atletica/recupero/recupero.dart';
+import 'package:atletica/results/result.dart';
+import 'package:atletica/results/simple_training.dart';
+import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/ripetuta/template.dart';
+import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/serie.dart';
 import 'package:flutter/material.dart';
 
 /// utility class that builds training description
@@ -16,7 +16,8 @@ class TrainingDescription {
   static Widget _rowRip(
     final Ripetuta rip,
     final MapEntry<SimpleRipetuta, double> ris,
-    final TextStyle overlineBC, [
+    final Color primaryColorDark,
+    final TextStyle overline, [
     final bool disabled = false,
   ]) {
     assert((rip == null) != (ris == null),
@@ -27,13 +28,16 @@ class TrainingDescription {
       alignment: Alignment.centerLeft,
       child: RichText(
         text: TextSpan(
-          text: name,
           children: [
+            TextSpan(
+              text: name,
+              style: TextStyle(color: primaryColorDark),
+            ),
             if (result != null)
               TextSpan(
                 text: ' in ',
                 style: TextStyle(
-                  color: disabled ? Colors.grey[300] : Colors.black,
+                  color: disabled ? Colors.grey[300] : null,
                   fontWeight: FontWeight.normal,
                 ),
               ),
@@ -45,11 +49,11 @@ class TrainingDescription {
                 style: TextStyle(
                   color: (rip == null && ris == null) || disabled
                       ? Colors.grey[300]
-                      : Colors.black,
+                      : null,
                 ),
               )
           ],
-          style: overlineBC,
+          style: overline,
         ),
       ),
     );
@@ -60,10 +64,11 @@ class TrainingDescription {
   /// * if `isSerieRec`, the [Row] is highlighted
   /// * if `disabled`, the [Row] is greyed out
   static Widget _rowRec(
-    final BuildContext context,
     final Recupero rec,
     final bool isSerieRec,
-    final TextStyle overlineB, [
+    final Color primaryColor,
+    final Color disabledColor,
+    final TextStyle overline, [
     final bool disabled = false,
   ]) {
     if (rec == null) return Container();
@@ -75,12 +80,12 @@ class TrainingDescription {
             margin: const EdgeInsets.symmetric(horizontal: 8),
             height: 1,
             color: ((isSerieRec ?? false) && !disabled)
-                ? Theme.of(context).primaryColor
-                : Colors.grey[300],
+                ? primaryColor
+                : disabledColor,
           ),
         ),
         RichText(
-          text: TextSpan(text: rec.toString(), style: overlineB, children: [
+          text: TextSpan(text: rec.toString(), style: overline, children: [
             TextSpan(
               text: ' recupero',
               style: TextStyle(fontWeight: FontWeight.normal),
@@ -96,11 +101,12 @@ class TrainingDescription {
     BuildContext context,
     Result result,
   ) {
-    final TextStyle overlineC = Theme.of(context)
-        .textTheme
-        .overline
-        .copyWith(color: Theme.of(context).primaryColorDark);
-    return result.asIterable.map((e) => _rowRip(null, e, overlineC));
+    return result.asIterable.map((e) => _rowRip(
+          null,
+          e,
+          Theme.of(context).primaryColorDark,
+          Theme.of(context).textTheme.overline,
+        ));
   }
 
   /// creates the description from `training` with optional `result`
@@ -112,15 +118,16 @@ class TrainingDescription {
     Result result,
     bool disabled = false,
   ]) sync* {
+    final ThemeData theme = Theme.of(context);
     final bool useResult = result != null &&
         result.isCompatible(training) &&
         result.results.values.any((r) => r != null);
 
-    TextStyle overline = Theme.of(context).textTheme.overline;
+    TextStyle overline = theme.textTheme.overline;
     if (disabled) overline = overline.copyWith(color: Colors.grey[300]);
-    final TextStyle overlineC = disabled
-        ? overline
-        : overline.copyWith(color: Theme.of(context).primaryColorDark);
+    final Color primaryColorDark = theme.primaryColorDark;
+    final Color primaryColor = theme.primaryColor;
+    final Color disabledColor = theme.disabledColor;
 
     int index = 0;
     for (final Serie s in training.serie)
@@ -130,7 +137,8 @@ class TrainingDescription {
             yield _rowRip(
               useResult ? null : r,
               useResult ? result.asIterable.skip(index++).first : null,
-              overlineC,
+              primaryColorDark,
+              overline,
               disabled,
             );
             if (s != training.serie.last ||
@@ -138,7 +146,6 @@ class TrainingDescription {
                 i < s.ripetizioni ||
                 j < r.ripetizioni)
               yield _rowRec(
-                context,
                 j == r.ripetizioni
                     ? r == s.ripetute.last
                         ? i == s.ripetizioni
@@ -149,6 +156,8 @@ class TrainingDescription {
                         : r.nextRecupero
                     : r.recupero,
                 j == r.ripetizioni && r == s.ripetute.last,
+                primaryColor,
+                disabledColor,
                 overline,
                 disabled,
               );

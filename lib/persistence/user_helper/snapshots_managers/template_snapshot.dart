@@ -1,4 +1,4 @@
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:atletica/ripetuta/template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<bool> templateSnapshot(

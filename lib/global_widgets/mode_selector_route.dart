@@ -1,6 +1,6 @@
-import 'package:Atletica/athlete_role/main.dart';
-import 'package:Atletica/coach_role/main.dart';
-import 'package:Atletica/persistence/firestore.dart';
+import 'package:atletica/athlete_role/main.dart';
+import 'package:atletica/coach_role/main.dart';
+import 'package:atletica/persistence/firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';

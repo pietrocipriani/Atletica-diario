@@ -1,16 +1,21 @@
-import 'package:Atletica/global_widgets/custom_list_tile.dart';
-import 'package:Atletica/global_widgets/leading_info_widget.dart';
-import 'package:Atletica/results/pbs/pb.dart';
-import 'package:Atletica/results/pbs/tag.dart';
-import 'package:Atletica/ripetuta/template.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
+import 'package:atletica/global_widgets/leading_info_widget.dart';
+import 'package:atletica/results/pbs/pb.dart';
+import 'package:atletica/results/pbs/tag.dart';
+import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class SimpleResultWidget extends StatelessWidget {
   final void Function(String tag, TagsEvaluator evaluator) onTap;
-  final Color bg;
+  final Color bg, defaultColor;
   final SimpleResult r;
-  SimpleResultWidget({@required this.r, this.bg, this.onTap});
+  SimpleResultWidget({
+    @required this.r,
+    @required this.defaultColor,
+    this.bg,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +26,7 @@ class SimpleResultWidget extends StatelessWidget {
       trailing: LeadingInfoWidget(
         info: Tipologia.corsaDist.targetFormatter(r.r),
       ),
-      subtitle: Tags(r, onTap: onTap),
+      subtitle: Tags(r, defaultColor, onTap: onTap),
     );
   }
 }

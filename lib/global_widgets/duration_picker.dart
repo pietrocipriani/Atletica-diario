@@ -68,7 +68,12 @@ class _DurationPickerState extends State<DurationPicker>
             ),
           ),
           CustomPaint(
-            painter: TimerPainter(roundsColors: Theme.of(context).primaryColor),
+            painter: TimerPainter(
+              roundsColors: Theme.of(context).primaryColor,
+              stepsColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
           ),
           Transform.rotate(
             angle: 2 * pi * duration / kROUND_TIME,
