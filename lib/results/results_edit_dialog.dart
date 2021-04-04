@@ -26,10 +26,7 @@ Future<void> showResultsEditDialog(
         scrollable: true,
         actions: <Widget>[
           TextButton(
-            onPressed: () {
-              // TODO: remove changes
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
             child: Text('Chiudi'),
           ),
           TextButton(

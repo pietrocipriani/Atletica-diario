@@ -10,7 +10,6 @@ import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 
 class HomePageWidget extends StatefulWidget {
   final void Function(DateTime day) onSelectedDayChanged;
@@ -70,7 +69,8 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             )),
         color: IconTheme.of(context).color,
       ),
-      children: TrainingDescription.fromTraining(context, a).toList(),
+      children: TrainingDescription.fromTraining(context, a, a.variants.first)
+          .toList(), // TODO: select variant
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),

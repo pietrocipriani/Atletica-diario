@@ -6,6 +6,7 @@ import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -117,7 +118,7 @@ Future requestLoginDialog({@required BuildContext context}) {
       ),
       actions: <Widget>[
         TextButton(
-          onPressed: /*TODO: Platform.isAndroid ? () => SystemNavigator.pop() :*/ null,
+          onPressed: () => SystemNavigator.pop(),
           child: Text(
             'Exit',
             style: TextStyle(color: Colors.red),

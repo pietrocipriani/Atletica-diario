@@ -7,7 +7,7 @@ Future<bool> planSnapshot(
 ) async {
   switch (changeType) {
     case DocumentChangeType.added:
-    case DocumentChangeType.modified: // TODO: only update, do not recreate
+    case DocumentChangeType.modified:
       Tabella.parse(snapshot);
       break;
     case DocumentChangeType.removed:

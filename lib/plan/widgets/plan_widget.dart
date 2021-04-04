@@ -20,7 +20,7 @@ class _PlanWidgetState extends State<PlanWidget> {
         key: ValueKey(widget.plan.reference),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.endToStart) {
-            if (await widget.plan.modify(context: context)) setState(() {});
+            if (await widget.plan.modify(context: context) ?? false) setState(() {});
             return false;
           }
           return await showDeleteConfirmDialog(
@@ -41,8 +41,9 @@ class _PlanWidgetState extends State<PlanWidget> {
             onPressed: () async {
               final Week week = await Week.fromDialog(context);
               if (week != null) {
-                widget.plan.weeks.add(week);
-                widget.plan.update();
+                widget.plan.update(
+                  weeks: widget.plan.weeks.followedBy([week]).toList(),
+                );
               }
             },
             color: IconTheme.of(context).color,

@@ -5,6 +5,7 @@ import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/allenamento.dart';
 import 'package:atletica/training/serie.dart';
+import 'package:atletica/training/variant.dart';
 import 'package:flutter/material.dart';
 
 /// utility class that builds training description
@@ -18,12 +19,13 @@ class TrainingDescription {
     final MapEntry<SimpleRipetuta, double> ris,
     final Color primaryColorDark,
     final TextStyle overline, [
+    final Variant active,
     final bool disabled = false,
   ]) {
     assert((rip == null) != (ris == null),
         'cannot pass both the rip and the result');
     final String name = ris?.key?.name ?? rip?.template;
-    final double result = ris?.value ?? rip?.target;
+    final double result = ris?.value ?? (active?.targets ?? {})[rip];
     return Align(
       alignment: Alignment.centerLeft,
       child: RichText(
@@ -114,7 +116,8 @@ class TrainingDescription {
   /// * if `disabled`, all the [Row]s are greyed out
   static Iterable<Widget> fromTraining(
     BuildContext context,
-    final Allenamento training, [
+    final Allenamento training,
+    Variant active, [
     Result result,
     bool disabled = false,
   ]) sync* {
@@ -139,6 +142,7 @@ class TrainingDescription {
               useResult ? result.asIterable.skip(index++).first : null,
               primaryColorDark,
               overline,
+              active,
               disabled,
             );
             if (s != training.serie.last ||

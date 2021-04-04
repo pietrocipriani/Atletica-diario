@@ -57,7 +57,7 @@ class _PbsPageRouteState extends State<PbsWidget> {
           .map(
             (name) {
               final Pb pb = widget.results[name];
-              final List<Widget> children = pb.results
+              final List<SimpleResultWidget> children = pb.results
                   .where((r) => r.acceptable)
                   .map((r) => SimpleResultWidget(
                         r: r,
@@ -87,7 +87,7 @@ class _PbsPageRouteState extends State<PbsWidget> {
                   ), // TODO: this is shit
                 ),
                 trailing: LeadingInfoWidget(
-                  info: Tipologia.corsaDist.targetFormatter(pb.best),
+                  info: Tipologia.corsaDist.targetFormatter(children[0].r.r),
                   //bottom: singularPlural('ripetut', 'a', 'e', e.value.count),
                 ),
               );

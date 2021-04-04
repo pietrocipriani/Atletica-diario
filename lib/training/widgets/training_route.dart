@@ -8,6 +8,7 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:atletica/training/allenamento.dart';
 import 'package:atletica/training/training_description.dart';
+import 'package:atletica/training/widgets/training_info_route.dart';
 import 'package:flutter/material.dart';
 
 /// [Route] which displays the list of existing [Allenamento] (coach)
@@ -159,7 +160,8 @@ class _TrainingWidget extends StatelessWidget {
       const SizedBox(height: 10),
     ];
 
-    children.addAll(TrainingDescription.fromTraining(context, training));
+    children.addAll(TrainingDescription.fromTraining(
+        context, training, training.variants.first)); // TODO: select variant
 
     return CustomDismissible(
       key: _key,

@@ -1,4 +1,5 @@
 import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/persistence/user_helper/snapshots_managers/athlete_snapshot.dart';
@@ -116,11 +117,8 @@ class CoachHelper extends FirebaseUserHelper {
     @required DocumentReference athlete,
     @required Result results,
   }) async {
-    rawAthletes[athlete]
-        .resultsDoc
-        .collection('results')
-        .document(results.date.formattedAsIdentifier)
-        .setData({
+    rawAthletes[athlete].resultsDoc.collection('results').document().setData({
+      'date': Timestamp.fromDate(results.date.dateTime),
       'coach': uid,
       'training': results.training,
       'results':
@@ -130,17 +128,14 @@ class CoachHelper extends FirebaseUserHelper {
     }, merge: true);
   }
 
-  Stream resultSnapshots({
+  Stream<QuerySnapshot> resultSnapshots({
     @required Athlete athlete,
-    String dateIdentifier,
+    final Date date,
   }) async* {
     final DocumentReference ref = athlete.resultsDoc;
-    print('listening: ${athlete.resultsDoc.path}/results');
-    if (dateIdentifier == null)
-      yield* ref
-          .collection('results')
-          .where('coach', isEqualTo: uid)
-          .snapshots();
-    yield* ref.collection('results').document(dateIdentifier).snapshots();
+    Query q = ref.collection('results').where('coach', isEqualTo: uid);
+    if (date != null)
+      q = q.where('date', isEqualTo: Timestamp.fromDate(date.dateTime));
+    yield* q.snapshots();
   }
 }

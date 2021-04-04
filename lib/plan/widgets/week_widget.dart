@@ -29,8 +29,9 @@ class _WeekWidgetState extends State<WeekWidget> {
         );
       },
       onDismissed: (direction) {
-        setState(() => widget.plan.weeks.remove(widget.week));
-        widget.plan.update();
+        widget.plan.update(
+          weeks: widget.plan.weeks.where((w) => w != widget.week).toList(),
+        );
       },
       child: CustomExpansionTile(
         title: 'settimana #${widget.plan.weeks.indexOf(widget.week) + 1}',
@@ -47,7 +48,7 @@ class _WeekWidgetState extends State<WeekWidget> {
               children: <Widget>[
                 Expanded(
                   child: Text(
-                    weekdays[(i + 1) % 7],
+                    weekdays[(i + DateTime.monday) % 7],
                     style: theme.textTheme.overline
                         .copyWith(fontWeight: FontWeight.bold),
                   ),
@@ -69,11 +70,12 @@ class _WeekWidgetState extends State<WeekWidget> {
         trailing: IconButton(
           icon: Icon(Icons.content_copy),
           onPressed: () {
-            widget.plan.weeks.insert(
+            final List<Week> newWeeks = List.from(widget.plan.weeks);
+            newWeeks.insert(
               widget.plan.weeks.indexOf(widget.week),
               Week.copy(widget.week),
             );
-            widget.plan.update();
+            widget.plan.update(weeks: newWeeks);
           },
         ),
         leading: Column(
@@ -87,12 +89,10 @@ class _WeekWidgetState extends State<WeekWidget> {
               onTap: widget.plan.weeks.first == widget.week
                   ? null
                   : () {
-                      int index = widget.plan.weeks.indexOf(widget.week);
-                      setState(() {
-                        widget.plan.weeks.insert(
-                            index - 1, widget.plan.weeks.removeAt(index));
-                      });
-                      widget.plan.update();
+                      final List<Week> newWeeks = List.from(widget.plan.weeks);
+                      final int index = newWeeks.indexOf(widget.week);
+                      newWeeks.insert(index - 1, newWeeks.removeAt(index));
+                      widget.plan.update(weeks: newWeeks);
                     },
             ),
             GestureDetector(
@@ -103,12 +103,10 @@ class _WeekWidgetState extends State<WeekWidget> {
               onTap: widget.plan.weeks.last == widget.week
                   ? null
                   : () {
-                      int index = widget.plan.weeks.indexOf(widget.week);
-                      setState(() {
-                        widget.plan.weeks.insert(
-                            index - 1, widget.plan.weeks.removeAt(index));
-                      });
-                      widget.plan.update();
+                      final List<Week> newWeeks = List.from(widget.plan.weeks);
+                      final int index = newWeeks.indexOf(widget.week);
+                      newWeeks.insert(index + 1, newWeeks.removeAt(index));
+                      widget.plan.update(weeks: newWeeks);
                     },
             ),
           ],

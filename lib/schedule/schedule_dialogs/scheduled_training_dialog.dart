@@ -100,13 +100,18 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
                       ScheduledTraining.create(
                         work: a.reference,
                         date: widget.selectedDay,
-                        athletes: athletes[a],
+                        athletes:
+                            athletes[a]?.map((a) => a.reference)?.toList(),
                         batch: batch,
                       );
                     else if (!listEquals<DocumentReference>(
-                      athletes[a].map((a) => a.reference).toList(),
+                      athletes[a]?.map((a) => a.reference)?.toList(),
                       st.athletes,
-                    )) st.update(athletes: athletes[a], batch: batch);
+                    ))
+                      st.update(
+                        athletes: athletes[a]?.map((a) => a.reference)?.toList(),
+                        batch: batch,
+                      );
                   }
 
                   for (ScheduledTraining st in prev)

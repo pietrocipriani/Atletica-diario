@@ -37,22 +37,17 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
     super.dispose();
   }
 
-  Widget _trainingWidget(
-      final ScheduledTraining s, final ScheduledTraining compatible) {
-    final Result result = compatible == null
-        ? null
-        : userA.getResult(Date.fromDateTime(controller.selectedDay));
+  Widget _trainingWidget(final ScheduledTraining s) {
+    final Result result = userA
+        .getResults(Date.fromDateTime(controller.selectedDay))
+        .firstWhere((r) => r.isCompatible(s), orElse: () => null);
     final Allenamento a = s.work;
-    print({0: 't', 1: 'e', 2: 's', 3: 't'}.entries.map((e) => e.value));
     if (a == null) return Container();
-    print('no container!');
-    final bool greyed = s != compatible && compatible != null;
     return CustomExpansionTile(
       title: a.name,
-      titleColor: !greyed ? null : Theme.of(context).disabledColor,
       trailing: IconButton(
         icon: Icon(Mdi.poll),
-        onPressed: Date.now() >= s.date && !greyed
+        onPressed: Date.now() >= s.date
             ? () => showResultsEditDialog(
                   context,
                   result ?? Result.empty(a, s.date),
@@ -61,17 +56,23 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
             : null,
         color: IconTheme.of(context).color,
       ),
-      leading: Radio<ScheduledTraining>(
-        value: s,
-        groupValue: compatible,
-        onChanged: (st) {
-          userA.saveResult(
-            results: Result.empty(
-              st.work,
-              Date.fromDateTime(controller.selectedDay),
-            ),
-          );
-        },
+      leading: Checkbox(
+        value: result != null,
+        fillColor:
+            MaterialStateProperty.all(Theme.of(context).toggleableActiveColor),
+        checkColor: Theme.of(context).colorScheme.onPrimary,
+        onChanged: result == null
+            ? (value) {
+                userA.saveResult(
+                  results: Result.empty(
+                    s.work,
+                    Date.fromDateTime(controller.selectedDay),
+                  ),
+                );
+              }
+            : result.isBooking
+                ? (value) => result.reference.delete()
+                : null,
       ),
       children: [
         if (a.descrizione != null)
@@ -85,8 +86,8 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
           ),
         const SizedBox(height: 10),
       ]
-          .followedBy(
-              TrainingDescription.fromTraining(context, a, result, greyed))
+          .followedBy(TrainingDescription.fromTraining(
+              context, a, a.variants.first, result)) // TODO: select variant
           .toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
     );
@@ -107,10 +108,12 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
             : null,
         color: IconTheme.of(context).color,
       ),
-      leading: Radio<ScheduledTraining>(
-        value: null,
-        groupValue: null,
-        onChanged: (st) {},
+      leading: Checkbox(
+        value: true,
+        onChanged: null,
+        fillColor:
+            MaterialStateProperty.all(Theme.of(context).toggleableActiveColor),
+        checkColor: Theme.of(context).colorScheme.onPrimary,
       ),
       children: TrainingDescription.fromResults(context, result).toList(),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
@@ -122,17 +125,13 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
     );
   }
 
-  ScheduledTraining get _compatibleST {
-    if (controller.selectedDay == null) return null;
-    final Result result =
-        userA.getResult(Date.fromDateTime(controller.selectedDay));
-    if (result == null) return null;
-    if (userA.events[controller.selectedDay] == null) return null;
-
-    for (final ScheduledTraining st in userA.events[controller.selectedDay])
-      if (result.isCompatible(st)) return st;
-
-    return null;
+  bool _isOrphan(final Result result) {
+    if (userA.events[controller.selectedDay]
+            ?.any((st) => result.isCompatible(st, true)) ??
+        false) return false;
+    return userA.events[controller.selectedDay]
+            ?.every(result.isNotCompatible) ??
+        true;
   }
 
   @override
@@ -145,21 +144,21 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         ),
       );
     final ThemeData theme = Theme.of(context);
-    final ScheduledTraining compatibleST = _compatibleST;
-    final Result result = controller.selectedDay == null
-        ? null
-        : userA.getResult(Date.fromDateTime(controller.selectedDay));
-    List<Widget> children = <Widget>[
-      if (result != null && compatibleST == null) _resultWidget(result)
-    ];
+    //final ScheduledTraining compatibleST = _compatibleST;
+    final Iterable<Result> orphans = controller.selectedDay == null
+        ? []
+        : userA
+            .getResults(Date.fromDateTime(controller.selectedDay))
+            .where(_isOrphan);
+    List<Widget> children = orphans.map(_resultWidget).toList();
     if (userA.events[controller.selectedDay] != null)
       children = children
           .followedBy(userA.events[controller.selectedDay]
               ?.where((st) =>
-                  st == compatibleST ||
                   st.athletes.isEmpty ||
                   st.athletes.contains(userA.athleteCoachReference))
-              ?.map((st) => _trainingWidget(st, compatibleST)))
+              ?.cast<ScheduledTraining>()
+              ?.map(_trainingWidget))
           .toList();
 
     final CustomCalendar calendar = CustomCalendar(

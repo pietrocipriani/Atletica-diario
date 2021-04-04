@@ -20,13 +20,22 @@ class Results {
       List<DocumentReference> athletes})
       : ripetuteCount = training.ripetute.length {
     if (athletes == null || athletes.isEmpty)
-      athletes = userC.athletes.map((a) => a.reference).where((a) => a != null).toList();
+      athletes = userC.athletes
+          .map((a) => a.reference)
+          .where((a) => a != null)
+          .toList();
     for (DocumentReference ref in athletes)
       results[ref] = Result.empty(training, date);
   }
 
-  bool update(DocumentReference athlete, List<String> results, [final int fatigue, final String info]) {
+  bool update(
+      {@required final DocumentReference reference,
+      @required final DocumentReference athlete,
+      @required final List<String> results,
+      final int fatigue,
+      final String info}) {
     final Result updated = Result.empty(training, date);
+    updated.reference = reference;
 
     if (results.length != training.ripetute.length) return false;
     updated.fatigue = fatigue;
