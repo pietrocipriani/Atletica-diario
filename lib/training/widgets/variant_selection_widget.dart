@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
 import 'package:atletica/training/variant.dart';
@@ -30,8 +32,11 @@ class _VariantSelectionWidgetState extends State<VariantSelectionWidget> {
     return IconButton(
       icon: Icon(Icons.add_circle),
       onPressed: widget.variants.length < 6
-          ? () => setState(
-              () => widget.variants.insert(insertIndex, Variant.from(active)))
+          ? () => setState(() => widget.variants.insert(
+                insertIndex,
+                Variant.from(widget
+                    .variants[min(insertIndex, widget.variants.length - 1)]),
+              ))
           : null,
       color: IconTheme.of(context).color,
     );
@@ -53,11 +58,12 @@ class _VariantSelectionWidgetState extends State<VariantSelectionWidget> {
                               context: context, name: 'questa variante') ??
                           false) {
                         setState(() {
+                          final int index = min(widget.variants.indexOf(v),
+                              widget.variants.length - 2);
                           widget.variants.remove(v);
                           if (active == v) {
                             widget.onVariantChanged
-                                ?.call(widget.variants.first);
-                            active = widget.variants.first;
+                                ?.call(active = widget.variants[index]);
                           }
                         });
                       }

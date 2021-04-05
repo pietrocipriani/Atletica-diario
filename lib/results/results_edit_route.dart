@@ -1,4 +1,5 @@
 import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
@@ -36,15 +37,21 @@ class ResultsEditRoute extends StatelessWidget {
                 ),
                 builder: (context, snapshot) {
                   if (snapshot.data?.documents != null) {
-                    snapshot.data.documents.any(
-                      (doc) => results.update(
-                        reference: doc.reference,
-                        athlete: a,
-                        results: doc['results'].cast<String>(),
-                        fatigue: doc['fatigue'],
-                        info: doc['info'],
-                      ),
-                    );
+                    snapshot.data.documents
+                        .where((doc) =>
+                            results.date ==
+                            (doc['date'] == null
+                                ? Date.parse(doc.documentID)
+                                : Date.fromTimeStamp(doc['date'])))
+                        .any(
+                          (doc) => results.update(
+                            reference: doc.reference,
+                            athlete: a,
+                            results: doc['results'].cast<String>(),
+                            fatigue: doc['fatigue'],
+                            info: doc['info'],
+                          ),
+                        );
                   }
 
                   final int count = results.results[a].results.values
@@ -72,7 +79,7 @@ class ResultsEditRoute extends StatelessWidget {
                             : icons[results.results[a].fatigue],
                         size: 42,
                         color: results.results[a].fatigue == null
-                            ? Colors.grey[300]
+                            ? Theme.of(context).disabledColor
                             : Color.lerp(Colors.green, Colors.red,
                                 results.results[a].fatigue / icons.length),
                       ),

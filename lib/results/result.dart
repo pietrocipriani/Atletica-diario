@@ -1,5 +1,6 @@
 import 'package:atletica/athlete/results/result_widget.dart';
 import 'package:atletica/date.dart';
+import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/allenamento.dart';
@@ -31,7 +32,9 @@ class Result {
               ),
         ),
         fatigue = raw['fatigue'],
-        info = raw['info'] ?? '';
+        info = raw['info'] ?? '' {
+    if (raw['date'] == null) userA?.saveResult(this);
+  }
 
   Result.empty(Allenamento training, this.date)
       : training = training.name,

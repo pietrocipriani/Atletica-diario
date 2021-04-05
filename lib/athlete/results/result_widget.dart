@@ -37,7 +37,7 @@ class ResultWidget extends StatelessWidget {
           res.fatigue == null ? Mdi.emoticonNeutralOutline : icons[res.fatigue],
           size: 42,
           color: res.fatigue == null
-              ? Colors.grey[300]
+              ? Theme.of(context).disabledColor
               : Color.lerp(
                   Colors.green, Colors.red, res.fatigue / icons.length),
         ),

@@ -238,7 +238,7 @@ class Ripetuta {
                   ? null
                   : () async {
                       template.lastTarget = target ?? template.lastTarget;
-                      await template.create();
+                      if (!(template is Template)) await template.create();
 
                       if (ripetuta == null)
                         ripetuta = Ripetuta(
@@ -278,6 +278,7 @@ class Ripetuta {
           ripetuta: this,
           target: active.targets[this],
         );
+        if (rip == null) return false;
         assert(rip.v1 == this);
         setState(() => active.targets[this] = rip.v2);
         return false;

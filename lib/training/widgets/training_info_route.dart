@@ -9,7 +9,6 @@ import 'package:atletica/training/allenamento.dart';
 import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/variant.dart';
 import 'package:atletica/training/widgets/tags_selector_widget.dart';
-import 'package:atletica/training/widgets/variant_selection_widget.dart';
 import 'package:flutter/material.dart';
 
 class TrainingInfoRoute extends StatefulWidget {
@@ -69,11 +68,11 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
             initialText: widget.allenamento.descrizione ?? '',
             hint: 'inserisci la descrizione (opzionale)',
           ),
-          VariantSelectionWidget(
+          /*VariantSelectionWidget(
             variants: widget.allenamento.variants,
             active: active,
             onVariantChanged: (v) => setState(() => active = v),
-          ),
+          ),*/
           Expanded(
             child: SingleChildScrollView(
               child: Stack(

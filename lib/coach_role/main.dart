@@ -1,5 +1,6 @@
 import 'package:atletica/athlete/athletes_route.dart';
 import 'package:atletica/date.dart';
+import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/logout_button.dart';
 import 'package:atletica/global_widgets/swap_button.dart';
 import 'package:atletica/home/home_page.dart';
@@ -26,31 +27,67 @@ class _CoachMainPageState extends State<CoachMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Atletica - Allenatore'),
-        actions: [LogoutButton(context: context), SwapButton(context: context)],
-      ),
-      body: HomePageWidget(onSelectedDayChanged: (day) {
-        selectedDay = day;
-        WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-      }),
-      floatingActionButton: _canAddEvents
-          ? FloatingActionButton(
-              onPressed: () async {
-                if (await showDialog<bool>(
-                      context: context,
-                      builder: (context) =>
-                          ScheduledTrainingDialog(selectedDay),
-                    ) ??
-                    false) setState(() {});
-              },
-              child: Icon(Icons.add),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      bottomNavigationBar: _BottomAppBar(setState: setState),
-    );
+    List<IconButton> actions = [
+      LogoutButton(context: context),
+      SwapButton(context: context)
+    ];
+
+    return OrientationBuilder(builder: (context, orientation) {
+      if (orientation == Orientation.landscape)
+        actions.addAll(_BottomAppBar.children(
+          context: context,
+          setState: null,
+          onPrimary: false,
+        ));
+      return Scaffold(
+        appBar: orientation == Orientation.portrait
+            ? AppBar(
+                title: Text('Atletica - Allenatore'),
+                actions: actions,
+              )
+            : null,
+        body: HomePageWidget(
+          onSelectedDayChanged: (day) {
+            selectedDay = day;
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => setState(() {}));
+          },
+          orientation: orientation,
+        ),
+        floatingActionButton: _canAddEvents
+            ? FloatingActionButton(
+                onPressed: () async {
+                  if (await showDialog<bool>(
+                        context: context,
+                        builder: (context) =>
+                            ScheduledTrainingDialog(selectedDay),
+                      ) ??
+                      false) setState(() {});
+                },
+                child: Icon(Icons.add),
+              )
+            : null,
+        drawer: orientation == Orientation.landscape
+            ? Drawer(
+                child: Padding(
+                  padding: MediaQuery.of(context).padding,
+                  child: Column(
+                      children: actions
+                          .map((action) => CustomListTile(
+                                leading: action,
+                                title: Text(action.tooltip ?? ''),
+                                onTap: action.onPressed,
+                              ))
+                          .toList()),
+                ),
+              )
+            : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+        bottomNavigationBar: orientation == Orientation.portrait
+            ? _BottomAppBar(setState: setState)
+            : null,
+      );
+    });
   }
 }
 
@@ -59,15 +96,22 @@ class _BottomAppBar extends StatelessWidget {
 
   _BottomAppBar({@required this.setState});
 
-  Widget _sectionBtn({
+  static IconButton _sectionBtn({
     @required BuildContext context,
     @required IconData icon,
     @required Widget route,
+    @required void Function(void Function()) setState,
     bool notify = false,
     bool onPop = false,
     String tooltip,
+    bool onPrimary: true,
   }) {
-    Widget iconWidget = Icon(icon, color: Colors.black);
+    Widget iconWidget = Icon(
+      icon,
+      color: onPrimary
+          ? Theme.of(context).colorScheme.onPrimary
+          : Theme.of(context).colorScheme.onSurface,
+    );
     if (notify)
       iconWidget = Stack(
         alignment: Alignment.topRight,
@@ -94,11 +138,12 @@ class _BottomAppBar extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BottomAppBar(
-      shape: CircularNotchedRectangle(),
-      child: Row(children: [
+  static List<IconButton> children({
+    @required final BuildContext context,
+    @required void Function(void Function()) setState,
+    bool onPrimary = true,
+  }) =>
+      [
         /*_sectionBtn(
           context: context,
           icon: Icons.schedule,
@@ -111,19 +156,31 @@ class _BottomAppBar extends StatelessWidget {
             context: context,
             icon: Icons.directions_run,
             route: AthletesRoute(),
+            setState: setState,
             notify: userC.requests.isNotEmpty,
-            tooltip: 'gestisci i tuoi atleti'),
+            tooltip: 'ATLETI',
+            onPrimary: onPrimary),
         _sectionBtn(
             context: context,
             icon: Mdi.table,
+            setState: setState,
             route: PlansRoute(),
-            tooltip: 'gestisci i programmi di lavoro'),
+            tooltip: 'PIANI DI LAVORO',
+            onPrimary: onPrimary),
         _sectionBtn(
             context: context,
             icon: Icons.fitness_center,
+            setState: setState,
             route: TrainingRoute(),
-            tooltip: 'gestisci gli allenamenti'),
-      ]),
+            tooltip: 'ALLENAMENTI',
+            onPrimary: onPrimary),
+      ];
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomAppBar(
+      shape: CircularNotchedRectangle(),
+      child: Row(children: children(context: context, setState: setState)),
       color: Theme.of(context).primaryColor,
     );
   }

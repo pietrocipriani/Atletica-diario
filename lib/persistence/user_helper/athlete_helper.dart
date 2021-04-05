@@ -169,8 +169,8 @@ class AthleteHelper extends FirebaseUserHelper {
     return true;
   }
 
-  Future<void> saveResult({@required Result results}) async {
-    (results.reference ?? userReference.collection('results').document())
+  Future<void> saveResult(Result results) {
+    return (results.reference ?? userReference.collection('results').document())
         .setData({
       'date': Timestamp.fromDate(results.date.dateTime),
       'coach': coach.documentID,

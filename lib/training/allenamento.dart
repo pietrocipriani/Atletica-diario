@@ -134,8 +134,19 @@ class Allenamento {
   }
 
   /// updates [firestore] doc with new data
-  Future<void> save() {
-    return reference.setData({
+  Future<void> save([final bool asNew = false]) {
+    String name = this.name;
+    if (asNew) {
+      int copyNum = 1;
+      while (_allenamenti.values.any((a) => a.name == '$name ($copyNum)'))
+        copyNum++;
+      name = '$name ($copyNum)';
+    }
+
+    return (asNew
+            ? user.userReference.collection('trainings').document()
+            : reference)
+        .setData({
       'name': name,
       'description': descrizione,
       'serie': serie.map((serie) => serie.asMap).toList(),

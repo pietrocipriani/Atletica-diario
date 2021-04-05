@@ -13,8 +13,13 @@ import 'package:table_calendar/table_calendar.dart';
 
 class HomePageWidget extends StatefulWidget {
   final void Function(DateTime day) onSelectedDayChanged;
+  final Orientation orientation;
 
-  HomePageWidget({Key key, this.onSelectedDayChanged}) : super(key: key);
+  HomePageWidget(
+      {Key key,
+      this.onSelectedDayChanged,
+      this.orientation = Orientation.portrait})
+      : super(key: key);
 
   @override
   _HomePageWidgetState createState() => _HomePageWidgetState();
@@ -83,31 +88,44 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Column(
-      children: [
-        CustomCalendar(
-          controller: _calendarController,
-          onDaySelected: (day, events, holidays) =>
-              widget.onSelectedDayChanged?.call(day),
-          onCalendarCreated: (first, last, format) => widget
-              .onSelectedDayChanged
-              ?.call(_calendarController.selectedDay),
-          events: userC?.scheduledTrainings ?? {},
-        ),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          height: 1,
-          color: theme.disabledColor,
-        ),
-        Expanded(
-          child: ListView(
-            children: userC.scheduledTrainings[_calendarController.selectedDay]
-                    ?.map((st) => _trainingWidget(st))
-                    ?.toList() ??
-                [],
-          ),
-        ),
-      ],
+    final CustomCalendar calendar = CustomCalendar(
+      controller: _calendarController,
+      onDaySelected: (day, events, holidays) =>
+          widget.onSelectedDayChanged?.call(day),
+      onCalendarCreated: (first, last, format) =>
+          widget.onSelectedDayChanged?.call(_calendarController.selectedDay),
+      events: userC?.scheduledTrainings ?? {},
     );
+    final Widget list = Expanded(
+      child: ListView(
+        children: userC.scheduledTrainings[_calendarController.selectedDay]
+                ?.map((st) => _trainingWidget(st))
+                ?.toList() ??
+            [],
+      ),
+    );
+
+    return widget.orientation == Orientation.portrait
+        ? Column(children: [
+            calendar,
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              height: 1,
+              color: theme.disabledColor,
+            ),
+            list
+          ])
+        : Row(children: [
+            Padding(
+              padding: MediaQuery.of(context).padding,
+              child: AspectRatio(child: calendar, aspectRatio: 1),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
+              width: 1,
+              color: theme.disabledColor,
+            ),
+            list
+          ]);
   }
 }
