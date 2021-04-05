@@ -1,12 +1,15 @@
 import 'package:atletica/athlete/results/result_widget.dart';
 import 'package:atletica/date.dart';
+import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/allenamento.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
+//TODO: multiple training for day (for meeting purposes mainly)
 class Result {
+  DocumentReference reference;
   final Date date;
   final String training;
   final Map<SimpleRipetuta, double> results;
@@ -14,7 +17,10 @@ class Result {
   String info;
 
   Result(DocumentSnapshot raw)
-      : date = Date.parse(raw.documentID),
+      : reference = raw.reference,
+        date = raw['date'] == null
+            ? Date.parse(raw.documentID)
+            : Date.fromTimeStamp(raw['date']),
         training = raw['training'],
         results = Map.fromEntries(
           raw['results']
@@ -26,7 +32,9 @@ class Result {
               ),
         ),
         fatigue = raw['fatigue'],
-        info = raw['info'] ?? '';
+        info = raw['info'] ?? '' {
+    if (raw['date'] == null) userA?.saveResult(this);
+  }
 
   Result.empty(Allenamento training, this.date)
       : training = training.name,
@@ -37,16 +45,20 @@ class Result {
         );
 
   /// `training` is ScheduledTraining or Allenamento
-  bool isCompatible(dynamic training) {
+  bool isCompatible(final dynamic training, [final bool sameName = false]) {
     assert(training is ScheduledTraining || training is Allenamento);
     final Allenamento a =
         training is ScheduledTraining ? training.work : training;
     if (a == null) return false;
+    if (sameName && a.name != this.training) return false;
     return listEquals(
       results.keys.map((sr) => sr.name).toList(),
       a.ripetute.map((rip) => rip.template).toList(),
     );
   }
+
+  bool isNotCompatible(final dynamic training, [final bool sameName = false]) =>
+      !isCompatible(training, sameName ?? false);
 
   double resultAt(int index) {
     return results.values.elementAt(index);

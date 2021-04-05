@@ -6,6 +6,7 @@ class LogoutButton extends IconButton {
   LogoutButton({@required final BuildContext context})
       : super(
           icon: Icon(Icons.logout),
+          tooltip: 'LOGOUT',
           onPressed: () async {
             await logout();
             Navigator.pushAndRemoveUntil(

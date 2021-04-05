@@ -54,8 +54,8 @@ class AthleteHelper extends FirebaseUserHelper {
     justRequested = false;
   }
 
-  Result getResult(Date date) => results[
-      userReference.collection('results').document(date.formattedAsIdentifier)];
+  Iterable<Result> getResults(Date date) =>
+      results.values.where((r) => r.date == date);
 
   StreamSubscription<QuerySnapshot> _schedulesSubscription;
   StreamSubscription<QuerySnapshot> _trainingsSubscription;
@@ -169,11 +169,10 @@ class AthleteHelper extends FirebaseUserHelper {
     return true;
   }
 
-  Future<void> saveResult({@required Result results}) async {
-    userReference
-        .collection('results')
-        .document(results.date.formattedAsIdentifier)
+  Future<void> saveResult(Result results) {
+    return (results.reference ?? userReference.collection('results').document())
         .setData({
+      'date': Timestamp.fromDate(results.date.dateTime),
       'coach': coach.documentID,
       'training': results.training,
       'results':

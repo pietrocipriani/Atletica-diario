@@ -4,6 +4,7 @@ import 'package:atletica/athlete/atleta.dart';
 import 'package:atletica/athlete/group.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/training/allenamento.dart';
 import 'package:atletica/plan/tabella.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -47,7 +48,7 @@ class ScheduledTraining {
     @required DocumentReference work,
     @required DateTime date,
     Tabella plan,
-    List<Athlete> athletes,
+    List<DocumentReference> athletes,
     WriteBatch batch,
   }) {
     if (batch == null)
@@ -55,25 +56,35 @@ class ScheduledTraining {
         'work': work,
         'date': date,
         'plan': plan?.reference,
-        'athletes': athletes?.map((a) => a.reference)?.toList(),
+        'athletes': athletes?.toList(),
       });
     batch.setData(userC.userReference.collection('schedules').document(), {
       'work': work,
       'date': date,
       'plan': plan?.reference,
-      'athletes': athletes?.map((a) => a.reference)?.toList(),
+      'athletes': athletes?.toList(),
     });
   }
 
-  FutureOr<void> update({List<Athlete> athletes, WriteBatch batch}) {
-    
-    if (batch == null)
-      reference.updateData({
-        'athletes': FieldValue.arrayUnion(athletes.map((a) => a.reference).toList()),
-      });
-    batch.updateData(reference, {
-      'athletes': FieldValue.arrayUnion(athletes.map((a) => a.reference).toList()),
-    });
+  FutureOr<void> update(
+      {List<DocumentReference> athletes,
+      List<DocumentReference> removedAthletes,
+      WriteBatch batch}) {
+    if (batch == null) {
+      final WriteBatch b = firestore.batch();
+      update(athletes: athletes, removedAthletes: removedAthletes, batch: b);
+      return b.commit();
+    }
+    final List<DocumentReference> remainingAthletes = List.from(this.athletes);
+    if (removedAthletes != null)
+      remainingAthletes.removeWhere(removedAthletes.contains);
+    if (athletes != null)
+      remainingAthletes
+          .addAll(athletes.where((a) => !remainingAthletes.contains(a)));
+    if (remainingAthletes.isEmpty)
+      batch.delete(reference);
+    else
+      batch.updateData(reference, {'athletes': remainingAthletes});
   }
 
   bool get isValid => date < Date.now(); // ?

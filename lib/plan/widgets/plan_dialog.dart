@@ -36,6 +36,10 @@ class _PlanDialogState extends State<PlanDialog> {
             ?.where((a) => a != null)
             ?.toList() ??
         <Athlete>[];
+
+    if (stop?.isBefore(DateTime.now()) ??
+        start?.isBefore(DateTime.now()) ??
+        false) start = stop = null;
   }
 
   String validator([String s]) {
@@ -63,9 +67,7 @@ class _PlanDialogState extends State<PlanDialog> {
               autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: InputDecoration(labelText: 'nome'),
               validator: validator,
-              onChanged: (value) {
-                setState(() => name = value);
-              },
+              onChanged: (value) => setState(() => name = value),
             ),
             Row(
               children: <Widget>[
@@ -75,28 +77,30 @@ class _PlanDialogState extends State<PlanDialog> {
                     onPressed: () async {
                       start = await showDatePicker(
                             context: context,
-                            initialDate: start ?? firstAvaiableStartDay,
+                            initialDate: start == null ||
+                                    start.isBefore(firstAvaiableStartDay)
+                                ? firstAvaiableStartDay
+                                : start,
                             firstDate: firstAvaiableStartDay,
                             helpText: "seleziona la data di inizio",
                             selectableDayPredicate: (day) =>
                                 day.weekday == DateTime.monday,
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
+                            lastDate: firstAvaiableStartDay
+                                .add(const Duration(days: 7 * 52)),
                           ) ??
                           start;
-                      if (stop != null && start.isAfter(stop)) stop = start;
+                      if (stop != null && start.isAfter(stop))
+                        stop = start.add(const Duration(days: 6));
                       setState(() {});
                     },
-                    onLongPress: start == null
-                        ? null
-                        : () => setState(() => start = stop = null),
+                    onLongPress: () => setState(() => start = stop = null),
                     child: Text(_format(start)),
                   ),
                 ),
                 Text('al'),
                 Expanded(
                   child: TextButton(
-                    onPressed: stop == null && start == null
+                    onPressed: start == null
                         ? null
                         : () async {
                             stop = await showDatePicker(
@@ -108,14 +112,15 @@ class _PlanDialogState extends State<PlanDialog> {
                                       "seleziona la data di fine. Premi a lungo sulla data della schermata precendente per eliminare la scadenza.",
                                   selectableDayPredicate: (day) =>
                                       day.weekday == DateTime.sunday,
-                                  lastDate: DateTime.now()
-                                      .add(const Duration(days: 365)),
+                                  lastDate: firstAvaiableStartDay
+                                      .add(const Duration(days: 7 * 53)),
                                 ) ??
                                 stop;
                             setState(() {});
                           },
-                    onLongPress:
-                        stop == null ? null : () => setState(() => stop = null),
+                    onLongPress: start == null
+                        ? null
+                        : () => setState(() => stop = null),
                     child: Text(_format(stop)),
                   ),
                 )
@@ -145,9 +150,10 @@ class _PlanDialogState extends State<PlanDialog> {
                     else
                       widget.plan.update(
                         name: name,
-                        athletes: athletes,
+                        athletes: athletes.map((a) => a.reference).toList(),
                         start: start,
                         stop: stop,
+                        removingSchedules: start == null,
                       );
                     Navigator.pop(context, true);
                   },

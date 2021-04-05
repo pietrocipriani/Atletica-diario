@@ -40,6 +40,7 @@ class _ResultsRouteListState extends State<ResultsRouteList>
         children: [
           ListView(
             children: widget.athlete.results.values
+                .where((res) => !res.isBooking)
                 .map((res) => ResultWidget(res, widget.athlete))
                 .toList(),
           ),

@@ -8,6 +8,7 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:atletica/training/allenamento.dart';
 import 'package:atletica/training/training_description.dart';
+import 'package:atletica/training/widgets/training_info_route.dart';
 import 'package:flutter/material.dart';
 
 /// [Route] which displays the list of existing [Allenamento] (coach)
@@ -134,63 +135,88 @@ class _PathWidget extends StatelessWidget {
 }
 
 /// class for displaying a `training` preview
-class _TrainingWidget extends StatelessWidget {
-  /// the `training` to display
-  final Allenamento training;
+class _TrainingWidget extends StatefulWidget {
   final Key _key;
-
+  final Allenamento training;
   _TrainingWidget(this.training) : _key = ValueKey(training);
 
   @override
+  _TrainingWidgetState createState() => _TrainingWidgetState();
+}
+
+class _TrainingWidgetState extends State<_TrainingWidget> {
+  /// the `training` to display
+  int variant = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final String description = (training.descrizione?.isEmpty ?? true)
+    final String description = (widget.training.descrizione?.isEmpty ?? true)
         ? 'nessuna descrizione'
-        : training.descrizione;
+        : widget.training.descrizione;
 
     final List<Widget> children = <Widget>[
-      Text(
-        description,
-        style: Theme.of(context)
-            .textTheme
-            .overline
-            .copyWith(fontWeight: FontWeight.normal),
-        textAlign: TextAlign.justify,
+      Align(
+        alignment: Alignment.center,
+        child: Text(
+          description,
+          style: Theme.of(context)
+              .textTheme
+              .overline
+              .copyWith(fontWeight: FontWeight.normal),
+          textAlign: TextAlign.justify,
+        ),
       ),
       const SizedBox(height: 10),
     ];
 
-    children.addAll(TrainingDescription.fromTraining(context, training));
+    children.addAll(TrainingDescription.fromTraining(
+      context,
+      widget.training,
+      widget.training.variants[variant],
+    ));
 
     return CustomDismissible(
-      key: _key,
-      onDismissed: (direction) => training.delete(),
+      key: widget._key,
+      onDismissed: (direction) => widget.training.delete(),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd)
           return await showDeleteConfirmDialog(
             context: context,
-            name: training.name,
+            name: widget.training.name,
           );
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TrainingInfoRoute(allenamento: training),
+            builder: (context) =>
+                TrainingInfoRoute(allenamento: widget.training),
           ),
-        ).then((value) => training.save());
+        ).then((value) => widget.training.save());
         return false;
       },
       child: CustomExpansionTile(
-        title: training.name,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Column(children: children),
-          )
-        ],
-        leading: LeadingInfoWidget(
-          info: training.countRipetute().toString(),
-          bottom: singularPlural('ripetut', 'a', 'e', training.countRipetute()),
-        ),
-      ),
+          title: widget.training.name,
+          childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
+          children: children,
+          leading: LeadingInfoWidget(
+            info: widget.training.countRipetute().toString(),
+            bottom: singularPlural(
+                'ripetut', 'a', 'e', widget.training.countRipetute()),
+          ),
+          trailing:
+              /*GestureDetector(
+          onTap: () => setState(
+              () => variant = (variant + 1) % widget.training.variants.length),
+          onLongPress: () => setState(() => variant = 0),
+          child: LeadingInfoWidget(
+            info: '${variant + 1}',
+            bottom: 'variante',
+          ),
+        ),*/
+              IconButton(
+            icon: Icon(Icons.copy),
+            onPressed: () => widget.training.save(true),
+            color: IconTheme.of(context).color,
+          )),
     );
   }
 }

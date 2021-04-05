@@ -44,10 +44,15 @@ class Week {
   @override
   String toString([bool extended = false]) {
     if (!extended)
-      return trainings?.values
-              ?.where((t) => t != null)
-              ?.map((a) => allenamenti(a))
-              ?.join(', ') ??
+      return () sync* {
+            if (trainings == null) return;
+            for (int i = 0; i < 7; i++) {
+              final DocumentReference t = trainings[(i + DateTime.monday) % 7];
+              if (t == null) continue;
+              yield allenamenti(t);
+            }
+          }()
+              .join(', ') ??
           'nessun allenamento';
     return () sync* {
       for (int i = 0; i < weekdays.length; i++)

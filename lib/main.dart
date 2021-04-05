@@ -12,8 +12,6 @@ import 'package:intl/date_symbol_data_local.dart';
 
 const double kListTileHeight = 72.0;
 
-// TODO: user sign out
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //await Firebase.initializeApp();
@@ -26,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Atletica',
-      theme: lightTheme, // TODO: add dark Theme
+      theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
       home: SplashScreen(),

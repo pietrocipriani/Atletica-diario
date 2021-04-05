@@ -55,42 +55,56 @@ class Tabella {
     });
   }
 
+  DocumentReference getScheduledTraining({
+    @required final Date date,
+    List<Week> weeks,
+    dynamic start,
+  }) {
+    weeks ??= this.weeks;
+    start ??= this.start;
+    if (date == null || start == null || (weeks?.isEmpty ?? true)) return null;
+    final int week = ((date - start).inDays ~/ 7) % weeks.length;
+    return weeks[week].trainings[date.weekday % 7];
+  }
+
   void _removeScheduledTrainings({
     @required final List<Week> newWeeks,
-    @required final List<Athlete> athletes,
+    @required final List<DocumentReference> athletes,
     @required final Date start,
     @required final Date stop,
     @required final WriteBatch batch,
   }) {
+    if (this.start == null || this.weeks.isEmpty)
+      return; // if this wasn't a scheduled plan
     final Date now = Date.now();
-    for (MapEntry<DateTime, List<ScheduledTraining>> e
-        in userC.scheduledTrainings.entries) {
-      if (e.value == null || now > e.key) continue;
+
+    userC.scheduledTrainings.entries.forEach((final e) {
+      if (e.value == null || now > e.key)
+        return; // TODO: check if ignore same-day trainings
       final Date date = Date.fromDateTime(e.key);
-      final bool defaultDelete =
+      if (date < this.start || date > this.stop) return;
+      final DocumentReference oldScheduled = getScheduledTraining(date: date);
+      if (oldScheduled == null) return; // nothing was scheduled for this day
+      bool delete =
           start == null || date < start || date > stop || newWeeks.isEmpty;
-      final int week =
-          defaultDelete ? null : ((date - start).inDays ~/ 7) % newWeeks.length;
-      final DocumentReference scheduled =
-          defaultDelete ? null : newWeeks[week].trainings[date.weekday];
+      final DocumentReference scheduled = delete
+          ? null
+          : getScheduledTraining(date: date, start: start, weeks: newWeeks);
+      delete |= scheduled != oldScheduled;
       for (ScheduledTraining st in e.value) {
-        if (st.plan != reference) continue;
-        bool delete = defaultDelete;
-        delete |= st.workRef != scheduled;
-        if (delete)
-          batch.delete(st.reference);
-        else
-          st.update(
-            athletes: athletes,
-            batch: batch,
-          ); //TODO: non vengono più eliminati gli atleti vecchi
+        if (st.workRef != oldScheduled) continue;
+        st.update(
+          athletes: delete ? null : athletes,
+          removedAthletes: this.athletes,
+          batch: batch,
+        );
       }
-    }
+    });
   }
 
   void _addScheduledTrainings({
     @required final List<Week> weeks,
-    @required final List<Athlete> athletes,
+    @required final List<DocumentReference> athletes,
     @required final Date start,
     @required final Date stop,
     @required final WriteBatch batch,
@@ -99,9 +113,11 @@ class Tabella {
     final Date now = Date.now();
 
     for (Date current = start; current <= stop; current++) {
-      final int week = ((current - start).inDays ~/ 7) % weeks.length;
-      final DocumentReference training = weeks[week].trainings[current.weekday];
-      if (current < now || training == null) continue;
+      // FIXME: stop is ignored
+      if (current < now) continue;
+      final DocumentReference training =
+          getScheduledTraining(date: current, start: start, weeks: weeks);
+      if (training == null) continue;
       if (userC.scheduledTrainings[current.dateTime]
               ?.any((st) => st.workRef == training) ??
           false) {
@@ -109,7 +125,6 @@ class Tabella {
             .firstWhere((st) => st.workRef == training);
         st.update(athletes: athletes, batch: batch);
       } else {
-        // TODO: if already exists, check for `plan`
         ScheduledTraining.create(
           work: training,
           date: current.dateTime,
@@ -124,23 +139,21 @@ class Tabella {
   Future<void> update({
     String name,
     List<Week> weeks,
-    List<Athlete> athletes,
+    List<DocumentReference> athletes,
     DateTime start,
     DateTime stop,
+    bool removingSchedules = false,
   }) {
     weeks ??= this.weeks;
-    athletes ??= this
-        .athletes
-        .map((a) => userC.rawAthletes[a])
-        .where((a) => a != null)
-        .toList();
-    start ??= this.start;
-    stop ??= this.stop;
+    athletes ??=
+        this.athletes.where((a) => userC.rawAthletes.containsKey(a)).toList();
+    if (!removingSchedules) start ??= this.start;
+    if (!removingSchedules) stop ??= this.stop;
     final WriteBatch batch = firestore.batch();
     batch.updateData(reference, {
       'name': name ?? this.name,
       'weeks': weeks.map((week) => week.asMap).toList(),
-      'athletes': athletes?.map((a) => a.reference)?.toList(),
+      'athletes': athletes?.toList(),
       'start': start,
       'stop': stop
     });
@@ -178,6 +191,7 @@ class Tabella {
   Future<bool> modify({@required BuildContext context}) {
     return showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => PlanDialog(this),
     );
   }

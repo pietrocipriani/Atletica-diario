@@ -1,4 +1,4 @@
-import 'package:atletica/athlete_role/main.dart';
+import 'package:atletica/athlete_role/athlete_main_page.dart';
 import 'package:atletica/coach_role/main.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:dotted_border/dotted_border.dart';

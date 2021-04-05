@@ -4,8 +4,15 @@ import 'package:atletica/recupero/recupero_dialog.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/training/serie.dart';
+import 'package:atletica/training/variant.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
+
+class Pair<T, S> {
+  final T v1;
+  final S v2;
+  Pair(this.v1, this.v2);
+}
 
 class Ripetuta {
   final LayerLink link = LayerLink();
@@ -20,7 +27,6 @@ class Ripetuta {
 
   Ripetuta(
       {@required this.template,
-      this.target,
       this.ripetizioni = 1,
       this.nextRecupero,
       this.recupero}) {
@@ -37,24 +43,25 @@ class Ripetuta {
 
   Map<String, dynamic> get asMap => {
         'template': template,
-        'target': target,
         'recupero': recupero.recupero,
         'times': ripetizioni,
         'recuperoNext': nextRecupero.recupero
       };
 
-  static Future<Ripetuta> fromDialog({@required BuildContext context}) async {
-    SimpleTemplate template;
-    TextEditingController controller = TextEditingController();
-    double target;
-    return showDialog<Ripetuta>(
+  static Future<Pair<Ripetuta, double>> fromDialog(
+      {@required BuildContext context,
+      Ripetuta ripetuta,
+      double target}) async {
+    SimpleTemplate template = templates[ripetuta?.template];
+    assert((ripetuta == null) == (template == null));
+    TextEditingController controller =
+        TextEditingController(text: template?.name);
+    return showDialog<Pair<Ripetuta, double>>(
       barrierDismissible: false,
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           scrollable: true,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text('RIPETUTA'),
           content: Column(
             children: <Widget>[
@@ -200,8 +207,9 @@ class Ripetuta {
                 ),*/
               if (template != null)
                 TextFormField(
-                  controller:
-                      TextEditingController(text: template.formattedTarget),
+                  controller: TextEditingController(
+                      text: template.tipologia.targetFormatter(target) ??
+                          template.formattedTarget),
                   decoration: InputDecoration(
                     hintText: 'target',
                     suffixText: template.tipologia.targetSuffix,
@@ -230,14 +238,17 @@ class Ripetuta {
                   ? null
                   : () async {
                       template.lastTarget = target ?? template.lastTarget;
-                      await template.create();
+                      if (!(template is Template)) await template.create();
 
-                      final Ripetuta ripetuta = Ripetuta(
-                        template: template.name,
-                        target: target,
-                      );
+                      if (ripetuta == null)
+                        ripetuta = Ripetuta(
+                          template: template.name,
+                        );
+                      else
+                        ripetuta.template = template.name;
 
-                      Navigator.pop(context, ripetuta);
+                      Navigator.pop(
+                          context, Pair<Ripetuta, double>(ripetuta, target));
                     },
               child: Text('Conferma'),
             ),
@@ -248,15 +259,30 @@ class Ripetuta {
   }
 
   Widget widget(
-    BuildContext context,
-    void Function(void Function()) setState, {
-    @required Serie serie,
+    final BuildContext context,
+    final void Function(void Function()) setState, {
+    @required final Serie serie,
+    @required final Variant active,
   }) {
     final ThemeData theme = Theme.of(context);
     return CustomDismissible(
       key: ValueKey(this),
-      direction: DismissDirection.startToEnd,
-      onDismissed: (direction) => setState(() => serie.ripetute.remove(this)),
+      direction: DismissDirection.horizontal,
+      onDismissed: (direction) async {
+        setState(() => serie.ripetute.remove(this));
+      },
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) return true;
+        final Pair<Ripetuta, double> rip = await fromDialog(
+          context: context,
+          ripetuta: this,
+          target: active.targets[this],
+        );
+        if (rip == null) return false;
+        assert(rip.v1 == this);
+        setState(() => active.targets[this] = rip.v2);
+        return false;
+      },
       child: Container(
         color: theme.scaffoldBackgroundColor,
         child: CustomListTile(
@@ -337,7 +363,9 @@ class Ripetuta {
                   ),
                 ),
               if (templates[template] != null)
-                Text(templates[template].tipologia.targetFormatter(target))
+                Text(templates[template]
+                    .tipologia
+                    .targetFormatter(active.targets[this]))
             ],
           ),
           trailing: Stack(

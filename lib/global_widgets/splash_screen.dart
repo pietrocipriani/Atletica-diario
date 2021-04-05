@@ -1,4 +1,4 @@
-import 'package:atletica/athlete_role/main.dart';
+import 'package:atletica/athlete_role/athlete_main_page.dart';
 import 'package:atletica/coach_role/main.dart';
 import 'package:atletica/global_widgets/mode_selector_route.dart';
 import 'package:atletica/persistence/auth.dart';

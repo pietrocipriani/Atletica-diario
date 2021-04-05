@@ -73,12 +73,12 @@ class Athlete {
   Athlete.parse(DocumentSnapshot raw, bool exists)
       : reference = raw.reference,
         uid = exists ? raw.documentID : null,
-        athlete =
-            exists ? firestore.collection('users').document(raw.documentID) : null {
+        athlete = exists
+            ? firestore.collection('users').document(raw.documentID)
+            : null {
     name = raw['nickname'];
     group = raw['group'];
 
-    // TODO: it stopped working!
     _trainingsCountSubscription =
         auth.userC.resultSnapshots(athlete: this).listen((e) {
       if (e == null) return;
@@ -132,4 +132,7 @@ class Athlete {
       builder: (context) => dialog(context: context, atleta: this),
     );
   }
+
+  @override
+  String toString() => name;
 }

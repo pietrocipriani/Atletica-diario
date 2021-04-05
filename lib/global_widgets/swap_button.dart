@@ -8,6 +8,7 @@ class SwapButton extends IconButton {
   SwapButton({@required final BuildContext context})
       : super(
           icon: Icon(Icons.swap_vert),
+          tooltip: 'CAMBIA RUOLO',
           onPressed: () async {
             await user.userReference.updateData(
                 {'role': user is AthleteHelper ? COACH_ROLE : ATHLETE_ROLE});
