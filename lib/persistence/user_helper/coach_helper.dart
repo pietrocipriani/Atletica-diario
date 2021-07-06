@@ -53,7 +53,8 @@ class CoachHelper extends FirebaseUserHelper {
   CoachHelper({
     @required FirebaseUser user,
     @required DocumentReference userReference,
-  }) : super(user: user, userReference: userReference) {
+    bool admin = false,
+  }) : super(user: user, userReference: userReference, admin: admin) {
     firestore
         .collection('global')
         .document('templates')
@@ -118,8 +119,12 @@ class CoachHelper extends FirebaseUserHelper {
   Future<void> saveResult({
     @required DocumentReference athlete,
     @required Result results,
-  }) async {
-    rawAthletes[athlete].resultsDoc.collection('results').document().setData({
+  }) {
+    return rawAthletes[athlete]
+        .resultsDoc
+        .collection('results')
+        .document(results.reference?.documentID)
+        .setData({
       'date': Timestamp.fromDate(results.date.dateTime),
       'coach': uid,
       'training': results.training,
@@ -135,11 +140,9 @@ class CoachHelper extends FirebaseUserHelper {
     final Date date,
   }) {
     final DocumentReference ref = athlete.resultsDoc;
-    Query q = ref
-        .collection('results')
-        .where('coach', isEqualTo: uid);
-        //TODO: ripristinate filtering & ordering when all the results have the 'date' field
-        //.orderBy('date', descending: true);
+    Query q = ref.collection('results').where('coach', isEqualTo: uid);
+    //TODO: ripristinate filtering & ordering when all the results have the 'date' field
+    //.orderBy('date', descending: true);
     /*if (date != null)
       q = q.where('date', isEqualTo: Timestamp.fromDate(date.dateTime));*/
     return q.snapshots();

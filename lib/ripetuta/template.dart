@@ -19,7 +19,7 @@ class SimpleTemplate {
     return user.userReference
         .collection('templates')
         .document(name)
-        .setData({'lastTarget': lastTarget});
+        .setData({'lastTarget': lastTarget, 'tipologia': tipologia.name});
   }
 
   SimpleTemplate({@required this.name, this.tipologia, this.lastTarget});
@@ -30,15 +30,29 @@ class SimpleTemplate {
 
 class Template extends SimpleTemplate {
   Template.parse(DocumentSnapshot raw)
-      : this(name: raw.documentID, lastTarget: raw['lastTarget']);
+      : this(
+          name: raw.documentID,
+          lastTarget: raw['lastTarget'],
+          tipologia: Tipologia.parse(raw['tipologia']),
+        );
 
-  Template({@required String name, double lastTarget})
-      : super(
+  Template({
+    @required String name,
+    double lastTarget,
+    Tipologia tipologia,
+  }) : super(
           name: name,
           lastTarget: lastTarget,
-          tipologia: Tipologia.corsaDist,
+          tipologia: tipologia,
         ) {
     templates[name] = this;
+  }
+
+  Future<void> update() {
+    return user.userReference
+        .collection('templates')
+        .document(name)
+        .updateData({'lastTarget': lastTarget, 'tipologia': tipologia.name});
   }
 }
 
@@ -56,7 +70,7 @@ class RegularExpressions {
 class Tipologia {
   final String name;
   final Widget Function({Color color}) icon;
-  final Function(double value) targetFormatter;
+  final String Function(double value) targetFormatter;
   final bool Function(String s) targetValidator;
   final String targetScheme;
   final String targetSuffix;
@@ -79,9 +93,14 @@ class Tipologia {
     esercizi,
   ];
 
+  static Tipologia parse(final String raw) {
+    for (final Tipologia t in values) if (t.name == raw) return t;
+    return Tipologia.corsaDist;
+  }
+
   static final Tipologia corsaDist = Tipologia(
     name: 'corsa',
-    icon: ({color = Colors.black}) => Icon(
+    icon: ({color}) => Icon(
       Icons.directions_run,
       color: color,
     ),
@@ -98,7 +117,7 @@ class Tipologia {
   );
   static final Tipologia corsaTemp = Tipologia(
     name: 'corsa a tempo',
-    icon: ({color = Colors.black}) => Stack(
+    icon: ({color}) => Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: <Widget>[
@@ -117,15 +136,14 @@ class Tipologia {
         ),
       ],
     ),
-    targetFormatter: (target) => target?.round() ?? '',
+    targetFormatter: (target) => target == null ? '' : '${target.round()} m',
     targetValidator: (s) => RegularExpressions.integer.hasMatch(s),
     targetScheme: 'es: 5000 m',
-    targetSuffix: 'm',
     targetParser: (target) => double.parse(target),
   );
   static final Tipologia palestra = Tipologia(
     name: 'palestra',
-    icon: ({color = Colors.black}) => Icon(
+    icon: ({color}) => Icon(
       Mdi.weightLifter,
       color: color,
     ),

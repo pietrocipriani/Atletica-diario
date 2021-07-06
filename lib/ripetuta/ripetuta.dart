@@ -76,14 +76,18 @@ class Ripetuta {
                 clearOnSubmit: false,
                 key: GlobalKey(),
                 textSubmitted: (value) {
-                  /*bool dist = RegExp(r'\d+\s*[mM][\s$]').hasMatch(value);
+                  bool dist = RegExp(r'\d+\s*[mM][\s$]').hasMatch(value);
                   bool temp =
-                      RegExp(r'\d+\s*(mins?)||(h(ours?)?)').hasMatch(value);*/
+                      RegExp(r'\d+\s*(mins?)||(h(ours?)?)').hasMatch(value);
 
                   template = templates[value] ??
                       SimpleTemplate(
                         name: value,
-                        tipologia: Tipologia.corsaDist,
+                        tipologia: dist
+                            ? Tipologia.corsaDist
+                            : temp
+                                ? Tipologia.corsaTemp
+                                : Tipologia.corsaDist,
                       );
                   setState(() => target = template.lastTarget);
                 },
@@ -121,90 +125,48 @@ class Ripetuta {
                 itemFilter: (suggestion, query) =>
                     suggestion.name.contains(query),
               ),
-              /*if (template != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Stack(
-                    overflow: Overflow.visible,
-                    children: <Widget>[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: templates.containsValue(template)
-                                ? Colors.red
-                                : Theme.of(context).primaryColor,
-                            width: 2,
-                          ),
+              if (template != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [Tipologia.corsaDist, Tipologia.corsaTemp]
+                      .map(
+                        (tipologia) => IconButton(
+                          onPressed: () => setState(() {
+                            template.tipologia = tipologia;
+                          }),
+                          icon: tipologia.icon(),
+                          color: template.tipologia == tipologia
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).disabledColor,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: Tipologia.values
-                              .map(
-                                (tipologia) => GestureDetector(
-                                  onTap: () => setState(() {
-                                    template.tipologia = tipologia;
-                                  }),
-                                  child: AnimatedContainer(
-                                    duration: Duration(milliseconds: 500),
-                                    width: 42,
-                                    height: 42,
-                                    margin: const EdgeInsets.all(4.0),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      boxShadow: [
-                                        if (template.tipologia == tipologia)
-                                          BoxShadow(
-                                            blurRadius: 8,
-                                            spreadRadius: -3,
-                                            offset: Offset(2, 2),
-                                          ),
-                                      ],
-                                      shape: BoxShape.circle,
-                                      color: template.tipologia == tipologia
-                                          ? Theme.of(context).primaryColorDark
-                                          : Theme.of(context).primaryColorLight,
+                      )
+                      .toList(),
+                ),
+              /*Positioned(
+                      left: 20,
+                      right: 20,
+                      top: -Theme.of(context).textTheme.overline.fontSize / 2,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          color: Theme.of(context).dialogBackgroundColor,
+                          child: Text(
+                            templates.contains(template)
+                                ? 'modifica tutti i ${template.name}'
+                                : 'definisci ${template.name}',
+                            style:
+                                Theme.of(context).textTheme.overline.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: templates.contains(template)
+                                          ? Colors.red
+                                          : Theme.of(context).accentColor,
                                     ),
-                                    child: tipologia.icon(
-                                      color: template.tipologia == tipologia
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                      Positioned(
-                        left: 20,
-                        right: 20,
-                        top: -Theme.of(context).textTheme.overline.fontSize / 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            color: Theme.of(context).dialogBackgroundColor,
-                            child: Text(
-                              templates.contains(template)
-                                  ? 'modifica tutti i ${template.name}'
-                                  : 'definisci ${template.name}',
-                              style:
-                                  Theme.of(context).textTheme.overline.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: templates.contains(template)
-                                            ? Colors.red
-                                            : Theme.of(context).accentColor,
-                                      ),
-                            ),
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),*/
+                    ),*/
+
               if (template != null)
                 TextFormField(
                   controller: TextEditingController(
@@ -238,7 +200,10 @@ class Ripetuta {
                   ? null
                   : () async {
                       template.lastTarget = target ?? template.lastTarget;
-                      if (!(template is Template)) await template.create();
+                      if (template is Template)
+                        await (template as Template).update();
+                      else
+                        await template.create();
 
                       if (ripetuta == null)
                         ripetuta = Ripetuta(

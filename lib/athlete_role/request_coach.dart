@@ -1,5 +1,6 @@
 import 'package:atletica/global_widgets/animated_text.dart';
 import 'package:atletica/global_widgets/logout_button.dart';
+import 'package:atletica/global_widgets/runas_button.dart';
 import 'package:atletica/global_widgets/swap_button.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
@@ -50,6 +51,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
           actions: [
             LogoutButton(context: context),
             SwapButton(context: context),
+            if (user.admin) RunasButton(context: context),
           ],
         ),
         body: Padding(

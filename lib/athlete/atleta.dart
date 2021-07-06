@@ -83,9 +83,7 @@ class Athlete {
         auth.userC.resultSnapshots(athlete: this).listen((e) {
       if (e == null) return;
       final QuerySnapshot cast = e;
-      print(cast.documentChanges);
       for (DocumentChange change in cast.documentChanges) {
-        print(change.type);
         if (change.type == DocumentChangeType.removed)
           results.remove(change.document.documentID);
         else
@@ -96,7 +94,6 @@ class Athlete {
         else
           _reloadPbsTbs();
       }
-      print(results);
     });
   }
 

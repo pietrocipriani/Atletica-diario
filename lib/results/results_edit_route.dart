@@ -1,4 +1,5 @@
 import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/results/results_route.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
@@ -83,9 +84,23 @@ class ResultsEditRoute extends StatelessWidget {
                             : Color.lerp(Colors.green, Colors.red,
                                 results.results[a].fatigue / icons.length),
                       ),
-                      trailing: LeadingInfoWidget(
-                        info: '$count/${results.ripetuteCount}',
-                        bottom: singularPlural('risultat', 'o', 'i', count),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.compare_arrows),
+                            onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ResultsRouteList(athlete, res.training),
+                                )),
+                          ),
+                          LeadingInfoWidget(
+                            info: '$count/${results.ripetuteCount}',
+                            bottom: singularPlural('risultat', 'o', 'i', count),
+                          ),
+                        ],
                       ),
                       childrenBackgroundColor: Theme.of(context).primaryColor,
                       childrenPadding: const EdgeInsets.all(8),

@@ -12,7 +12,10 @@ Firestore firestore = Firestore.instance;
 DocumentReference userFromUid(final String uid) =>
     firestore.collection('users').document(uid);
 
-Future<void> initFirestore([final String runas]) async {
+Future<void> initFirestore([
+  final String runas,
+  final bool admin,
+]) async {
   trainingsReset();
   plans.clear();
   //firestore.settings(persistenceEnabled: true);
@@ -23,18 +26,19 @@ Future<void> initFirestore([final String runas]) async {
   if (!snapshot.exists)
     await userDoc.setData({'name': rawUser.displayName});
   else if (snapshot['runas'] != null && snapshot['runas'].isNotEmpty)
-    return await initFirestore(snapshot['runas']);
+    return await initFirestore(snapshot['runas'], snapshot['admin'] ?? false);
   else if (snapshot['role'] != null) {
-    print(snapshot['role']);
     if (snapshot['role'] == COACH_ROLE)
       user = CoachHelper(
         user: rawUser,
         userReference: userFromUid(runas ?? rawUser.uid),
+        admin: admin ?? snapshot['admin'] ?? false,
       );
     else if (snapshot['role'] == ATHLETE_ROLE)
       user = AthleteHelper(
         user: rawUser,
         userReference: userFromUid(runas ?? rawUser.uid),
+        admin: admin ?? snapshot['admin'] ?? false,
       );
   }
 }

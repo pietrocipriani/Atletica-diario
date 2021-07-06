@@ -33,13 +33,19 @@ dynamic get rawUser => _user;
 
 abstract class FirebaseUserHelper {
   final FirebaseUser user;
-  String get uid => user.uid;
+  final bool admin;
+  String get uid => userReference.documentID;
   String get name => user.displayName;
   String get email => user.email;
   final DocumentReference userReference;
+  final DocumentReference realUser;
 
-  FirebaseUserHelper({@required this.user, @required this.userReference})
-      : assert(user != null);
+  FirebaseUserHelper({
+    @required this.user,
+    @required this.userReference,
+    this.admin = false,
+  })  : assert(user != null),
+        this.realUser = userFromUid(user.uid);
 }
 
 class BasicUser {
@@ -63,18 +69,23 @@ class Request extends BasicUser {
 Stream<double> login({@required BuildContext context}) async* {
   final int N = 4;
   yield 0;
+  print('logging');
 
   if (rawUser != null) {
+    print('already authenticated');
     await initFirestore();
     yield 1;
     return;
   }
+  print('requesting google account');
 
   do {
     _guser =
         await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
     if (_guser == null) await requestLoginDialog(context: context);
   } while (_guser == null);
+
+  print('authenticating google');
 
   yield 1 / N;
   _auth = await _guser.authentication;

@@ -22,8 +22,9 @@ MapEntry<String, double> parseRawResult(String rawResult) {
 class ResultWidget extends StatelessWidget {
   final Result res;
   final Athlete athlete;
+  final void Function(String) onFilter;
 
-  ResultWidget(this.res, this.athlete);
+  ResultWidget(this.res, this.athlete, {this.onFilter});
 
   @override
   Widget build(BuildContext context) => CustomExpansionTile(
@@ -41,6 +42,12 @@ class ResultWidget extends StatelessWidget {
               : Color.lerp(
                   Colors.green, Colors.red, res.fatigue / icons.length),
         ),
+        trailing: onFilter == null
+            ? null
+            : IconButton(
+                icon: Icon(Icons.filter_alt),
+                onPressed: () => onFilter(res.training),
+              ),
         childrenBackgroundColor: Theme.of(context).primaryColor,
         childrenPadding: const EdgeInsets.all(8),
         children: res.asIterable

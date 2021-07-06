@@ -115,8 +115,8 @@ class AthleteHelper extends FirebaseUserHelper {
   AthleteHelper({
     @required FirebaseUser user,
     @required DocumentReference userReference,
-  }) : super(user: user, userReference: userReference) {
-    print(userReference.path);
+    bool admin = false,
+  }) : super(user: user, userReference: userReference, admin: admin) {
     _init();
   }
 
@@ -138,14 +138,14 @@ class AthleteHelper extends FirebaseUserHelper {
       coachCallAll();
     });
 
+    print('initted');
+    print(StackTrace.current);
+
     userReference.collection('results').snapshots().listen((snap) {
-      print(results);
       bool modified = false;
       for (DocumentChange change in snap.documentChanges)
         modified |= resultSnapshot(change.document, change.type);
       if (modified) resultsCallAll();
-      print(results.values);
-      print(results.entries.map((e) => e.value));
     });
   }
 

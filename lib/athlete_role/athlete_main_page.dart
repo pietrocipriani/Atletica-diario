@@ -2,6 +2,7 @@ import 'package:atletica/athlete_role/request_coach.dart';
 import 'package:atletica/global_widgets/custom_calendar.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/logout_button.dart';
+import 'package:atletica/global_widgets/runas_button.dart';
 import 'package:atletica/global_widgets/swap_button.dart';
 import 'package:atletica/results/pbs/pbs_page_route.dart';
 import 'package:atletica/results/result.dart';
@@ -10,7 +11,6 @@ import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:atletica/results/results_edit_dialog.dart';
-import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/allenamento.dart';
 import 'package:atletica/training/training_description.dart';
@@ -122,6 +122,7 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
         ),
         LogoutButton(context: context),
         SwapButton(context: context),
+        if (user.admin) RunasButton(context: context),
       ];
 
       return Scaffold(

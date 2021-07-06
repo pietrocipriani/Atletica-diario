@@ -31,7 +31,9 @@ Future<void> showResultsEditDialog(
           ),
           TextButton(
             onPressed: () async {
+              print('saving');
               await save(results);
+              print('saved');
               Navigator.pop(context);
             },
             child: Text('Salva'),
@@ -62,9 +64,6 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
   bool _acceptable(String s) {
     if (s == null || s.isEmpty) return true;
     final bool match = Tipologia.corsaDist.targetValidator(s);
-    print('is |$s| acceptable? $match');
-    print(
-        'I should return ${s != null} && ($match || ${s.isEmpty}) = ${s != null && (match || s.isEmpty)}');
     return s != null && (match || s.isEmpty);
   }
 

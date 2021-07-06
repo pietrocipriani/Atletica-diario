@@ -151,8 +151,8 @@ class Allenamento {
       'description': descrizione,
       'serie': serie.map((serie) => serie.asMap).toList(),
       'variants': variants.map((v) => v.asMap(this)).toList(),
-      'tag1': tag1,
-      'tag2': tag2,
+      'tag1': tag1?.trim(),
+      'tag2': tag2?.trim(),
     });
   }
 
