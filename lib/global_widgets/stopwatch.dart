@@ -9,7 +9,7 @@ import 'package:atletica/running_training/running_training.dart' as rt;
 class StopWatch extends StatefulWidget {
   final rt.TickerProvider ticker;
 
-  StopWatch({@required this.ticker});
+  StopWatch({required this.ticker});
 
   @override
   _StopWatchState createState() => _StopWatchState();
@@ -88,7 +88,7 @@ class _SnakeCircle extends CustomPainter {
   final double angle;
   final Paint p = Paint();
 
-  _SnakeCircle({@required this.color, @required this.angle}) {
+  _SnakeCircle({required this.color, required this.angle}) {
     p.strokeWidth = 10;
     p.style = PaintingStyle.stroke;
     p.strokeCap = StrokeCap.round;

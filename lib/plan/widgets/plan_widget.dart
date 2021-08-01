@@ -1,13 +1,13 @@
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/plan/plan.dart';
 import 'package:atletica/plan/week.dart';
 import 'package:atletica/plan/widgets/week_widget.dart';
 import 'package:flutter/material.dart';
 
 class PlanWidget extends StatefulWidget {
-  final Tabella plan;
+  final Plan plan;
   PlanWidget(this.plan);
 
   @override
@@ -20,7 +20,7 @@ class _PlanWidgetState extends State<PlanWidget> {
         key: ValueKey(widget.plan.reference),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.endToStart) {
-            if (await widget.plan.modify(context: context) ?? false) setState(() {});
+            if (await widget.plan.modify(context: context)) setState(() {});
             return false;
           }
           return await showDeleteConfirmDialog(
@@ -30,7 +30,7 @@ class _PlanWidgetState extends State<PlanWidget> {
         },
         onDismissed: (direction) => widget.plan.delete(),
         child: CustomExpansionTile(
-          subtitle: (widget.plan.athletes?.isEmpty ?? true)
+          subtitle: widget.plan.athletes.isEmpty
               ? null
               : Text(
                   widget.plan.athletesAsList,
@@ -39,7 +39,7 @@ class _PlanWidgetState extends State<PlanWidget> {
           trailing: IconButton(
             icon: Icon(Icons.add_circle),
             onPressed: () async {
-              final Week week = await Week.fromDialog(context);
+              final Week? week = await Week.fromDialog(context);
               if (week != null) {
                 widget.plan.update(
                   weeks: widget.plan.weeks.followedBy([week]).toList(),

@@ -7,25 +7,25 @@ class Pb {
   final List<SimpleResult> results = [];
 
   int get count => results.length;
-  double get best => results.first.r;
+  double? get best => results.first.r;
   bool get isEmpty => results.isEmpty;
   int realCount = 0;
 
   void put(
-      {@required final Result result,
-      @required final int index,
-      @required final double value}) {
+      {required final Result result,
+      required final int index,
+      required final double? value}) {
     realCount++;
     if (value == null) return;
-    final int i = results.lastIndexWhere((r) => r.r < value) + 1;
+    final int i = results.lastIndexWhere((r) => r.r! < value) + 1;
     results.insert(i, SimpleResult(result: result, index: index));
   }
 }
 
 class SimpleResult {
   final Result _result;
-  final double r;
-  SimpleResult({@required final Result result, @required final int index})
+  final double? r;
+  SimpleResult({required final Result result, required final int index})
       : _result = result,
         r = result.resultAt(index);
 

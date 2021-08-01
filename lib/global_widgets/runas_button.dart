@@ -6,16 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
 class RunasButton extends IconButton {
-  RunasButton({@required final BuildContext context})
+  RunasButton({required final BuildContext context})
       : super(
           icon: Icon(Mdi.console),
           tooltip: '# RUNAS',
           onPressed: () async {
-            String runas = await _showRunasDialog(context: context);
+            String? runas = await _showRunasDialog(context: context);
             if (runas == null) return;
             if (runas == auth.user.user.uid) runas = null;
 
-            await auth.user.realUser.updateData({'runas': runas});
+            await auth.user.realUser.update({'runas': runas});
             auth.user = auth.user.user;
             Navigator.pushAndRemoveUntil(
               context,
@@ -26,15 +26,15 @@ class RunasButton extends IconButton {
         );
 }
 
-Future<String> _showRunasDialog({@required final BuildContext context}) =>
+Future<String?> _showRunasDialog({required final BuildContext context}) =>
     showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         scrollable: true,
         content: FutureBuilder<QuerySnapshot>(
-          future: firestore.collection('users').orderBy('name').getDocuments(),
+          future: firestore.collection('users').orderBy('name').get(),
           builder: (context, snapshot) =>
-              _RunasDialog(snapshot.data?.documents ?? []),
+              _RunasDialog(snapshot.data?.docs ?? []),
         ),
       ),
     );
@@ -74,15 +74,15 @@ class _RunasDialogState extends State<_RunasDialog> {
                         .every(user['name'].toLowerCase().contains))
                 .map(
                   (user) => GestureDetector(
-                    onTap: () => Navigator.pop(context, user.documentID),
+                    onTap: () => Navigator.pop(context, user.id),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         user["name"],
-                        style: user.documentID == auth.user.user.uid
+                        style: user.id == auth.user.user.uid
                             ? Theme.of(context)
                                 .textTheme
-                                .subtitle2
+                                .subtitle2!
                                 .copyWith(color: Colors.green)
                             : Theme.of(context).textTheme.subtitle2,
                       ),

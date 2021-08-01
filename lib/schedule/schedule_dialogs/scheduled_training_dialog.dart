@@ -1,11 +1,12 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/plan/widgets/trainings_wrapper.dart';
 import 'package:atletica/schedule/athletes_picker.dart';
 import 'package:atletica/schedule/schedule.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_chip.dart';
+import 'package:atletica/main.dart' show IterableExtension;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,20 +23,19 @@ class ScheduledTrainingDialog extends StatefulWidget {
 }
 
 class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
-  final List<Allenamento> trainings = [];
+  final List<Training> trainings = [];
   final List<ScheduledTraining> prev = [];
-  final Map<Allenamento, List<Athlete>> athletes = Map();
-  Allenamento _selectAthletes;
+  final Map<Training, List<Athlete>> athletes = Map();
+  Training? _selectAthletes;
 
   @override
   void initState() {
-    userC.scheduledTrainings[widget.selectedDay]?.forEach((a) {
-      trainings.add(a.work);
+    userC.scheduledTrainings[widget.selectedDay]
+        ?.where((a) => a.work != null)
+        .forEach((a) {
+      trainings.add(a.work!);
       prev.add(a);
-      athletes[a.work] = a.athletes
-          .map((a) => userC.rawAthletes[a])
-          .where((a) => a != null)
-          .toList();
+      athletes[a.work!] = a.athletes.toList();
     });
     super.initState();
   }
@@ -73,7 +73,7 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
               ),
             ),
           )
-        : AthletesPicker(athletes[_selectAthletes] ??= [],
+        : AthletesPicker(athletes[_selectAthletes!] ??= [],
             onChanged: (a) => setState(() {}));
 
     return AlertDialog(
@@ -90,26 +90,23 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
               ? () {
                   final WriteBatch batch = firestore.batch();
 
-                  for (Allenamento a in trainings) {
-                    final ScheduledTraining st = prev.firstWhere(
-                      (st) => st.workRef == a.reference,
-                      orElse: () => null,
-                    );
+                  for (Training a in trainings) {
+                    final ScheduledTraining? st = prev
+                        .firstWhereNullable((st) => st.workRef == a.reference);
 
                     if (st == null)
                       ScheduledTraining.create(
                         work: a.reference,
                         date: widget.selectedDay,
-                        athletes:
-                            athletes[a]?.map((a) => a.reference)?.toList(),
+                        athletes: athletes[a]?.map((a) => a.reference).toList(),
                         batch: batch,
                       );
                     else if (!listEquals<DocumentReference>(
-                      athletes[a]?.map((a) => a.reference)?.toList(),
-                      st.athletes,
+                      athletes[a]?.map((a) => a.reference).toList(),
+                      st.athletesRefs,
                     ))
                       st.update(
-                        athletes: athletes[a]?.map((a) => a.reference)?.toList(),
+                        athletes: athletes[a]?.map((a) => a.reference).toList(),
                         batch: batch,
                       );
                   }

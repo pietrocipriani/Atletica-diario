@@ -1,4 +1,4 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/group.dart';
 import 'package:flutter/material.dart';
 
@@ -6,7 +6,7 @@ class AthletesPicker extends StatelessWidget {
   final List<Athlete> athletes;
   final void Function(List<Athlete> athletes) onChanged;
 
-  AthletesPicker(this.athletes, {@required this.onChanged});
+  AthletesPicker(this.athletes, {required this.onChanged});
 
   Function(Athlete a) _f(bool s) => s ? athletes.add : athletes.remove;
   Iterable<Athlete> _modified(List<Athlete> athletes, bool s) =>
@@ -16,9 +16,9 @@ class AthletesPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Widget> children = [];
     for (Group g in Group.groups) {
-      final List<Athlete> gAthletes = g.athletes;
+      final List<Athlete> gAthletes = g.athletes.toList();
       children.add(_LabeledCheckBox(
-        state: gAthletes.every((a) => athletes.contains(a)),
+        state: gAthletes.every(athletes.contains),
         label: g.name,
         onChanged: (s) {
           _modified(gAthletes, s).forEach((a) => _f(s)(a));
@@ -48,9 +48,9 @@ class _LabeledCheckBox extends StatelessWidget {
   final void Function(bool newState) onChanged;
 
   _LabeledCheckBox({
-    @required this.state,
-    @required this.label,
-    this.onChanged,
+    required this.state,
+    required this.label,
+    required this.onChanged,
     this.padding = 0,
   }) : assert(padding >= 0);
 
@@ -64,7 +64,7 @@ class _LabeledCheckBox extends StatelessWidget {
           SizedBox(width: 40.0 * padding),
           Checkbox(
             value: state,
-            onChanged: onChanged,
+            onChanged: (s) => onChanged(s!),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           Text(label),

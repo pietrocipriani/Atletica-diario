@@ -7,12 +7,12 @@ import 'package:flutter/material.dart';
 
 class VariantSelectionWidget extends StatefulWidget {
   final List<Variant> variants;
-  final Variant active;
+  final Variant? active;
   final void Function(Variant) onVariantChanged;
   VariantSelectionWidget({
-    @required this.variants,
+    required this.variants,
     this.active,
-    this.onVariantChanged,
+    required this.onVariantChanged,
   });
 
   @override
@@ -20,13 +20,7 @@ class VariantSelectionWidget extends StatefulWidget {
 }
 
 class _VariantSelectionWidgetState extends State<VariantSelectionWidget> {
-  Variant active;
-
-  @override
-  void initState() {
-    active = widget.active ?? widget.variants.first;
-    super.initState();
-  }
+  late Variant active = widget.active ?? widget.variants.first;
 
   Widget addButton(final int insertIndex) {
     return IconButton(
@@ -55,15 +49,14 @@ class _VariantSelectionWidgetState extends State<VariantSelectionWidget> {
               onLongPress: widget.variants.length > 1
                   ? () async {
                       if (await showDeleteConfirmDialog(
-                              context: context, name: 'questa variante') ??
-                          false) {
+                          context: context, name: 'questa variante')) {
                         setState(() {
                           final int index = min(widget.variants.indexOf(v),
                               widget.variants.length - 2);
                           widget.variants.remove(v);
                           if (active == v) {
                             widget.onVariantChanged
-                                ?.call(active = widget.variants[index]);
+                                .call(active = widget.variants[index]);
                           }
                         });
                       }

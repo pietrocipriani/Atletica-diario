@@ -7,12 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class SimpleResultWidget extends StatelessWidget {
-  final void Function(String tag, TagsEvaluator evaluator) onTap;
-  final Color bg, defaultColor;
+  final void Function(String? tag, TagsEvaluator evaluator)? onTap;
+  final Color? bg;
+  final Color defaultColor;
   final SimpleResult r;
   SimpleResultWidget({
-    @required this.r,
-    @required this.defaultColor,
+    required this.r,
+    required this.defaultColor,
     this.bg,
     this.onTap,
   });
@@ -21,7 +22,7 @@ class SimpleResultWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomListTile(
       key: ValueKey(r),
-      title: Text(DateFormat.yMMMMd('it').format(r.date.dateTime)),
+      title: Text(DateFormat.yMMMMd('it').format(r.date)),
       tileColor: bg,
       trailing: LeadingInfoWidget(
         info: Tipologia.corsaDist.targetFormatter(r.r),

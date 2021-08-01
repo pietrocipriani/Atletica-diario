@@ -9,7 +9,6 @@ import 'package:atletica/persistence/user_helper/snapshots_managers/training_sna
 import 'package:atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
 class AthleteHelper extends FirebaseUserHelper {
   static final List<Callback> onResultCallbacks = [];
@@ -23,42 +22,42 @@ class AthleteHelper extends FirebaseUserHelper {
   void coachCallAll() => onCoachChanged.forEach((c) => c.call(null));
   void resultsCallAll() => onResultCallbacks.forEach((c) => c.call(null));
 
-  DocumentReference _athleteCoachReference;
-  StreamSubscription<DocumentSnapshot> _requestSubscription;
-  DocumentReference get coach {
-    final DocumentReference doc = athleteCoachReference?.parent()?.parent();
+  DocumentReference? _athleteCoachReference;
+  StreamSubscription<DocumentSnapshot>? _requestSubscription;
+  DocumentReference? get coach {
+    final DocumentReference? doc = athleteCoachReference?.parent.parent;
     assert(doc == null || RegExp(r'^users/[A-Za-z0-9]+$').hasMatch(doc.path));
     return doc;
   }
 
-  DocumentReference get athleteCoachReference => _athleteCoachReference;
+  DocumentReference? get athleteCoachReference => _athleteCoachReference;
 
   bool justRequested = false;
-  set athleteCoachReference(DocumentReference reference) {
+  set athleteCoachReference(DocumentReference? reference) {
     if (reference == _athleteCoachReference) return;
     _requestSubscription?.cancel();
     _athleteCoachReference = reference;
-    DocumentSnapshot last;
-    _requestSubscription = reference?.snapshots()?.timeout(
+    DocumentSnapshot? last;
+    _requestSubscription = reference?.snapshots().timeout(
       const Duration(milliseconds: 10),
       onTimeout: (sink) {
         if (last == null) return;
-        if (last.data == null)
-          userReference.updateData({'coach': null});
+        if (last!.data == null)
+          userReference.update({'coach': null});
         else {
-          accepted = last['nickname'] != null && last['group'] != null;
+          accepted = last!['nickname'] != null && last!['group'] != null;
           coachCallAll();
         }
       },
-    )?.listen((snap) => last = snap);
+    ).listen((snap) => last = snap);
     justRequested = false;
   }
 
   Iterable<Result> getResults(Date date) =>
       results.values.where((r) => r.date == date);
 
-  StreamSubscription<QuerySnapshot> _schedulesSubscription;
-  StreamSubscription<QuerySnapshot> _trainingsSubscription;
+  StreamSubscription<QuerySnapshot>? _schedulesSubscription;
+  StreamSubscription<QuerySnapshot>? _trainingsSubscription;
 
   bool _accepted = false;
   bool get accepted => _accepted;
@@ -67,37 +66,37 @@ class AthleteHelper extends FirebaseUserHelper {
     _accepted = accepted;
     if (accepted) {
       _schedulesSubscription =
-          coach.collection('schedules').snapshots().listen((snap) {
-        for (DocumentChange doc in snap.documentChanges) {
+          coach!.collection('schedules').snapshots().listen((snap) {
+        for (DocumentChange doc in snap.docChanges) {
           switch (doc.type) {
             case DocumentChangeType.modified:
               final ScheduledTraining st =
-                  scheduledTrainings[doc.document.reference];
-              events[st.date.dateTime]?.remove(st);
+                  scheduledTrainings[doc.doc.reference]!;
+              events[st.date]?.remove(st);
               continue ca;
             ca:
             case DocumentChangeType.added:
               final ScheduledTraining st =
-                  scheduledTrainings[doc.document.reference] =
-                      ScheduledTraining.parse(doc.document);
+                  scheduledTrainings[doc.doc.reference] =
+                      ScheduledTraining.parse(doc.doc);
               if (st.athletes.isEmpty ||
                   st.athletes.contains(userA.athleteCoachReference))
-                (events[st.date.dateTime] ??= []).add(st);
+                (events[st.date] ??= []).add(st);
               break;
             case DocumentChangeType.removed:
               ScheduledTraining st =
-                  scheduledTrainings.remove(doc.document.reference);
-              events[st.date.dateTime]?.remove(st);
+                  scheduledTrainings.remove(doc.doc.reference)!;
+              events[st.date]?.remove(st);
               break;
           }
         }
         resultsCallAll();
       });
       _trainingsSubscription =
-          coach.collection('trainings').snapshots().listen((snap) async {
+          coach!.collection('trainings').snapshots().listen((snap) async {
         bool ok = false;
-        for (DocumentChange changed in snap.documentChanges)
-          ok |= await trainingSnapshot(changed.document, changed.type);
+        for (DocumentChange changed in snap.docChanges)
+          ok |= await trainingSnapshot(changed.doc, changed.type);
         if (ok) resultsCallAll();
       });
     } else {
@@ -113,8 +112,8 @@ class AthleteHelper extends FirebaseUserHelper {
   bool get needsRequest => athleteCoachReference == null;
 
   AthleteHelper({
-    @required FirebaseUser user,
-    @required DocumentReference userReference,
+    required User user,
+    required DocumentReference userReference,
     bool admin = false,
   }) : super(user: user, userReference: userReference, admin: admin) {
     _init();
@@ -127,13 +126,13 @@ class AthleteHelper extends FirebaseUserHelper {
           ? null
           : firestore
               .collection('users')
-              .document(snap['coach'])
+              .doc(snap['coach'])
               .collection('athletes')
-              .document(userReference.documentID);
-      final DocumentSnapshot athleteCoachSnapshot =
+              .doc(userReference.id);
+      final DocumentSnapshot? athleteCoachSnapshot =
           await athleteCoachReference?.get();
       accepted = athleteCoachSnapshot?.data != null &&
-          athleteCoachSnapshot['nickname'] != null &&
+          athleteCoachSnapshot!['nickname'] != null &&
           athleteCoachSnapshot['group'] != null;
       coachCallAll();
     });
@@ -143,26 +142,26 @@ class AthleteHelper extends FirebaseUserHelper {
 
     userReference.collection('results').snapshots().listen((snap) {
       bool modified = false;
-      for (DocumentChange change in snap.documentChanges)
-        modified |= resultSnapshot(change.document, change.type);
+      for (DocumentChange change in snap.docChanges)
+        modified |= resultSnapshot(change.doc, change.type);
       if (modified) resultsCallAll();
     });
   }
 
   Future<bool> requestCoach(
-      {@required String uid, @required String nickname}) async {
-    if (uid == null || uid == userReference.documentID) return false;
+      {required String uid, required String nickname}) async {
+    if (uid == null || uid == userReference.id) return false;
     final DocumentReference request = firestore
         .collection('users')
-        .document(uid)
+        .doc(uid)
         .collection('athletes')
-        .document(userReference.documentID);
+        .doc(userReference.id);
     if (athleteCoachReference == request) return false;
     final WriteBatch batch = firestore.batch();
 
-    if (athleteCoachReference != null) batch.delete(athleteCoachReference);
-    batch.updateData(userReference, {'coach': uid});
-    batch.setData(request, {'nickname': nickname}, merge: true);
+    if (athleteCoachReference != null) batch.delete(athleteCoachReference!);
+    batch.update(userReference, {'coach': uid});
+    batch.set(request, {'nickname': nickname}, SetOptions(merge: true));
     justRequested = true;
     await batch.commit();
 
@@ -170,17 +169,17 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   Future<void> saveResult(Result results) {
-    return (results.reference ?? userReference.collection('results').document())
-        .setData({
-      'date': Timestamp.fromDate(results.date.dateTime),
-      'coach': coach.documentID,
+    return (results.reference ?? userReference.collection('results').doc())
+        .set({
+      'date': Timestamp.fromDate(results.date),
+      'coach': coach!.id,
       'training': results.training,
       'results':
           results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
       'fatigue': results.fatigue,
       'info': results.info,
-    }, merge: true);
+    }, SetOptions(merge: true));
   }
 
-  Future<void> deleteCoachSubscription() => athleteCoachReference?.delete();
+  Future<void>? deleteCoachSubscription() => athleteCoachReference?.delete();
 }

@@ -12,11 +12,10 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:atletica/results/results_edit_dialog.dart';
 import 'package:atletica/schedule/schedule.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 class AthleteMainPage extends StatefulWidget {
   @override
@@ -24,7 +23,7 @@ class AthleteMainPage extends StatefulWidget {
 }
 
 class _AthleteMainPageState extends State<AthleteMainPage> {
-  final CalendarController controller = CalendarController();
+  Date selectedDay = Date.now();
   final Callback _callback = Callback();
 
   @override
@@ -40,16 +39,13 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
   }
 
   bool _isOrphan(final Result result) {
-    if (userA.events[controller.selectedDay]
-            ?.any((st) => result.isCompatible(st, true)) ??
+    if (userA.events[selectedDay]?.any((st) => result.isCompatible(st, true)) ??
         false) return false;
-    return userA.events[controller.selectedDay]
-            ?.every(result.isNotCompatible) ??
-        true;
+    return userA.events[selectedDay]?.every(result.isNotCompatible) ?? true;
   }
 
   void pushRequest() {
-    WidgetsBinding.instance.addPostFrameCallback(
+    WidgetsBinding.instance!.addPostFrameCallback(
       (_) => Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => RequestCoachRoute()),
@@ -62,27 +58,25 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
     if (!userA.hasCoach) pushRequest();
     final ThemeData theme = Theme.of(context);
     //final ScheduledTraining compatibleST = _compatibleST;
-    final Iterable<Result> orphans = controller.selectedDay == null
-        ? []
-        : userA
-            .getResults(Date.fromDateTime(controller.selectedDay))
-            .where(_isOrphan);
+    final Iterable<Result> orphans =
+        userA.getResults(selectedDay).where(_isOrphan);
     List<Widget> children =
         orphans.map<Widget>((r) => _ResultWidget(r)).toList();
-    if (userA.events[controller.selectedDay] != null)
+    if (userA.events[selectedDay] != null)
       children = children
-          .followedBy(userA.events[controller.selectedDay]
-              .where((st) =>
-                  st.athletes.isEmpty ||
-                  st.athletes.contains(userA.athleteCoachReference))
-              .cast<ScheduledTraining>()
-              .map((s) => _TrainingWidget(s)))
+          .followedBy(userA.events[selectedDay]
+                  ?.where((st) =>
+                      st.athletes.isEmpty ||
+                      st.athletes.contains(userA.athleteCoachReference))
+                  .cast<ScheduledTraining>()
+                  .map((s) => _TrainingWidget(s)) ??
+              [])
           .toList();
 
     final CustomCalendar calendar = CustomCalendar(
-      controller: controller,
       events: userA.events,
-      onDaySelected: (d, evts, holidays) => setState(() {}),
+      onDaySelected: (d, focused) =>
+          setState(() => selectedDay = Date.fromDateTime(d)),
     );
 
     return OrientationBuilder(builder: (context, orientation) {
@@ -159,23 +153,26 @@ class _TrainingWidget extends StatelessWidget {
   _TrainingWidget(this.s);
 
   static final _null = Container();
-  static TextStyle overlineNormal;
+  static TextStyle? overlineNormal;
 
   @override
   Widget build(BuildContext context) {
     final List<Result> results = userA.getResults(s.date).toList();
-    final Result result = results.firstWhere(
-      (r) => r.isCompatible(s, true),
-      orElse: () => results.firstWhere(
-        (r) => r.isCompatible(s),
-        orElse: () => null,
-      ),
-    );
-    final Allenamento a = s.work;
+    final Training? a = s.work;
     if (a == null) return _null;
+    final Result? result = () {
+      try {
+        return results.firstWhere(
+          (r) => r.isCompatible(s, true),
+          orElse: () => results.firstWhere((r) => r.isCompatible(s)),
+        );
+      } on StateError catch (_) {
+        return null;
+      }
+    }();
     final ThemeData theme = Theme.of(context);
     overlineNormal ??=
-        theme.textTheme.overline.copyWith(fontWeight: FontWeight.normal);
+        theme.textTheme.overline!.copyWith(fontWeight: FontWeight.normal);
 
     return CustomExpansionTile(
       title: a.name,
@@ -195,13 +192,13 @@ class _TrainingWidget extends StatelessWidget {
         fillColor: MaterialStateProperty.all(theme.toggleableActiveColor),
         checkColor: theme.colorScheme.onPrimary,
         onChanged: result == null
-            ? (value) => userA.saveResult(Result.empty(s.work, s.date))
+            ? (value) => userA.saveResult(Result.empty(s.work!, s.date))
             : result.isBooking
-                ? (value) => result.reference.delete()
+                ? (value) => result.reference?.delete()
                 : null,
       ),
       children: <Widget>[
-        if (a.descrizione != null)
+        if (a.descrizione.isNotEmpty)
           Align(
             alignment: Alignment.center,
             child: Text(
@@ -224,11 +221,8 @@ class _ResultWidget extends StatelessWidget {
   final Result _result;
   _ResultWidget(this._result);
 
-  static final Widget _null = Container();
-
   @override
   Widget build(BuildContext context) {
-    if (_result?.training == null) return _null;
     final ThemeData theme = Theme.of(context);
     return CustomExpansionTile(
       title: '${_result.training} (prev)',

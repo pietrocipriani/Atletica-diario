@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CustomCalendar extends StatelessWidget {
-  final CalendarController controller;
   final Map<DateTime, List> events;
-  final void Function(DateTime d, List events, List holidays) onDaySelected;
-  final void Function(DateTime first, DateTime last, CalendarFormat format)
-      onCalendarCreated;
+  final void Function(DateTime d, DateTime focused)? onDaySelected;
+  final void Function(PageController controller)? onCalendarCreated;
 
   CustomCalendar({
-    @required this.controller,
-    @required this.events,
+    required this.events,
     this.onDaySelected,
     this.onCalendarCreated,
   });
@@ -19,18 +16,19 @@ class CustomCalendar extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return TableCalendar(
-      calendarController: controller,
+      focusedDay: DateTime.now(),
+      firstDay: DateTime(2020),
+      lastDay: DateTime.now().add(Duration(days: 365)),
       availableCalendarFormats: {
         CalendarFormat.month: 'mese',
         CalendarFormat.week: 'settimana',
       },
       calendarStyle: CalendarStyle(
-        selectedColor: theme.primaryColor,
-        todayColor: theme.primaryColorLight,
-        markersColor: theme.primaryColorDark,
-        todayStyle: const TextStyle(),
-        outsideStyle: TextStyle(color: theme.disabledColor),
-        outsideWeekendStyle: TextStyle(color: Colors.red.withOpacity(0.3)),
+        selectedDecoration: BoxDecoration(color: theme.primaryColor),
+        todayDecoration: BoxDecoration(color: theme.primaryColorLight),
+        markerDecoration: BoxDecoration(color: theme.primaryColorDark),
+        todayTextStyle: const TextStyle(),
+        outsideTextStyle: TextStyle(color: theme.disabledColor),
       ),
       locale: 'it',
       startingDayOfWeek: StartingDayOfWeek.monday,
@@ -38,13 +36,13 @@ class CustomCalendar extends StatelessWidget {
       headerStyle: HeaderStyle(
         formatButtonShowsNext: false,
         formatButtonVisible: false,
-        centerHeaderTitle: true,
+        titleCentered: true,
       ),
       daysOfWeekStyle: DaysOfWeekStyle(
-        weekdayStyle: theme.textTheme.overline,
-        weekendStyle: theme.textTheme.overline,
+        weekdayStyle: theme.textTheme.overline!,
+        weekendStyle: theme.textTheme.overline!,
       ),
-      events: events,
+      eventLoader: (dt) => events[dt] ?? [],
       onDaySelected: onDaySelected,
       onCalendarCreated: onCalendarCreated,
     );

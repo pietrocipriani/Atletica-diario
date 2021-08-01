@@ -1,9 +1,9 @@
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 
 class TagsSelectorWidget extends StatefulWidget {
-  final Allenamento training;
+  final Training training;
   TagsSelectorWidget(this.training);
 
   @override
@@ -43,7 +43,7 @@ class _TagsSelectorWidgetState extends State<TagsSelectorWidget> {
 class _TagTextField extends AutoCompleteTextField<String> {
   _TagTextField(
       final TextEditingController _controller,
-      final Allenamento training,
+      final Training training,
       final int index,
       void Function(void Function()) setState)
       : super(
@@ -57,8 +57,8 @@ class _TagTextField extends AutoCompleteTextField<String> {
               index == 1 ? training.tag1 = tag : training.tag2 = tag,
           clearOnSubmit: false,
           suggestions: index == 1
-              ? trainingsTree.keys.toList()
-              : trainingsTree.values.expand((t1) => t1.keys).toSet().toList(),
+              ? Training.fromPath().cast<String>().toList()
+              : Training.tag2s(training.tag1).toList(),
           itemBuilder: (context, suggestion) => Padding(
             padding: const EdgeInsets.all(8.0),
             child: RichText(

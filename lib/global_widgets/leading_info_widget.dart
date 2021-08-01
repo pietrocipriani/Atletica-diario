@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class LeadingInfoWidget extends StatelessWidget {
-  final String bottom;
+  final String? bottom;
   final String info;
 
-  LeadingInfoWidget({this.bottom, @required this.info}) : assert(info != null);
+  LeadingInfoWidget({this.bottom, required this.info});
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +20,10 @@ class LeadingInfoWidget extends StatelessWidget {
       children: <Widget>[
         infoWidget,
         Text(
-          bottom,
+          bottom!,
           style: Theme.of(context)
               .textTheme
-              .overline
+              .overline!
               .copyWith(fontWeight: FontWeight.normal),
         )
       ],

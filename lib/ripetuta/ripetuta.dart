@@ -19,26 +19,27 @@ class Ripetuta {
 
   String template;
 
-  /// `target` int secondi per `Tipologia.corsaDist`, in metri per `Tipologia.salto, Tipologia.lancio`, in metri per `Tipologia.corsaTemp`
-  double target;
+  /// `target` in secondi per `Tipologia.corsaDist`, in metri per `Tipologia.salto, Tipologia.lancio`, in metri per `Tipologia.corsaTemp`
+  double? target;
 
   int ripetizioni;
   Recupero nextRecupero, recupero;
 
-  Ripetuta(
-      {@required this.template,
-      this.ripetizioni = 1,
-      this.nextRecupero,
-      this.recupero}) {
-    nextRecupero ??= Recupero();
-    recupero ??= Recupero();
-  }
-  Ripetuta.parse(Map raw) {
-    template = raw['template'];
-    target = raw['target']?.toDouble();
-    recupero = Recupero(raw['recupero']);
-    ripetizioni = raw['times'];
-    nextRecupero = Recupero(raw['recuperoNext']);
+  Ripetuta({
+    required this.template,
+    this.ripetizioni = 1,
+    final Recupero? nextRecupero,
+    final Recupero? recupero,
+  })  : nextRecupero = nextRecupero ?? Recupero(),
+        recupero = recupero ?? Recupero();
+
+  Ripetuta.parse(final Serie serie, final Map raw)
+      : template = raw['template'],
+        target = raw['target']?.toDouble(),
+        recupero = Recupero(raw['recupero']),
+        ripetizioni = raw['times'],
+        nextRecupero = Recupero(raw['recuperoNext']) {
+    serie.ripetute.add(this);
   }
 
   Map<String, dynamic> get asMap => {
@@ -48,11 +49,11 @@ class Ripetuta {
         'recuperoNext': nextRecupero.recupero
       };
 
-  static Future<Pair<Ripetuta, double>> fromDialog(
-      {@required BuildContext context,
-      Ripetuta ripetuta,
-      double target}) async {
-    SimpleTemplate template = templates[ripetuta?.template];
+  static Future<Pair<Ripetuta, double>?> fromDialog(
+      {required BuildContext context,
+      Ripetuta? ripetuta,
+      double? target}) async {
+    SimpleTemplate? template = templates[ripetuta?.template];
     assert((ripetuta == null) == (template == null));
     TextEditingController controller =
         TextEditingController(text: template?.name);
@@ -69,7 +70,7 @@ class Ripetuta {
                 itemSubmitted: (value) {
                   setState(() {
                     template = value;
-                    target = template.lastTarget;
+                    target = template?.lastTarget;
                   });
                 },
                 controller: controller,
@@ -89,11 +90,9 @@ class Ripetuta {
                                 ? Tipologia.corsaTemp
                                 : Tipologia.corsaDist,
                       );
-                  setState(() => target = template.lastTarget);
+                  setState(() => target = template?.lastTarget);
                 },
-                suggestions: templates.values
-                    .where((template) => template != null)
-                    .toList(),
+                suggestions: templates.values.whereType<Template>().toList(),
                 itemBuilder: (context, suggestion) => Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RichText(
@@ -132,10 +131,10 @@ class Ripetuta {
                       .map(
                         (tipologia) => IconButton(
                           onPressed: () => setState(() {
-                            template.tipologia = tipologia;
+                            template?.tipologia = tipologia;
                           }),
                           icon: tipologia.icon(),
-                          color: template.tipologia == tipologia
+                          color: template?.tipologia == tipologia
                               ? Theme.of(context).primaryColor
                               : Theme.of(context).disabledColor,
                         ),
@@ -145,7 +144,7 @@ class Ripetuta {
               /*Positioned(
                       left: 20,
                       right: 20,
-                      top: -Theme.of(context).textTheme.overline.fontSize / 2,
+                      top: -Theme.of(context).textTheme.overline!.fontSize / 2,
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Container(
@@ -156,7 +155,7 @@ class Ripetuta {
                                 ? 'modifica tutti i ${template.name}'
                                 : 'definisci ${template.name}',
                             style:
-                                Theme.of(context).textTheme.overline.copyWith(
+                                Theme.of(context).textTheme.overline!.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: templates.contains(template)
                                           ? Colors.red
@@ -170,20 +169,19 @@ class Ripetuta {
               if (template != null)
                 TextFormField(
                   controller: TextEditingController(
-                      text: template.tipologia.targetFormatter(target) ??
-                          template.formattedTarget),
+                      text: template!.tipologia.targetFormatter(target)),
                   decoration: InputDecoration(
                     hintText: 'target',
-                    suffixText: template.tipologia.targetSuffix,
+                    suffixText: template!.tipologia.targetSuffix,
                   ),
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
-                    if (template.tipologia.targetValidator(value)) return null;
-                    return template.tipologia.targetScheme;
+                    if (template!.tipologia.targetValidator(value)) return null;
+                    return template!.tipologia.targetScheme;
                   },
                   onChanged: (value) {
-                    if (template.tipologia.targetValidator(value))
-                      target = template.tipologia.targetParser(value);
+                    if (template!.tipologia.targetValidator(value))
+                      target = template!.tipologia.targetParser(value);
                   },
                 )
             ],
@@ -199,21 +197,23 @@ class Ripetuta {
               onPressed: template == null
                   ? null
                   : () async {
-                      template.lastTarget = target ?? template.lastTarget;
+                      template!.lastTarget = target ?? template!.lastTarget;
                       if (template is Template)
                         await (template as Template).update();
                       else
-                        await template.create();
+                        await template!.create();
 
                       if (ripetuta == null)
                         ripetuta = Ripetuta(
-                          template: template.name,
+                          template: template!.name,
                         );
                       else
-                        ripetuta.template = template.name;
+                        ripetuta!.template = template!.name;
 
                       Navigator.pop(
-                          context, Pair<Ripetuta, double>(ripetuta, target));
+                        context,
+                        Pair<Ripetuta, double>(ripetuta!, target!),
+                      );
                     },
               child: Text('Conferma'),
             ),
@@ -226,8 +226,8 @@ class Ripetuta {
   Widget widget(
     final BuildContext context,
     final void Function(void Function()) setState, {
-    @required final Serie serie,
-    @required final Variant active,
+    required final Serie serie,
+    required final Variant active,
   }) {
     final ThemeData theme = Theme.of(context);
     return CustomDismissible(
@@ -238,7 +238,7 @@ class Ripetuta {
       },
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) return true;
-        final Pair<Ripetuta, double> rip = await fromDialog(
+        final Pair<Ripetuta, double>? rip = await fromDialog(
           context: context,
           ripetuta: this,
           target: active.targets[this],
@@ -301,7 +301,7 @@ class Ripetuta {
                     Text('x', style: theme.textTheme.overline),
                     Text(
                       ripetizioni.toString(),
-                      style: theme.textTheme.headline5.copyWith(
+                      style: theme.textTheme.headline5!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Color.lerp(
                           theme.primaryColorDark,
@@ -321,14 +321,14 @@ class Ripetuta {
             children: <Widget>[
               if (templates[template] != null)
                 Text(
-                  templates[template].tipologia.name,
+                  templates[template]!.tipologia.name,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: theme.primaryColorDark,
                   ),
                 ),
               if (templates[template] != null)
-                Text(templates[template]
+                Text(templates[template]!
                     .tipologia
                     .targetFormatter(active.targets[this]))
             ],

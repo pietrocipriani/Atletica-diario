@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class RecuperoWidget extends StatefulWidget {
   final Recupero recupero;
-  RecuperoWidget({@required this.recupero});
+  RecuperoWidget({required this.recupero});
 
   @override
   State<RecuperoWidget> createState() => _RecuperoWidgetExtendedState();
@@ -33,7 +33,7 @@ class _RecuperoWidgetExtendedState extends State<RecuperoWidget> {
                 Icon(Icons.timer, color: theme.colorScheme.onPrimary),
                 Text(
                   widget.recupero.toString(),
-                  style: theme.textTheme.overline
+                  style: theme.textTheme.overline!
                       .copyWith(color: theme.colorScheme.onPrimary),
                 )
               ],

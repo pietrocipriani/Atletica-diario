@@ -5,9 +5,9 @@ const Duration _kExpand = Duration(milliseconds: 200);
 
 class CustomExpansionTile extends StatefulWidget {
   const CustomExpansionTile({
-    Key key,
+    Key? key,
     this.leading,
-    @required this.title,
+    required this.title,
     this.titleColor,
     this.subtitle,
     this.hiddenSubtitle,
@@ -18,19 +18,18 @@ class CustomExpansionTile extends StatefulWidget {
     this.trailing,
     this.initiallyExpanded = false,
     this.childrenPadding = EdgeInsets.zero,
-  })  : assert(initiallyExpanded != null &&
-            childrenPadding != null),
+  })  : assert(initiallyExpanded != null && childrenPadding != null),
         super(key: key);
 
-  final Widget leading;
+  final Widget? leading;
   final String title;
-  final Color titleColor;
-  final Widget subtitle;
-  final String hiddenSubtitle;
-  final ValueChanged<bool> onExpansionChanged;
+  final Color? titleColor;
+  final Widget? subtitle;
+  final String? hiddenSubtitle;
+  final ValueChanged<bool>? onExpansionChanged;
   final List<Widget> children;
-  final Color backgroundColor, childrenBackgroundColor;
-  final Widget trailing;
+  final Color? backgroundColor, childrenBackgroundColor;
+  final Widget? trailing;
   final bool initiallyExpanded;
   final EdgeInsets childrenPadding;
 
@@ -50,20 +49,18 @@ class _ExpansionTileState extends State<CustomExpansionTile>
   final ColorTween _iconColorTween = ColorTween();
   final ColorTween _backgroundColorTween = ColorTween();
 
-  AnimationController _controller;
-  Animation<double> _iconTurns;
-  Animation<double> _heightFactor;
+  late final AnimationController _controller =
+      AnimationController(duration: _kExpand, vsync: this);
+  late final Animation<double> _iconTurns =
+      _controller.drive(_halfTween.chain(_easeInTween));
+  late final Animation<double> _heightFactor = _controller.drive(_easeInTween);
 
   bool _isExpanded = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: _kExpand, vsync: this);
-    _heightFactor = _controller.drive(_easeInTween);
-    _iconTurns = _controller.drive(_halfTween.chain(_easeInTween));
-
-    _isExpanded = PageStorage.of(context)?.readState(context) as bool ??
+    _isExpanded = PageStorage.of(context)?.readState(context) as bool? ??
         widget.initiallyExpanded;
     if (_isExpanded) _controller.value = 1.0;
   }
@@ -90,10 +87,10 @@ class _ExpansionTileState extends State<CustomExpansionTile>
       PageStorage.of(context)?.writeState(context, _isExpanded);
     });
     if (widget.onExpansionChanged != null)
-      widget.onExpansionChanged(_isExpanded);
+      widget.onExpansionChanged!(_isExpanded);
   }
 
-  Widget _buildChildren(BuildContext context, Widget child) {
+  Widget _buildChildren(BuildContext context, Widget? child) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -130,7 +127,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     final ThemeData theme = Theme.of(context);
     _borderColorTween.end = theme.dividerColor;
     _headerColorTween
-      ..begin = theme.textTheme.subtitle1.color
+      ..begin = theme.textTheme.subtitle1!.color
       ..end = theme.accentColor;
     _iconColorTween
       ..begin = theme.unselectedWidgetColor
@@ -142,7 +139,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
   @override
   Widget build(BuildContext context) {
     final bool closed = !_isExpanded && _controller.isDismissed;
-    Widget child = closed
+    Widget? child = closed
         ? null
         : Container(
             padding: widget.childrenPadding,
@@ -154,20 +151,20 @@ class _ExpansionTileState extends State<CustomExpansionTile>
           );
     if (!closed &&
         widget.hiddenSubtitle != null &&
-        widget.hiddenSubtitle.isNotEmpty)
+        widget.hiddenSubtitle!.isNotEmpty)
       child = Column(children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text(
-            widget.hiddenSubtitle,
+            widget.hiddenSubtitle!,
             style: Theme.of(context)
                 .textTheme
-                .overline
+                .overline!
                 .copyWith(fontWeight: FontWeight.normal),
             textAlign: TextAlign.justify,
           ),
         ),
-        child
+        child!
       ]);
     return AnimatedBuilder(
       animation: _controller.view,

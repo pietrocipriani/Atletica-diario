@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 
 Widget _typeBtn({
-  @required BuildContext context,
-  @required String text,
-  @required Schedule type,
-  @required Schedule value,
+  required BuildContext context,
+  required String text,
+  required Schedule type,
+  required Schedule value,
   void Function(Schedule value) onChanged,
 }) {
   return Expanded(
@@ -30,14 +30,14 @@ Widget _typeBtn({
   );
 }
 
-Future<bool> showScheduleDialog({@required BuildContext context}) {
+Future<bool> showScheduleDialog({required BuildContext context}) {
   final Map<String, Schedule> schedulesList = <String, Schedule>{
     'Piano': PlanSchedule(),
-    'Allenamento': TrainingSchedule(),
+    'Training': TrainingSchedule(),
   };
   Schedule schedule = schedules.isEmpty || schedules.values.last is PlanSchedule
       ? schedulesList['Piano']
-      : schedulesList['Allenamento'];
+      : schedulesList['Training'];
   return showDialog<bool>(
     context: context,
     builder: (context) => StatefulBuilder(

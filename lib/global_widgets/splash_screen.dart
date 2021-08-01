@@ -16,7 +16,7 @@ class SplashScreen extends StatelessWidget {
           Image.asset('assets/icon.png'),
           Text(
             'ATLETICA',
-            style: Theme.of(context).textTheme.headline3.copyWith(
+            style: Theme.of(context).textTheme.headline3!.copyWith(
                   fontWeight: FontWeight.w900,
                   color: Theme.of(context).primaryColor,
                 ),
@@ -29,10 +29,10 @@ class SplashScreen extends StatelessWidget {
               print('login progress: ${snapshot.data}');
               if (snapshot.data == 1) {
                 print('in');
-                WidgetsBinding.instance.addPostFrameCallback(
+                WidgetsBinding.instance!.addPostFrameCallback(
                   (d) {
-                    print ('called navigator!');
-                    return Navigator.pushReplacement(
+                    print('called navigator!');
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (context) {

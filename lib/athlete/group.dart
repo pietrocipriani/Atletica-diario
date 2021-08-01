@@ -1,24 +1,26 @@
-import 'package:atletica/athlete/atleta.dart';
-import 'package:atletica/persistence/auth.dart';
-import 'package:flutter/material.dart';
+import 'package:atletica/athlete/athlete.dart';
 
-String lastGroup;
+String? lastGroup;
 
 class Group {
   final String name;
-  List<Athlete> get athletes =>
-      List.unmodifiable(userC.athletes.where((a) => a.group == name));
+  Iterable<Athlete> get athletes =>
+      Athlete.athletes.where((a) => a.group == name);
+
   static List<Group> get groups {
-    final Set<String> values = Set();
-    userC.athletes.forEach((a) => values.add(a.group));
+    final Set<String> values = Set.from(Athlete.athletes.map((a) => a.group!));
     if (values.isEmpty) values.add('generico');
     return List.unmodifiable(values.map((g) => Group(name: g)));
+  }
+
+  bool isContainedIn(final Iterable<Athlete> athletes) {
+    return this.athletes.every(athletes.contains);
   }
 
   @override
   bool operator ==(dynamic other) => other is Group && other.name == name;
 
-  const Group({@required this.name});
+  const Group({required this.name});
 
   @override
   int get hashCode => name.hashCode;

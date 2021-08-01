@@ -4,6 +4,7 @@ import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
+import 'package:atletica/main.dart' show IterableExtension;
 
 final List<IconData> icons = const [
   Mdi.emoticonExcitedOutline,
@@ -61,15 +62,15 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
             key: (rip) => rip, value: (rip) => FocusNode()),
         keys = List.unmodifiable(rips);
 
-  bool _acceptable(String s) {
+  bool _acceptable(String? s) {
     if (s == null || s.isEmpty) return true;
     final bool match = Tipologia.corsaDist.targetValidator(s);
-    return s != null && (match || s.isEmpty);
+    return match || s.isEmpty;
   }
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle overline = Theme.of(context).textTheme.overline;
+    final TextStyle overline = Theme.of(context).textTheme.overline!;
     final TextStyle overlineBC = overline.copyWith(
         color: Theme.of(context).primaryColorDark, fontWeight: FontWeight.bold);
 
@@ -108,7 +109,8 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
 
                     Iterable<SimpleRipetuta> nextIterable =
                         keys.skipWhile((key) => key != r.key);
-                    final SimpleRipetuta nextRip = nextIterable.firstWhere(
+                    final SimpleRipetuta? nextRip =
+                        nextIterable.firstWhereNullable(
                       (key) => widget.results[key] == null,
                       orElse: () {
                         if (value != null &&
@@ -118,7 +120,7 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
                         return nextIterable.first;
                       },
                     );
-                    if (nextRip != null) nodes[nextRip].requestFocus();
+                    if (nextRip != null) nodes[nextRip]!.requestFocus();
                   },
                 ),
               ),

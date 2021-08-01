@@ -5,12 +5,12 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:flutter/material.dart';
 
 class SwapButton extends IconButton {
-  SwapButton({@required final BuildContext context})
+  SwapButton({required final BuildContext context})
       : super(
           icon: Icon(Icons.swap_vert),
           tooltip: 'CAMBIA RUOLO',
           onPressed: () async {
-            await user.userReference.updateData(
+            await user.userReference.update(
                 {'role': user is AthleteHelper ? COACH_ROLE : ATHLETE_ROLE});
             user = user.user;
             Navigator.pushAndRemoveUntil(

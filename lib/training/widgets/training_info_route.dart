@@ -5,15 +5,15 @@ import 'package:atletica/global_widgets/resizable_text_field.dart';
 import 'package:atletica/recupero/recupero_dialog.dart';
 import 'package:atletica/recupero/recupero_widget.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/variant.dart';
 import 'package:atletica/training/widgets/tags_selector_widget.dart';
 import 'package:flutter/material.dart';
 
 class TrainingInfoRoute extends StatefulWidget {
-  final Allenamento allenamento;
-  TrainingInfoRoute({@required this.allenamento});
+  final Training allenamento;
+  TrainingInfoRoute({required this.allenamento});
   @override
   _TrainingInfoRouteState createState() => _TrainingInfoRouteState();
 }
@@ -21,14 +21,9 @@ class TrainingInfoRoute extends StatefulWidget {
 class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
   bool editTitle = false;
   bool collapsedDescription = true;
-  TextEditingController _titleController;
-  Variant active;
-
-  @override
-  void initState() {
-    _titleController = TextEditingController(text: widget.allenamento.name);
-    super.initState();
-  }
+  late TextEditingController _titleController =
+      TextEditingController(text: widget.allenamento.name);
+  Variant? active;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +32,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
       appBar: AppBar(
         title: editTitle
             ? TextFormField(
-                style: theme.textTheme.headline6
+                style: theme.textTheme.headline6!
                     .copyWith(color: theme.colorScheme.onPrimary),
                 controller: _titleController,
               )
@@ -65,7 +60,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
           TagsSelectorWidget(widget.allenamento),
           ResizableTextField(
             onChanged: (text) => widget.allenamento.descrizione = text,
-            initialText: widget.allenamento.descrizione ?? '',
+            initialText: widget.allenamento.descrizione,
             hint: 'inserisci la descrizione (opzionale)',
           ),
           /*VariantSelectionWidget(
@@ -178,7 +173,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                 IconButton(
                                   icon: Icon(Icons.add_circle),
                                   onPressed: () async {
-                                    final Pair<Ripetuta, double> rip =
+                                    final Pair<Ripetuta, double>? rip =
                                         await Ripetuta.fromDialog(
                                             context: context);
                                     if (rip == null) return;
@@ -270,7 +265,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                                         serie.ripetizioni.toString(),
                                         style: Theme.of(context)
                                             .textTheme
-                                            .headline5
+                                            .headline5!
                                             .copyWith(
                                               fontWeight: FontWeight.bold,
                                               color: Color.lerp(

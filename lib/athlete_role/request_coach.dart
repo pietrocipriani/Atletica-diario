@@ -30,15 +30,12 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
   }
 
   bool get _hasText =>
-      controller.text != null &&
-      controller.text.isNotEmpty &&
-      _nameController.text != null &&
-      _nameController.text.isNotEmpty;
+      controller.text.isNotEmpty && _nameController.text.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
     if (userA.hasCoach)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
         if (Navigator.canPop(context)) Navigator.pop(context);
       });
 
@@ -95,8 +92,11 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                       children: <Widget>[
                         AnimatedText(
                           text: 'in attesa di risposta',
-                          style: Theme.of(context).textTheme.headline6.copyWith(
-                              color: Theme.of(context).primaryColorDark),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(
+                                  color: Theme.of(context).primaryColorDark),
                         ),
                         Icon(Icons.check_circle, color: Colors.green)
                       ],

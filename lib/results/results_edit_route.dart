@@ -1,4 +1,4 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/results/results_route.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
@@ -30,19 +30,15 @@ class ResultsEditRoute extends StatelessWidget {
       ),
       body: ListView(
         children: results.results.keys
-            .where((a) => userC.rawAthletes.containsKey(a))
             .map((a) => StreamBuilder<QuerySnapshot>(
-                stream: userC.resultSnapshots(
-                  athlete: userC.rawAthletes[a],
-                  date: results.date,
-                ),
+                stream: userC.resultSnapshots(athlete: a, date: results.date),
                 builder: (context, snapshot) {
-                  if (snapshot.data?.documents != null) {
-                    snapshot.data.documents
+                  if (snapshot.data?.docs != null) {
+                    snapshot.data!.docs
                         .where((doc) =>
                             results.date ==
                             (doc['date'] == null
-                                ? Date.parse(doc.documentID)
+                                ? Date.parse(doc.id)
                                 : Date.fromTimeStamp(doc['date'])))
                         .any(
                           (doc) => results.update(
@@ -55,34 +51,34 @@ class ResultsEditRoute extends StatelessWidget {
                         );
                   }
 
-                  final int count = results.results[a].results.values
+                  final int count = results.results[a]!.results.values
                       .where((v) => v != null)
                       .length;
 
-                  final Athlete athlete = userC.rawAthletes[a];
-                  final Result res = results.results[a];
+                  final Athlete athlete = a;
+                  final Result res = results.results[a]!;
                   return CustomDismissible(
                     key: ValueKey(hashList([results, a])),
                     direction: DismissDirection.endToStart,
                     confirmDismiss: (_) {
                       showResultsEditDialog(
                         context,
-                        results.results[a],
+                        results.results[a]!,
                         (r) => userC.saveResult(athlete: a, results: r),
                       );
                       return Future.value(false);
                     },
                     child: CustomExpansionTile(
-                      title: userC.rawAthletes[a].name,
+                      title: athlete.name,
                       leading: Icon(
-                        results.results[a].fatigue == null
+                        res.fatigue == null
                             ? Mdi.emoticonNeutralOutline
-                            : icons[results.results[a].fatigue],
+                            : icons[res.fatigue!],
                         size: 42,
-                        color: results.results[a].fatigue == null
+                        color: res.fatigue == null
                             ? Theme.of(context).disabledColor
                             : Color.lerp(Colors.green, Colors.red,
-                                results.results[a].fatigue / icons.length),
+                                res.fatigue! / icons.length),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

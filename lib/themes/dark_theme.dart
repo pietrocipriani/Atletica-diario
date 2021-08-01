@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 final Brightness _brightness = Brightness.dark;
 final MaterialColor _primarySwatch = Colors.amber;
-final Color _disabledColor = Colors.grey[700];
+final Color _disabledColor = Colors.grey[700]!;
 
 final TextTheme _textTheme = TextTheme(
   overline: TextStyle(
@@ -18,8 +18,8 @@ final ChipThemeData _chipTheme = ChipThemeData(
   selectedColor: Colors.transparent,
   secondarySelectedColor: Colors.transparent,
   padding: const EdgeInsets.all(4),
-  labelStyle: _textTheme.overline,
-  secondaryLabelStyle: _textTheme.overline,
+  labelStyle: _textTheme.overline!,
+  secondaryLabelStyle: _textTheme.overline!,
   brightness: _brightness,
   side: BorderSide(color: _primarySwatch),
   checkmarkColor: _primarySwatch,

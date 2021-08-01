@@ -7,7 +7,7 @@ class TrainingScheduleDialogContent extends StatelessWidget {
   final void Function() onChanged;
   final TrainingSchedule schedule;
   TrainingScheduleDialogContent(
-      {@required this.onChanged, @required this.schedule});
+      {required this.onChanged, required this.schedule});
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +40,12 @@ class TrainingScheduleDialogContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        DropdownButton<Allenamento>(
+        DropdownButton<Training>(
           value: schedule.work,
           isExpanded: true,
           items: allenamenti.values
               .map(
-                (allenamento) => DropdownMenuItem<Allenamento>(
+                (allenamento) => DropdownMenuItem<Training>(
                   value: allenamento,
                   child: Text(allenamento.name),
                 ),

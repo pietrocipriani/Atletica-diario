@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class SvgRenderer extends StatelessWidget {
-  final Widget child;
+  final Widget? child;
   final Path path;
   final Size referredTo;
   final Size size;
@@ -13,8 +13,8 @@ class SvgRenderer extends StatelessWidget {
 
   SvgRenderer({
     this.child,
-    @required this.path,
-    @required this.referredTo,
+    required this.path,
+    required this.referredTo,
     this.size = Size.zero,
     this.color = Colors.black,
     this.strokeWidth = 1,
@@ -41,8 +41,8 @@ class _SvgPainter extends CustomPainter {
 
   Size referredTo;
   _SvgPainter({
-    @required this.path,
-    @required this.referredTo,
+    required this.path,
+    required this.referredTo,
     Color color = Colors.black,
     double strokeWidth = 1,
     PaintingStyle style = PaintingStyle.stroke,
@@ -54,7 +54,7 @@ class _SvgPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    print ('painting...');
+    print('painting...');
     double crop = min(
       size.width / referredTo.width,
       size.height / referredTo.height,
@@ -62,7 +62,7 @@ class _SvgPainter extends CustomPainter {
     final Matrix4 _transform = Matrix4.identity();
     _transform.scale(crop);
     referredTo *= crop;
-    final Offset traslation = (size / 2 - referredTo / 2);
+    final Offset traslation = (size / 2 - referredTo / 2) as Offset;
     canvas.translate(traslation.dx, traslation.dy);
     canvas.drawPath(path.transform(_transform.storage), p);
   }

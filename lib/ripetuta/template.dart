@@ -9,8 +9,9 @@ Map<String, Template> templates = <String, Template>{};
 class SimpleTemplate {
   final String name;
   Tipologia tipologia;
-  double lastTarget;
-  String get formattedTarget {
+  double? lastTarget;
+
+  String? get formattedTarget {
     if (lastTarget == null) return null;
     return '${tipologia.targetFormatter(lastTarget)} ${tipologia.targetSuffix ?? ''}';
   }
@@ -18,11 +19,12 @@ class SimpleTemplate {
   Future<void> create() {
     return user.userReference
         .collection('templates')
-        .document(name)
-        .setData({'lastTarget': lastTarget, 'tipologia': tipologia.name});
+        .doc(name)
+        .set({'lastTarget': lastTarget, 'tipologia': tipologia.name});
   }
 
-  SimpleTemplate({@required this.name, this.tipologia, this.lastTarget});
+  SimpleTemplate(
+      {required this.name, required this.tipologia, this.lastTarget});
 
   @override
   String toString() => name;
@@ -31,15 +33,15 @@ class SimpleTemplate {
 class Template extends SimpleTemplate {
   Template.parse(DocumentSnapshot raw)
       : this(
-          name: raw.documentID,
+          name: raw.id,
           lastTarget: raw['lastTarget'],
           tipologia: Tipologia.parse(raw['tipologia']),
         );
 
   Template({
-    @required String name,
-    double lastTarget,
-    Tipologia tipologia,
+    required String name,
+    double? lastTarget,
+    required Tipologia tipologia,
   }) : super(
           name: name,
           lastTarget: lastTarget,
@@ -51,8 +53,8 @@ class Template extends SimpleTemplate {
   Future<void> update() {
     return user.userReference
         .collection('templates')
-        .document(name)
-        .updateData({'lastTarget': lastTarget, 'tipologia': tipologia.name});
+        .doc(name)
+        .update({'lastTarget': lastTarget, 'tipologia': tipologia.name});
   }
 }
 
@@ -69,20 +71,20 @@ class RegularExpressions {
 
 class Tipologia {
   final String name;
-  final Widget Function({Color color}) icon;
-  final String Function(double value) targetFormatter;
-  final bool Function(String s) targetValidator;
+  final Widget Function({Color? color}) icon;
+  final String Function(double? value) targetFormatter;
+  final bool Function(String? s) targetValidator;
   final String targetScheme;
-  final String targetSuffix;
-  final double Function(String target) targetParser;
+  final String? targetSuffix;
+  final double? Function(String target) targetParser;
 
   Tipologia({
-    @required this.name,
-    @required this.icon,
-    @required this.targetFormatter,
-    @required this.targetValidator,
-    @required this.targetScheme,
-    @required this.targetParser,
+    required this.name,
+    required this.icon,
+    required this.targetFormatter,
+    required this.targetValidator,
+    required this.targetScheme,
+    required this.targetParser,
     this.targetSuffix,
   });
 
@@ -137,7 +139,8 @@ class Tipologia {
       ],
     ),
     targetFormatter: (target) => target == null ? '' : '${target.round()} m',
-    targetValidator: (s) => RegularExpressions.integer.hasMatch(s),
+    targetValidator: (s) =>
+        s == null ? false : RegularExpressions.integer.hasMatch(s),
     targetScheme: 'es: 5000 m',
     targetParser: (target) => double.parse(target),
   );
@@ -147,8 +150,9 @@ class Tipologia {
       Mdi.weightLifter,
       color: color,
     ),
-    targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: (s) => RegularExpressions.integer.hasMatch(s),
+    targetFormatter: (target) => target?.toStringAsFixed(0) ?? '',
+    targetValidator: (s) =>
+        s == null ? false : RegularExpressions.integer.hasMatch(s),
     targetScheme: 'es: 40 kg',
     targetSuffix: 'kg',
     targetParser: (target) => double.parse(target),
@@ -156,8 +160,9 @@ class Tipologia {
   static final Tipologia esercizi = Tipologia(
     name: 'esercizi',
     icon: ({color = Colors.black}) => Icon(Mdi.yoga, color: color),
-    targetFormatter: (target) => target?.round() ?? '',
-    targetValidator: (s) => RegularExpressions.integer.hasMatch(s),
+    targetFormatter: (target) => target?.toStringAsFixed(0) ?? '',
+    targetValidator: (s) =>
+        s == null ? false : RegularExpressions.integer.hasMatch(s),
     targetScheme: 'es: 20x',
     targetSuffix: 'x',
     targetParser: (target) => double.parse(target),

@@ -5,11 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void _remove(final DocumentReference ref) {
   userC.scheduledTrainings.values.any((l) {
     if (l == null) return false;
-    final ScheduledTraining st = l.firstWhere(
-      (st) => st.reference == ref,
-      orElse: () => null,
-    );
-    return st == null ? false : l.remove(st);
+    try {
+      return l.remove(l.firstWhere((st) => st.reference == ref));
+    } on StateError {
+      return false;
+    }
   });
 }
 
@@ -24,7 +24,7 @@ Future<bool> scheduleSnapshot(
     ca:
     case DocumentChangeType.added:
       ScheduledTraining training = ScheduledTraining.parse(snapshot);
-      (userC.scheduledTrainings[training.date.dateTime] ??= []).add(training);
+      (userC.scheduledTrainings[training.date] ??= []).add(training);
       break;
     case DocumentChangeType.removed:
       _remove(snapshot.reference);

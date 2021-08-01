@@ -7,9 +7,10 @@ class SimpleTraining {
   final List<SimpleRipetuta> ripetute;
 
   SimpleTraining.from(this.training)
-      : name = training.work.name,
+      : assert(training.work != null),
+        name = training.work!.name,
         ripetute = List.unmodifiable(
-          training.work.ripetute.map((r) => SimpleRipetuta.from(r)),
+          training.work!.ripetute.map((r) => SimpleRipetuta.from(r)),
         );
 }
 

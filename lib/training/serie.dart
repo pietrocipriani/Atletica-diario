@@ -1,42 +1,40 @@
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/training/training.dart';
 import 'package:flutter/material.dart';
 
 class Serie {
-
   /// the list of [Ripetuta] into `this` [Serie]
-  List<Ripetuta> ripetute = <Ripetuta>[];
+  final List<Ripetuta> ripetute = <Ripetuta>[];
 
   /// the unique [LayerLink] used by [CompositedTransformTarget] & [CompositedTransformFollower]
   final LayerLink link = LayerLink();
 
   /// * `nextRecupero`: [Recupero] after `ripetizioni`
   /// * `recupero`: [Recupero] between each `ripetizioni`
-  Recupero nextRecupero, recupero;
+  final Recupero nextRecupero, recupero;
 
   /// `ripetizioni`: how many times repeat the same [Serie]
   int ripetizioni;
 
   /// default constructor
-  Serie(
-      {Iterable<Ripetuta> ripetute,
-      this.recupero,
-      this.ripetizioni = 1,
-      this.nextRecupero}) {
-    recupero ??= Recupero();
-    nextRecupero ??= Recupero();
+  Serie({
+    final Iterable<Ripetuta>? ripetute,
+    final Recupero? recupero,
+    this.ripetizioni = 1,
+    final Recupero? nextRecupero,
+  })  : recupero = recupero ?? Recupero(),
+        nextRecupero = nextRecupero ?? Recupero() {
     if (ripetute != null) this.ripetute.addAll(ripetute);
   }
-  
+
   /// creates a new instance from [DocumentSnapshot.data] from the [firestore]
-  Serie.parse(Map raw) {
-    recupero = Recupero(raw['recupero'] ?? 3 * 60);
-    nextRecupero = Recupero(raw['recuperoNext'] ?? 3 * 60);
-    ripetizioni = raw['times'];
-    ripetute = raw['ripetute']
-            ?.map<Ripetuta>((raw) => Ripetuta.parse(raw))
-            ?.toList() ??
-        <Ripetuta>[];
+  Serie.parse(final Training t, final Map raw)
+      : recupero = Recupero(raw['recupero'] ?? 3 * 60),
+        nextRecupero = Recupero(raw['recuperoNext'] ?? 3 * 60),
+        ripetizioni = raw['times'] {
+    raw['ripetute']?.forEach((raw) => Ripetuta.parse(this, raw));
+    t.serie.add(this);
   }
 
   /// converts `this` into a map to save it into [firestore]
@@ -49,6 +47,7 @@ class Serie {
 
   /// returns the number of [Ripetuta] into `this` [Serie]
   int get ripetuteCount {
-    return ripetute.fold(0, (sum, rip) => sum + rip.ripetizioni) * ripetizioni;
+    return ripetute.fold<int>(0, (sum, rip) => sum + rip.ripetizioni) *
+        ripetizioni;
   }
 }

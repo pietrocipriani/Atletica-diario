@@ -5,12 +5,12 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
-Future<Duration> showRecoverDialog(
+Future<void> showRecoverDialog(
   final BuildContext context,
   final Recupero recupero,
 ) async {
   final dynamic initialValue = recupero.recupero;
-  return await showDialog<Duration>(
+  await showDialog<Duration>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text('SELEZIONA IL RECUPERO'),
@@ -39,7 +39,7 @@ Future<Duration> showRecoverDialog(
 
 class RecuperoDialog extends StatefulWidget {
   final Recupero recupero;
-  RecuperoDialog({@required this.recupero});
+  RecuperoDialog({required this.recupero});
 
   @override
   _RecuperoDialogState createState() => _RecuperoDialogState();

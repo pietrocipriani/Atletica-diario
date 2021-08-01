@@ -3,7 +3,7 @@ import 'package:atletica/results/result.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/variant.dart';
 import 'package:flutter/material.dart';
@@ -15,17 +15,17 @@ class TrainingDescription {
   /// * if `rip` is null then `ris` must be provided as result entry
   /// * if `disabled`, the [Row] is greyed out
   static Widget _rowRip(
-    final Ripetuta rip,
-    final MapEntry<SimpleRipetuta, double> ris,
+    final Ripetuta? rip,
+    final MapEntry<SimpleRipetuta, double?>? ris,
     final Color primaryColorDark,
     final TextStyle overline, [
-    final Variant active,
+    final Variant? active,
     final bool disabled = false,
   ]) {
     assert((rip == null) != (ris == null),
         'cannot pass both the rip and the result');
-    final String name = ris?.key?.name ?? rip?.template;
-    final double result = ris?.value ?? (active?.targets ?? {})[rip];
+    final String? name = ris?.key.name ?? rip?.template;
+    final double? result = ris?.value ?? (active?.targets ?? {})[rip];
     return Align(
       alignment: Alignment.centerLeft,
       child: RichText(
@@ -66,7 +66,7 @@ class TrainingDescription {
   /// * if `isSerieRec`, the [Row] is highlighted
   /// * if `disabled`, the [Row] is greyed out
   static Widget _rowRec(
-    final Recupero rec,
+    final Recupero? rec,
     final bool isSerieRec,
     final Color primaryColor,
     final Color disabledColor,
@@ -81,9 +81,7 @@ class TrainingDescription {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 8),
             height: 1,
-            color: ((isSerieRec ?? false) && !disabled)
-                ? primaryColor
-                : disabledColor,
+            color: (isSerieRec && !disabled) ? primaryColor : disabledColor,
           ),
         ),
         RichText(
@@ -107,7 +105,7 @@ class TrainingDescription {
           null,
           e,
           Theme.of(context).primaryColorDark,
-          Theme.of(context).textTheme.overline,
+          Theme.of(context).textTheme.overline!,
         ));
   }
 
@@ -116,9 +114,9 @@ class TrainingDescription {
   /// * if `disabled`, all the [Row]s are greyed out
   static Iterable<Widget> fromTraining(
     BuildContext context,
-    final Allenamento training,
+    final Training training,
     Variant active, [
-    Result result,
+    Result? result,
     bool disabled = false,
   ]) sync* {
     final ThemeData theme = Theme.of(context);
@@ -126,7 +124,7 @@ class TrainingDescription {
         result.isCompatible(training) &&
         result.results.values.any((r) => r != null);
 
-    TextStyle overline = theme.textTheme.overline;
+    TextStyle overline = theme.textTheme.overline!;
     if (disabled) overline = overline.copyWith(color: Colors.grey[300]);
     final Color primaryColorDark = theme.primaryColorDark;
     final Color primaryColor = theme.primaryColor;

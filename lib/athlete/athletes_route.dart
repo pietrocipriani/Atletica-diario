@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:atletica/athlete/athlete_widget.dart';
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/persistence/auth.dart';
@@ -17,16 +17,15 @@ class AthletesRoute extends StatefulWidget {
 final AppBar _appBar = AppBar(title: Text('ATLETI'));
 
 class _AthletesRouteState extends State<AthletesRoute> {
-  final Callback _callback = Callback();
-  Icon _requestIcon;
-  TextStyle _subtitle1Bold, _overlineBoldPrimaryDark;
+  late final Callback _callback = Callback((_) => setState(() {}));
+  Icon? _requestIcon;
+  TextStyle? _subtitle1Bold, _overlineBoldPrimaryDark;
   bool _showUidInfo = false;
 
   @override
   void initState() {
-    _callback.f = (_) => setState(() {});
     CoachHelper.onRequestCallbacks.add(_callback);
-    CoachHelper.onAthleteCallbacks.add(_callback);
+    Athlete.signIn(_callback);
 
     super.initState();
   }
@@ -34,8 +33,8 @@ class _AthletesRouteState extends State<AthletesRoute> {
   @override
   void dispose() {
     _callback.stopListening;
-    CoachHelper.onRequestCallbacks.remove(_callback);
-    CoachHelper.onAthleteCallbacks.remove(_callback);
+    CoachHelper.onRequestCallbacks.remove(_callback.stopListening);
+    Athlete.signOut(_callback.stopListening);
     super.dispose();
   }
 
@@ -71,7 +70,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
             ],
             style: Theme.of(context)
                 .textTheme
-                .overline
+                .overline!
                 .copyWith(fontWeight: FontWeight.normal),
           ),
           textAlign: TextAlign.justify,
@@ -83,15 +82,15 @@ class _AthletesRouteState extends State<AthletesRoute> {
     final Widget title = Text(request.name, style: _subtitle1Bold);
 
     final Widget content = CustomListTile(
-      leading: _requestIcon,
+      leading: _requestIcon!,
       title: title,
-      onTap: () => Athlete.fromDialog (context: context, request: request),
+      onTap: () => Athlete.fromDialog(context: context, request: request),
     );
     final FutureOr<void> Function(DismissDirection dir) onDismissed =
         (direction) async {
       await userC.refuseRequest(request.reference);
     };
-    final Future<bool> Function(DismissDirection dir) confirmDismiss =
+    final Future<bool?> Function(DismissDirection dir) confirmDismiss =
         (dir) async {
       if (dir == DismissDirection.startToEnd) return true;
       return await Athlete.fromDialog(context: context, request: request);
@@ -113,11 +112,11 @@ class _AthletesRouteState extends State<AthletesRoute> {
       Icons.new_releases,
       color: Theme.of(context).primaryColorDark,
     );
-    _overlineBoldPrimaryDark ??= Theme.of(context).textTheme.overline.copyWith(
+    _overlineBoldPrimaryDark ??= Theme.of(context).textTheme.overline!.copyWith(
         fontWeight: FontWeight.bold, color: Theme.of(context).primaryColorDark);
 
-    final bool hasRequests = userC.requests.isNotEmpty;
-    final bool hasAthletes = userC.athletes.isNotEmpty;
+    final bool hasRequests = Athlete.hasRequests;
+    final bool hasAthletes = Athlete.hasAthletes;
     final bool hasChildren = hasRequests || hasAthletes;
 
     final List<Widget> children = <Widget>[
@@ -127,9 +126,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
           IconButton(
             icon: Icon(Icons.info),
             onPressed: () => setState(() => _showUidInfo = !_showUidInfo),
-            color: _showUidInfo
-                ? Theme.of(context).primaryColorDark
-                : null,
+            color: _showUidInfo ? Theme.of(context).primaryColorDark : null,
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -150,16 +147,17 @@ class _AthletesRouteState extends State<AthletesRoute> {
     if (_showUidInfo) children.add(_uidInfo);
     if (hasRequests) {
       children.add(_subtitle('nuove richieste'));
-      children.addAll(userC.requests.map((request) => _requestWidget(request)));
+      children
+          .addAll(Athlete.requests.map((request) => _requestWidget(request)));
     }
 
     if (hasAthletes) {
       children.add(_subtitle('i tuoi atleti'));
       children.addAll(
-        userC.athletes.map(
+        Athlete.athletes.map(
           (atleta) => AthleteWidget(
             atleta: atleta,
-            overlineBoldPrimaryDark: _overlineBoldPrimaryDark,
+            overlineBoldPrimaryDark: _overlineBoldPrimaryDark!,
             onModified: () => setState(() {}),
           ),
         ),

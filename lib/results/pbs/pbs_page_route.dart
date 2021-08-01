@@ -9,11 +9,11 @@ import 'package:atletica/results/result.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 
-final Map<TagsEvaluator, String> filters =
+final Map<TagsEvaluator, String?> filters =
     Map.fromIterable(tags, key: (tag) => tag, value: (_) => null);
 
 class PbsPageRoute extends StatelessWidget {
-  final Iterable<Result> res;
+  final Iterable<Result>? res;
   PbsPageRoute({this.res, final bool clear = false}) {
     if (clear) filters.updateAll((key, value) => null);
   }
@@ -29,7 +29,7 @@ class PbsWidget extends StatefulWidget {
   final Map<String, Pb> results = {};
   final List<String> _sorted = [];
 
-  PbsWidget({Iterable<Result> res, final bool clear = false}) {
+  PbsWidget({Iterable<Result>? res, final bool clear = false}) {
     if (clear) filters.updateAll((key, value) => null);
     res ??= userA.results.values;
     res.forEach((r) {
@@ -39,7 +39,7 @@ class PbsWidget extends StatefulWidget {
     });
     results.removeWhere((key, value) => value.isEmpty);
     _sorted.addAll(results.keys);
-    _sorted.sort((k1, k2) => -results[k1].count.compareTo(results[k2].count));
+    _sorted.sort((k1, k2) => -results[k1]!.count.compareTo(results[k2]!.count));
   }
 
   @override
@@ -56,7 +56,7 @@ class _PbsPageRouteState extends State<PbsWidget> {
       children: widget._sorted
           .map(
             (name) {
-              final Pb pb = widget.results[name];
+              final Pb pb = widget.results[name]!;
               final List<SimpleResultWidget> children = pb.results
                   .where((r) => r.acceptable)
                   .map((r) => SimpleResultWidget(
@@ -93,7 +93,7 @@ class _PbsPageRouteState extends State<PbsWidget> {
               );
             },
           )
-          .where((w) => w != null)
+          .whereType<Widget>()
           .toList(),
     );
   }

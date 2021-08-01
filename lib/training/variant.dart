@@ -1,5 +1,5 @@
 import 'package:atletica/ripetuta/ripetuta.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 
 class Variant {
   /// in case of default values... actually useless
@@ -7,25 +7,27 @@ class Variant {
 
   final Map<Ripetuta, double> targets;
 
-  Map<String, dynamic> asMap(final Allenamento a) {
-    return {
-      'targets': a.serie
-          .expand((s) => s.ripetute)
-          .map((r) => this.targets[r])
-          .toList(),
-    };
-  }
+  Map<String, dynamic> asMap(final Training a) => {
+        'targets': a.serie
+            .expand((s) => s.ripetute)
+            .map((r) => this.targets[r])
+            .toList(),
+      };
 
-  Variant.parse(final Map<String, dynamic> raw, final Allenamento a)
+  Variant.parse(final Map<String, dynamic> raw, final Training a)
       : targets = Map.fromIterables(
           a.serie.expand((s) => s.ripetute),
           raw['targets'].cast<double>(),
-        );
+        ) {
+    a.variants.add(this);
+  }
   Variant.from(final Variant a) : targets = Map.from(a.targets);
-  Variant.fromOldMode(final Allenamento a)
+  Variant.fromOldMode(final Training a)
       : targets = Map.fromIterable(
           a.serie.expand((s) => s.ripetute),
           key: (r) => r,
           value: (r) => r.target,
-        );
+        ) {
+    a.variants.add(this);
+  }
 }

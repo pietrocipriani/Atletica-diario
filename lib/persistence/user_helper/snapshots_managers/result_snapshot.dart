@@ -11,7 +11,7 @@ bool resultSnapshot(
       userA.results[snapshot.reference] = Result(snapshot);
       break;
     case DocumentChangeType.modified:
-      final Result prev = userA.results[snapshot.reference];
+      final Result? prev = userA.results[snapshot.reference];
       assert(prev != null);
       userA.results[snapshot.reference] = Result(snapshot);
       break;

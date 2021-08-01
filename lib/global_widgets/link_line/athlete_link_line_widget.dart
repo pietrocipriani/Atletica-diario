@@ -1,4 +1,4 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
@@ -9,12 +9,12 @@ class AtletaLinkLineWidget extends StatelessWidget {
   final void Function(GlobalKey data) onAccept;
 
   AtletaLinkLineWidget({
-    @required Key key,
-    @required this.atleta,
-    @required this.selected,
-    @required this.onTap,
-    @required this.onLongPress,
-    @required this.onAccept,
+    required Key? key,
+    required this.atleta,
+    required this.selected,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onAccept,
   }) : super(key: key);
 
   @override
@@ -34,7 +34,7 @@ class AtletaLinkLineWidget extends StatelessWidget {
               borderType: BorderType.RRect,
               strokeWidth: selected != atleta ? 1 : 2,
               color: candidateData.isEmpty && selected != atleta
-                  ? Colors.grey[300]
+                  ? Colors.grey[300]!
                   : Theme.of(context).primaryColor,
               dashPattern: [6, 4],
             ),

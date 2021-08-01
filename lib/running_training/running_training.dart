@@ -31,13 +31,13 @@ void updateFromSchedules() {
 
 class RunningTraining extends StatefulWidget {
   final Schedule schedule;
-  final Allenamento allenamento;
+  final Training allenamento;
 
   RunningTraining(this.schedule, this.allenamento)
       : assert(allenamento != null);
 
   static RunningTraining fromSchedule(final Schedule schedule) {
-    Allenamento training = schedule.todayTraining;
+    Training training = schedule.todayTraining;
     if (training == null) return null;
     return RunningTraining(schedule, training);
   }
@@ -245,7 +245,7 @@ class _RunningTrainingState extends State<RunningTraining>
   List<double> rawResults = <double>[];
 
   void _timerDialog(
-      {@required BuildContext context, @required Ripetuta rip}) async {
+      {required BuildContext context, required Ripetuta rip}) async {
     bool Function() lap = () {
       if (!tickerProvider.ticker.isActive) return false;
       rawResults.add(tickerProvider.elapsed.inMilliseconds / 1000);

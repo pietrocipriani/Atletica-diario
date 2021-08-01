@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class CustomListTile extends StatelessWidget {
   CustomListTile({
-    Key key,
+    Key? key,
     this.leading,
     this.title,
     this.subtitle,
@@ -14,15 +14,15 @@ class CustomListTile extends StatelessWidget {
     this.tileColor,
   }) : super(key: key);
 
-  final Widget leading;
-  final Widget title;
-  final Widget subtitle;
-  final Widget trailing;
+  final Widget? leading;
+  final Widget? title;
+  final Widget? subtitle;
+  final Widget? trailing;
   final bool isThreeLine;
-  final bool dense;
-  final GestureTapCallback onTap;
-  final GestureLongPressCallback onLongPress;
-  final Color tileColor;
+  final bool? dense;
+  final GestureTapCallback? onTap;
+  final GestureLongPressCallback? onLongPress;
+  final Color? tileColor;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -32,14 +32,14 @@ class CustomListTile extends StatelessWidget {
           title: title == null
               ? Container()
               : DefaultTextStyle(
-                  child: title,
-                  style: Theme.of(context).textTheme.subtitle1,
+                  child: title!,
+                  style: Theme.of(context).textTheme.subtitle1!,
                 ),
           subtitle: subtitle == null
               ? null
               : DefaultTextStyle(
-                  child: subtitle,
-                  style: Theme.of(context).textTheme.overline,
+                  child: subtitle!,
+                  style: Theme.of(context).textTheme.overline!,
                 ),
           trailing: trailing,
           isThreeLine: isThreeLine,
