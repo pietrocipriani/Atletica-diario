@@ -17,22 +17,17 @@ class _DurationPickerState extends State<DurationPicker>
     with SingleTickerProviderStateMixin {
   static const kROUND_TIME = 12 * 2;
   static const kMAX_ROUNDS = 5;
-  int duration; // 1 equals to 30 seconds
+  late int duration = duration =
+      (widget.initialDuration.inSeconds / 30).round(); // 1 equals to 30 seconds
   bool selected = false;
   GlobalKey detectorKey = GlobalKey();
-  Offset center;
+  Offset? center;
 
   int completeRounds = 0;
 
-  @override
-  void initState() {
-    duration = (widget.initialDuration.inSeconds / 30).round();
-    super.initState();
-  }
-
   void _onFinishChange() {
     setState(() => selected = false);
-    widget.onDurationChanged?.call(Duration(seconds: duration * 30));
+    widget.onDurationChanged.call(Duration(seconds: duration * 30));
   }
 
   @override
@@ -95,10 +90,10 @@ class _DurationPickerState extends State<DurationPicker>
             key: detectorKey,
             onPanDown: (details) {
               center ??=
-                  (detectorKey.currentContext.findRenderObject() as RenderBox)
+                  (detectorKey.currentContext!.findRenderObject() as RenderBox)
                       .size
                       .center(Offset(0, 0));
-              Offset relativeToCenter = details.localPosition - center;
+              Offset relativeToCenter = details.localPosition - center!;
               Offset handle = Offset.fromDirection(
                   2 * pi * duration / kROUND_TIME - pi / 2, 100);
 
@@ -108,13 +103,13 @@ class _DurationPickerState extends State<DurationPicker>
                 });
             },
             onTapUp: (details) {
-              if (((details.localPosition - center).distance - 100).abs() >
+              if (((details.localPosition - center!).distance - 100).abs() >
                   10) {
                 _onFinishChange();
                 return;
               }
               double angle =
-                  (details.localPosition - center).direction + pi / 2;
+                  (details.localPosition - center!).direction + pi / 2;
               angle %= 2 * pi;
               int newDuration = (angle * kROUND_TIME / (2 * pi)).round();
               newDuration += duration ~/ kROUND_TIME * kROUND_TIME;
@@ -126,7 +121,7 @@ class _DurationPickerState extends State<DurationPicker>
             onPanUpdate: (details) {
               if (!selected) return;
               double currentAngle =
-                  (details.localPosition - center).direction + pi / 2;
+                  (details.localPosition - center!).direction + pi / 2;
               int newDuration = (currentAngle * kROUND_TIME / (pi * 2)).round();
               newDuration += duration ~/ kROUND_TIME * kROUND_TIME;
               int delta1 = newDuration - duration;
@@ -150,7 +145,7 @@ class TimerPainter extends CustomPainter {
   final Color roundsColors, stepsColor;
   final Paint p = new Paint();
 
-  TimerPainter({@required this.roundsColors, this.stepsColor = Colors.black}) {
+  TimerPainter({required this.roundsColors, this.stepsColor = Colors.black}) {
     p.style = PaintingStyle.stroke;
     p.strokeWidth = 1;
   }

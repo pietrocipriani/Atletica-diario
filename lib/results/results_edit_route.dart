@@ -1,6 +1,5 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/results/results_route.dart';
-import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
@@ -30,59 +29,43 @@ class ResultsEditRoute extends StatelessWidget {
       ),
       body: ListView(
         children: results.results.keys
-            .where((a) => userC.rawAthletes.containsKey(a))
             .map((a) => StreamBuilder<QuerySnapshot>(
-                stream: userC.resultSnapshots(
-                  athlete: userC.rawAthletes[a],
-                  date: results.date,
-                ),
+                stream: userC.resultSnapshots(athlete: a, date: results.date),
                 builder: (context, snapshot) {
-                  if (snapshot.data?.documents != null) {
-                    snapshot.data.documents
-                        .where((doc) =>
-                            results.date ==
-                            (doc['date'] == null
-                                ? Date.parse(doc.documentID)
-                                : Date.fromTimeStamp(doc['date'])))
-                        .any(
-                          (doc) => results.update(
-                            reference: doc.reference,
-                            athlete: a,
-                            results: doc['results'].cast<String>(),
-                            fatigue: doc['fatigue'],
-                            info: doc['info'],
-                          ),
-                        );
+                  if (snapshot.hasData) {
+                    snapshot.data!.docs.any(
+                      (doc) => results.update(a, Result.updateOrParse(doc)),
+                    );
                   }
 
-                  final int count = results.results[a].results.values
+                  final int count = results.results[a]!.results.values
                       .where((v) => v != null)
                       .length;
 
-                  final Athlete athlete = userC.rawAthletes[a];
-                  final Result res = results.results[a];
+                  final Athlete athlete = a;
+                  final Result res = results.results[a]!;
                   return CustomDismissible(
                     key: ValueKey(hashList([results, a])),
                     direction: DismissDirection.endToStart,
                     confirmDismiss: (_) {
                       showResultsEditDialog(
                         context,
-                        results.results[a],
+                        results.results[a]!,
                         (r) => userC.saveResult(athlete: a, results: r),
                       );
                       return Future.value(false);
                     },
                     child: CustomExpansionTile(
-                      title: userC.rawAthletes[a].name,
+                      title: athlete.name,
                       leading: Icon(
-                        results.results[a].fatigue == null
+                        res.fatigue == null
                             ? Mdi.emoticonNeutralOutline
-                            : icons[results.results[a].fatigue],
+                            : icons[res.fatigue!],
                         size: 42,
-                        color: results.results[a].fatigue == null
+                        color: res.fatigue == null
                             ? Theme.of(context).disabledColor
                             : Color.lerp(Colors.green, Colors.red,
-                                results.results[a].fatigue / icons.length),
+                                res.fatigue! / icons.length),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -102,8 +85,6 @@ class ResultsEditRoute extends StatelessWidget {
                           ),
                         ],
                       ),
-                      childrenBackgroundColor: Theme.of(context).primaryColor,
-                      childrenPadding: const EdgeInsets.all(8),
                       hiddenSubtitle: res.info,
                       children: res.asIterable
                           .map((e) => CustomListTile(
@@ -116,8 +97,6 @@ class ResultsEditRoute extends StatelessWidget {
                                           .targetFormatter(e.value),
                                   style: Theme.of(context).textTheme.headline5,
                                 ),
-                                tileColor:
-                                    Theme.of(context).scaffoldBackgroundColor,
                                 trailing: RichText(
                                   text: TextSpan(
                                       style:

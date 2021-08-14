@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class ResizableTextField extends StatefulWidget {
   final void Function(String) onChanged;
   final TextEditingController _controller;
-  final String hint;
+  final String? hint;
 
-  ResizableTextField({@required this.onChanged, initialText = '', this.hint})
+  ResizableTextField({required this.onChanged, initialText = '', this.hint})
       : _controller = TextEditingController(text: initialText);
 
   @override

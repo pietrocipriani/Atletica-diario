@@ -1,5 +1,4 @@
 import 'package:atletica/results/result.dart';
-import 'package:atletica/persistence/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 bool resultSnapshot(
@@ -8,15 +7,13 @@ bool resultSnapshot(
 ) {
   switch (changeType) {
     case DocumentChangeType.added:
-      userA.results[snapshot.reference] = Result(snapshot);
+      Result.parse(snapshot);
       break;
     case DocumentChangeType.modified:
-      final Result prev = userA.results[snapshot.reference];
-      assert(prev != null);
-      userA.results[snapshot.reference] = Result(snapshot);
+      Result.update(snapshot);
       break;
     case DocumentChangeType.removed:
-      userA.results.remove(snapshot.reference);
+      Result.remove(snapshot.reference);
       break;
   }
   return true;

@@ -1,34 +1,33 @@
+import 'package:atletica/athlete/athlete.dart';
+import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_calendar.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:atletica/results/results.dart';
 import 'package:atletica/results/results_edit_route.dart';
 import 'package:atletica/schedule/schedule.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 class HomePageWidget extends StatefulWidget {
-  final void Function(DateTime day) onSelectedDayChanged;
+  final void Function(Date day)? onSelectedDayChanged;
   final Orientation orientation;
 
-  HomePageWidget(
-      {Key key,
-      this.onSelectedDayChanged,
-      this.orientation = Orientation.portrait})
-      : super(key: key);
+  HomePageWidget({
+    Key? key,
+    this.onSelectedDayChanged,
+    this.orientation = Orientation.portrait,
+  }) : super(key: key);
 
   @override
   _HomePageWidgetState createState() => _HomePageWidgetState();
 }
 
 class _HomePageWidgetState extends State<HomePageWidget> {
-  final CalendarController _calendarController = CalendarController();
-
-  final Callback callback = Callback();
+  Date selectedDay = Date.now();
+  late final Callback callback = Callback((_, c) => setState(() {}));
 
   /// must listen `onAthleteCallbacks` because insertion/removal
   /// can change schedule's disponibility
@@ -38,26 +37,24 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   /// ```
   @override
   void initState() {
-    callback.f = (_) => setState(() {});
-    CoachHelper.onSchedulesCallbacks.add(callback);
-
-    CoachHelper.onAthleteCallbacks.add(callback);
+    ScheduledTraining.signInGlobal(callback);
+    Athlete.signInGlobal(callback);
     super.initState();
   }
 
   @override
   void dispose() {
-    CoachHelper.onSchedulesCallbacks.remove(callback.stopListening);
-    CoachHelper.onAthleteCallbacks.remove(callback);
+    ScheduledTraining.signOutGlobal(callback.stopListening);
+    Athlete.signOutGlobal(callback);
     super.dispose();
   }
 
   Widget _trainingWidget(final ScheduledTraining s) {
-    final Allenamento a = s.work;
+    final Training? a = s.work;
     if (a == null) return Container();
     return CustomExpansionTile(
       title: a.name,
-      subtitle: s.athletes == null || s.athletes.isEmpty
+      subtitle: s.athletes.isEmpty
           ? null
           : Text(
               s.athletesAsList,
@@ -74,9 +71,9 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             )),
         color: IconTheme.of(context).color,
       ),
-      children: TrainingDescription.fromTraining(context, a, a.variants.first)
+      children: TrainingDescription.fromTraining(a, a.variants.first)
           .toList(), // TODO: select variant
-      childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
+      childrenPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
         onPressed: () {},
@@ -89,19 +86,20 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final CustomCalendar calendar = CustomCalendar(
-      controller: _calendarController,
-      onDaySelected: (day, events, holidays) =>
-          widget.onSelectedDayChanged?.call(day),
-      onCalendarCreated: (first, last, format) =>
-          widget.onSelectedDayChanged?.call(_calendarController.selectedDay),
-      events: userC?.scheduledTrainings ?? {},
+      onDaySelected: (day, focused) {
+        widget.onSelectedDayChanged?.call(day);
+        setState(() => selectedDay = day);
+      },
+      selectedDay: selectedDay,
+      onCalendarCreated: (controller) =>
+          widget.onSelectedDayChanged?.call(selectedDay),
+      events: (dt) => ScheduledTraining.ofDate(dt),
     );
     final Widget list = Expanded(
       child: ListView(
-        children: userC.scheduledTrainings[_calendarController.selectedDay]
-                ?.map((st) => _trainingWidget(st))
-                ?.toList() ??
-            [],
+        children: ScheduledTraining.ofDate(selectedDay)
+            .map((st) => _trainingWidget(st))
+            .toList(),
       ),
     );
 

@@ -1,10 +1,10 @@
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:flutter/material.dart';
 
-/// return a [Chip] relative to a given [Allenamento]
+/// return a [Chip] relative to a given [Training]
 class TrainingChip extends StatelessWidget {
   /// the given `training`
-  final Allenamento training;
+  final Training training;
 
   /// for more info see [Chip.elevation]
   final double elevation;
@@ -13,10 +13,10 @@ class TrainingChip extends StatelessWidget {
   final bool enabled;
 
   /// called when [Chip.onDeleted] is triggered
-  final void Function() onDelete;
+  final void Function()? onDelete;
 
   TrainingChip({
-    @required this.training,
+    required this.training,
     this.elevation = 0,
     this.enabled = true,
     this.onDelete,
@@ -38,7 +38,7 @@ class TrainingChip extends StatelessWidget {
         ),
         label: Text(
           training.name,
-          style: theme.textTheme.overline.copyWith(
+          style: theme.textTheme.overline!.copyWith(
             color: enabled ? null : theme.disabledColor,
             fontWeight: FontWeight.bold,
           ),

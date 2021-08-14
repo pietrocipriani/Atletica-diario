@@ -4,6 +4,7 @@ import 'package:atletica/global_widgets/mode_selector_route.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SplashScreen extends StatelessWidget {
   @override
@@ -16,7 +17,7 @@ class SplashScreen extends StatelessWidget {
           Image.asset('assets/icon.png'),
           Text(
             'ATLETICA',
-            style: Theme.of(context).textTheme.headline3.copyWith(
+            style: Theme.of(context).textTheme.headline3!.copyWith(
                   fontWeight: FontWeight.w900,
                   color: Theme.of(context).primaryColor,
                 ),
@@ -26,17 +27,33 @@ class SplashScreen extends StatelessWidget {
             initialData: 0,
             stream: login(context: context),
             builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(snapshot.error.toString()),
+                    content: Text(snapshot.stackTrace.toString()),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Clipboard.setData(ClipboardData(
+                            text: '${snapshot.error}\n${snapshot.stackTrace}')),
+                        child: Text('copia errore'),
+                      )
+                    ],
+                  ),
+                );
+              }
               print('login progress: ${snapshot.data}');
               if (snapshot.data == 1) {
                 print('in');
-                WidgetsBinding.instance.addPostFrameCallback(
+                WidgetsBinding.instance!.addPostFrameCallback(
                   (d) {
-                    print ('called navigator!');
-                    return Navigator.pushReplacement(
+                    print('called navigator!');
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          if (user == null) return ModeSelectorRoute();
+                          if (rawUser == null) return ModeSelectorRoute();
                           if (user is CoachHelper) return CoachMainPage();
                           return AthleteMainPage();
                         },

@@ -1,18 +1,18 @@
-import 'package:atletica/athlete/atleta.dart';
-import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/athlete/athlete.dart';
+import 'package:atletica/date.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/plan/widgets/trainings_wrapper.dart';
 import 'package:atletica/schedule/athletes_picker.dart';
 import 'package:atletica/schedule/schedule.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_chip.dart';
+import 'package:atletica/main.dart' show IterableExtension;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class ScheduledTrainingDialog extends StatefulWidget {
-  final DateTime selectedDay;
+  final Date selectedDay;
 
   ScheduledTrainingDialog(this.selectedDay);
 
@@ -22,23 +22,37 @@ class ScheduledTrainingDialog extends StatefulWidget {
 }
 
 class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
-  final List<Allenamento> trainings = [];
+  final List<Training> trainings = [];
   final List<ScheduledTraining> prev = [];
-  final Map<Allenamento, List<Athlete>> athletes = Map();
-  Allenamento _selectAthletes;
+  final Map<Training, List<Athlete>> athletes = Map();
+  Training? _selectAthletes;
 
   @override
   void initState() {
-    userC.scheduledTrainings[widget.selectedDay]?.forEach((a) {
-      trainings.add(a.work);
+    ScheduledTraining.ofDate(widget.selectedDay)
+        .where((a) => a.work != null)
+        .forEach((a) {
+      trainings.add(a.work!);
       prev.add(a);
-      athletes[a.work] = a.athletes
-          .map((a) => userC.rawAthletes[a])
-          .where((a) => a != null)
-          .toList();
+      athletes[a.work!] = a.athletes.toList();
     });
     super.initState();
   }
+
+  Widget _trainingChipBuilder(final Training a) => GestureDetector(
+        onTap: () => setState(() =>
+            trainings.contains(a) ? trainings.remove(a) : trainings.add(a)),
+        onLongPress: trainings.contains(a)
+            ? () => setState(() => _selectAthletes = a)
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: TrainingChip(
+            training: a,
+            enabled: trainings.contains(a),
+          ),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -57,24 +71,13 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
 
     final Widget content = _selectAthletes == null
         ? TrainingsWrapper(
-            builder: (a) => GestureDetector(
-              onTap: () => setState(() => trainings.contains(a)
-                  ? trainings.remove(a)
-                  : trainings.add(a)),
-              onLongPress: trainings.contains(a)
-                  ? () => setState(() => _selectAthletes = a)
-                  : null,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: TrainingChip(
-                  training: a,
-                  enabled: trainings.contains(a),
-                ),
-              ),
-            ),
+            builder: _trainingChipBuilder,
+            trainings: trainings,
           )
-        : AthletesPicker(athletes[_selectAthletes] ??= [],
-            onChanged: (a) => setState(() {}));
+        : AthletesPicker(
+            athletes[_selectAthletes!] ??= Athlete.athletes.toList(),
+            onChanged: (a) => setState(() {}),
+          );
 
     return AlertDialog(
       title: title,
@@ -90,26 +93,28 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
               ? () {
                   final WriteBatch batch = firestore.batch();
 
-                  for (Allenamento a in trainings) {
-                    final ScheduledTraining st = prev.firstWhere(
-                      (st) => st.workRef == a.reference,
-                      orElse: () => null,
-                    );
+                  for (Training a in trainings) {
+                    final ScheduledTraining? st = prev
+                        .firstWhereNullable((st) => st.workRef == a.reference);
+
+                    final Set<DocumentReference>? difference =
+                        st == null ? null : Set.from(st.athletesRefs);
+                    if (difference != null)
+                      athletes[a]?.map((a) => a.reference).forEach((a) {
+                        if (!difference.add(a)) difference.remove(a);
+                      });
 
                     if (st == null)
                       ScheduledTraining.create(
-                        work: a.reference,
+                        work: a,
                         date: widget.selectedDay,
-                        athletes:
-                            athletes[a]?.map((a) => a.reference)?.toList(),
+                        athletes: athletes[a]?.map((a) => a.reference).toList(),
                         batch: batch,
                       );
-                    else if (!listEquals<DocumentReference>(
-                      athletes[a]?.map((a) => a.reference)?.toList(),
-                      st.athletes,
-                    ))
+                    else if (difference!.isNotEmpty)
                       st.update(
-                        athletes: athletes[a]?.map((a) => a.reference)?.toList(),
+                        athletes: athletes[a]?.map((a) => a.reference).toList(),
+                        removedAthletes: st.athletesRefs.toList(),
                         batch: batch,
                       );
                   }

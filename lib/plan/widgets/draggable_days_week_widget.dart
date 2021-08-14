@@ -1,5 +1,5 @@
 import 'package:atletica/plan/week.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_chip.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -14,33 +14,34 @@ class DraggableDaysWeekWidget extends StatefulWidget {
 }
 
 class _DraggableDaysWeekWidgetState extends State<DraggableDaysWeekWidget> {
-  Widget _builder(final int weekday, final bool over) =>
-      allenamenti(widget.week.trainings[weekday]) != null
-          ? TrainingChip(
-              training: allenamenti(widget.week.trainings[weekday]),
-              onDelete: () =>
-                  setState(() => widget.week.trainings[weekday] = null),
-            )
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: DottedBorder(
-                borderType: BorderType.RRect,
-                padding: const EdgeInsets.all(0),
-                color: over
-                    ? Theme.of(context).primaryColorDark
-                    : Theme.of(context).disabledColor,
-                radius: Radius.circular(20),
-                dashPattern: [6, 4],
-                child: Container(
-                  height: 32,
-                ),
-              ),
-            );
+  Widget _builder(final int weekday, final bool over) {
+    final Training? t = Training.tryOf(widget.week.trainings[weekday]);
+    if (t != null)
+      return TrainingChip(
+        training: t,
+        onDelete: () => setState(() => widget.week.trainings[weekday] = null),
+      );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: DottedBorder(
+        borderType: BorderType.RRect,
+        padding: const EdgeInsets.all(0),
+        color: over
+            ? Theme.of(context).primaryColorDark
+            : Theme.of(context).disabledColor,
+        radius: Radius.circular(20),
+        dashPattern: [6, 4],
+        child: Container(
+          height: 32,
+        ),
+      ),
+    );
+  }
 
   Widget _dayDraggable(final int weekday) => Expanded(
         flex: 2,
-        child: DragTarget<Allenamento>(
-          builder: (BuildContext context, List<Allenamento> candidateData,
+        child: DragTarget<Training>(
+          builder: (BuildContext context, List<Training?> candidateData,
                   List<dynamic> rejectedData) =>
               _builder((weekday + 1) % 7, candidateData.isNotEmpty),
           onAccept: (allenamento) => setState(
@@ -61,7 +62,7 @@ class _DraggableDaysWeekWidgetState extends State<DraggableDaysWeekWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle overline = Theme.of(context).textTheme.overline;
+    final TextStyle overline = Theme.of(context).textTheme.overline!;
     return Column(
       children: [
         Row(children: [_dayTitle(0, overline), _dayTitle(1, overline)]),

@@ -1,7 +1,7 @@
 import 'package:atletica/plan/week.dart';
 import 'package:atletica/plan/widgets/draggable_days_week_widget.dart';
 import 'package:atletica/plan/widgets/trainings_wrapper.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_chip.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +21,7 @@ class WeekDialog extends StatelessWidget {
             margin: const EdgeInsets.all(8),
           ),
           TrainingsWrapper(
-            builder: (value) => Draggable<Allenamento>(
+            builder: (value) => Draggable<Training>(
               maxSimultaneousDrags: 1,
               data: value,
               feedback: TrainingChip(training: value, elevation: 6),

@@ -1,16 +1,15 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/group.dart';
-import 'package:atletica/persistence/auth.dart';
 import 'package:flutter/material.dart';
 
-String _validator(String value, Athlete atleta, bool isNew) {
+String? _validator(String? value, Athlete? atleta, bool isNew) {
   if (value == null || value.isEmpty) return 'inserire il nome';
-  if (value != atleta?.name && userC.athletes.any((a) => a.name == value))
+  if (value != atleta?.name && Athlete.isNameInUse(value))
     return isNew ? 'atleta già inserito' : 'nome già esistente';
   return null;
 }
 
-String _newGroupValidator(String name) {
+String? _newGroupValidator(String? name) {
   if (name == null || name.isEmpty) return 'inserisci un nome';
   if (Group.groups.any((group) => group.name == name))
     return 'gruppo già esistente';
@@ -19,15 +18,15 @@ String _newGroupValidator(String name) {
 
 /// function to define if `group` should be deleted after modify/adding `atleta`.
 /// to estabilish that we need to know if `selectedGroup` is the `group` in question or not
-bool _shouldRemoveGroup(Group group, Group selectedGroup, Athlete atleta) {
-  final List<Athlete> athletes = group.athletes;
+bool _shouldRemoveGroup(Group group, Group? selectedGroup, Athlete? atleta) {
+  final List<Athlete> athletes = group.athletes.toList();
   return selectedGroup != group &&
       (athletes.isEmpty || (athletes.length == 1 && athletes.first == atleta));
 }
 
-Widget dialog({@required BuildContext context, Athlete atleta}) {
-  final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1;
-  final TextStyle overlineSelected = Theme.of(context).textTheme.overline;
+Widget dialog({required BuildContext context, Athlete? atleta}) {
+  final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1!;
+  final TextStyle overlineSelected = Theme.of(context).textTheme.overline!;
   final TextStyle overline =
       overlineSelected.copyWith(fontWeight: FontWeight.normal);
   final TextStyle overlineLineThrough =
@@ -39,13 +38,13 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
       TextEditingController(text: atleta?.name);
 
   final FocusNode addGroupNode = FocusNode();
-  final String groupName = atleta?.group ?? lastGroup;
-  Group selectedGroup =
+  final String? groupName = atleta?.group ?? lastGroup;
+  Group? selectedGroup =
       groupName == null ? Group.groups.first : Group(name: groupName);
 
   final TextEditingController groupController = TextEditingController();
 
-  final String Function(String) groupValidator = (value) {
+  final String? Function(String?) groupValidator = (value) {
     if (selectedGroup != null) return null;
     return _newGroupValidator(value);
   };
@@ -147,15 +146,15 @@ Widget dialog({@required BuildContext context, Athlete atleta}) {
 }
 
 class _GroupSelector extends StatelessWidget {
-  final Group value;
-  final Group groupValue;
+  final Group? value;
+  final Group? groupValue;
   final Widget label;
-  final Function(Group value) onTap;
+  final Function(Group? value)? onTap;
 
   _GroupSelector({
-    @required this.value,
-    @required this.groupValue,
-    @required this.label,
+    required this.value,
+    required this.groupValue,
+    required this.label,
     this.onTap,
   });
 
@@ -163,7 +162,7 @@ class _GroupSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Radio(
+        Radio<Group?>(
           value: value,
           groupValue: groupValue,
           onChanged: onTap,
@@ -172,7 +171,7 @@ class _GroupSelector extends StatelessWidget {
         Expanded(
             child: GestureDetector(
           child: label,
-          onTap: () => onTap(value),
+          onTap: () => onTap?.call(value),
         ))
       ],
     );

@@ -4,6 +4,7 @@ import 'package:atletica/home/home_page.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/themes/dark_theme.dart';
 import 'package:atletica/themes/light_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +15,8 @@ const double kListTileHeight = 72.0;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await Firebase.initializeApp();
-  FlutterError.onError = Crashlytics.instance.recordFlutterError;
+  await Firebase.initializeApp();
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
   runApp(MyApp());
 }
 
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   MyHomePageState createState() => MyHomePageState();
@@ -58,7 +59,7 @@ class MyHomePageState extends State<MyHomePage> {
     if (!hasRole)
 
       /// requests [role] selection (if not choosen)
-      WidgetsBinding.instance.addPostFrameCallback(
+      WidgetsBinding.instance!.addPostFrameCallback(
         (d) => showModeSelectorRoute(context: context),
       );
 
@@ -86,9 +87,19 @@ String singularPlural(String root, String singular, String plural, int count) {
 /// a conventional function for starting a `route` with given `context`
 /// and an optional `setState(() {})` if the ui can change after the pop
 void startRoute(
-    {@required BuildContext context,
-    @required Widget route,
-    void Function(void Function()) setState}) async {
+    {required BuildContext context,
+    required Widget route,
+    void Function(void Function())? setState}) async {
   await Navigator.push(context, MaterialPageRoute(builder: (context) => route));
   setState?.call(() {});
+}
+
+extension IterableExtension<T> on Iterable<T> {
+  T? firstWhereNullable(final bool Function(T) f, {T? Function()? orElse}) {
+    try {
+      return firstWhere(f);
+    } on StateError {
+      return orElse?.call();
+    }
+  }
 }

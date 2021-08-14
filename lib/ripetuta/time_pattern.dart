@@ -1,6 +1,8 @@
-bool matchTimePattern(String s, [bool onlySec = false]) {
+bool matchTimePattern(String? s, [bool onlySec = false, bool isPace = false]) {
   if (s == null || s.isEmpty) return false;
-  final String raw =
+  if (isPace && s.endsWith('/km'))
+    return matchTimePattern(s.substring(0, s.length - 3), onlySec);
+  final String? raw =
       RegExp(onlySec ? r'^\s*[0-5]?\d' : r'^\s*\d+').stringMatch(s);
   if (raw == null) return false;
 
@@ -18,11 +20,12 @@ bool matchTimePattern(String s, [bool onlySec = false]) {
     return false;
 }
 
-double parseTimePattern(String s) {
+double? parseTimePattern(String? s) {
   if (s == null || s.isEmpty) return null;
   final RegExp digits = RegExp(r'\s*\d+\s*');
-  String raw = digits.stringMatch(s);
-  int parsed = int.parse(raw);
+  final String? raw = digits.stringMatch(s);
+  if (raw == null) return null;
+  final int parsed = int.parse(raw);
 
   s = s.substring(raw.length).trim();
   final String l1 = s[0];
@@ -30,10 +33,10 @@ double parseTimePattern(String s) {
 
   if (l1 == "'") {
     if (s.isEmpty) return parsed * 60.0;
-    return parsed * 60 + parseTimePattern(s);
+    return parsed * 60 + (parseTimePattern(s) ?? 0);
   } else if (l1 == '"' || l1 == '.') {
     if (s.isEmpty) return parsed.toDouble();
-    return parsed + int.parse(digits.stringMatch(s).padRight(2, '0')) / 100;
+    return parsed + int.parse(digits.stringMatch(s)!.padRight(2, '0')) / 100;
   } else
     return null;
 }

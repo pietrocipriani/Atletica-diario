@@ -1,16 +1,16 @@
+import 'package:atletica/global_widgets/auto_complete_text_view.dart';
 import 'package:atletica/global_widgets/duration_picker.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/ripetuta/template.dart';
-import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
-Future<Duration> showRecoverDialog(
+Future<void> showRecoverDialog(
   final BuildContext context,
   final Recupero recupero,
 ) async {
   final dynamic initialValue = recupero.recupero;
-  return await showDialog<Duration>(
+  await showDialog<Duration>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text('SELEZIONA IL RECUPERO'),
@@ -39,21 +39,14 @@ Future<Duration> showRecoverDialog(
 
 class RecuperoDialog extends StatefulWidget {
   final Recupero recupero;
-  RecuperoDialog({@required this.recupero});
+  RecuperoDialog({required this.recupero});
 
   @override
   _RecuperoDialogState createState() => _RecuperoDialogState();
 }
 
 class _RecuperoDialogState extends State<RecuperoDialog> {
-  final TextEditingController _lengthController = TextEditingController();
-
-  @override
-  void initState() {
-    if (widget.recupero.recupero is String)
-      _lengthController.text = widget.recupero.recupero;
-    super.initState();
-  }
+  String _text = '';
 
   @override
   Widget build(BuildContext context) => Column(
@@ -70,55 +63,33 @@ class _RecuperoDialogState extends State<RecuperoDialog> {
               icon: Icon(
                 widget.recupero.recupero is int ? Icons.timer : Mdi.tapeMeasure,
               ),
-              onPressed: () => setState(
-                  () => widget.recupero.switchType(_lengthController.text)),
+              onPressed: () =>
+                  setState(() => widget.recupero.switchType(_text)),
             ),
           ]),
           widget.recupero.recupero is int
               ? DurationPicker(widget.recupero.recupero,
                   (duration) => widget.recupero.recupero = duration.inSeconds)
-              : AutoCompleteTextField<Template>(
-                  itemSubmitted: (value) =>
+              : AutoCompleteTextView<Template>(
+                  initialText: widget.recupero.recupero,
+                  onSelected: (value) =>
                       setState(() => widget.recupero.recupero = value.name),
-                  controller: _lengthController,
-                  clearOnSubmit: false,
-                  key: GlobalKey(),
-                  textSubmitted: (value) => widget.recupero.recupero = value,
-                  suggestions: templates.values
-                      .where((template) => template != null)
-                      .toList(),
-                  itemBuilder: (context, suggestion) => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: RichText(
-                      text: TextSpan(
-                        text: suggestion.name.substring(
-                            0, suggestion.name.indexOf(_lengthController.text)),
-                        style: Theme.of(context).textTheme.subtitle2,
-                        children: [
-                          TextSpan(
-                            text: _lengthController.text,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextSpan(
-                            text: suggestion.name.substring(suggestion.name
-                                    .indexOf(_lengthController.text) +
-                                _lengthController.text.length),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  itemSorter: (a, b) {
-                    if (a.name.startsWith(_lengthController.text) ==
-                        b.name.startsWith(_lengthController.text))
-                      return a.name.compareTo(b.name);
-                    if (a.name.startsWith(_lengthController.text)) return -1;
-                    return 1;
+                  onSubmitted: (value) => widget.recupero.recupero = value,
+                  displayStringForOption: (t) => t.name,
+                  optionsBuilder: (v) {
+                    _text = v.text;
+                    final List<Template> ts = templates.values
+                        .where((t) => t.name.contains(v.text))
+                        .toList();
+                    ts.sort((a, b) {
+                      if (a.name.startsWith(v.text) ==
+                          b.name.startsWith(v.text))
+                        return a.name.compareTo(b.name);
+                      if (a.name.startsWith(v.text)) return -1;
+                      return 1;
+                    });
+                    return ts;
                   },
-                  itemFilter: (suggestion, query) =>
-                      suggestion.name.contains(query),
                 ),
         ],
       );

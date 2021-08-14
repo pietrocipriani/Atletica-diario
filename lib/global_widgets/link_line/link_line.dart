@@ -1,4 +1,4 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/global_widgets/link_line/athlete_link_line_widget.dart';
 import 'package:atletica/global_widgets/link_line/result_link_line_widget.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 class Keys {
   final GlobalKey atleta;
-  GlobalKey result;
+  GlobalKey? result;
 
   Keys() : this.atleta = GlobalKey();
 }
@@ -24,9 +24,9 @@ class LinkLine extends StatefulWidget {
   final Map<Athlete, Keys> links;
 
   LinkLine(
-      {@required List<double> results,
-      @required this.rip,
-      @required Iterable<Athlete> athletes})
+      {required List<double> results,
+      required this.rip,
+      required Iterable<Athlete> athletes})
       : links =
             Map.fromEntries(athletes.map((atleta) => MapEntry(atleta, Keys()))),
         this.results = results.map((result) => Result(result)).toList();
@@ -48,9 +48,10 @@ class _LinkLineState extends State<LinkLine> {
     return CustomPaint(
       key: painter,
       foregroundPainter: LinksPainter(
-          paintRO: painter.currentContext?.findRenderObject(),
-          keys: widget.links.values.toList(),
-          color: Theme.of(context).primaryColor),
+        paintRO: painter.currentContext?.findRenderObject(),
+        keys: widget.links.values.toList(),
+        color: Theme.of(context).primaryColor,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -60,24 +61,24 @@ class _LinkLineState extends State<LinkLine> {
             mainAxisSize: MainAxisSize.min,
             children: widget.links.keys
                 .map((atleta) => AtletaLinkLineWidget(
-                      key: widget.links[atleta].atleta,
+                      key: widget.links[atleta]?.atleta,
                       atleta: atleta,
                       selected: selected,
                       onTap: (a) {
                         if (selected == null || selected is Athlete)
                           selected = selected == a ? null : a;
                         else {
-                          widget.links[a].result = selected.key;
+                          widget.links[a]!.result = selected.key;
                           selected = null;
                         }
                         setState(() {});
                       },
                       onLongPress: (a) {
-                        widget.links[a].result = selected = null;
+                        widget.links[a]!.result = selected = null;
                         setState(() {});
                       },
                       onAccept: (data) {
-                        widget.links[atleta].result = data;
+                        widget.links[atleta]!.result = data;
                         setState(() {});
                       },
                     ))
@@ -95,7 +96,7 @@ class _LinkLineState extends State<LinkLine> {
                       if (selected == null || selected is Result)
                         selected = r == selected ? null : r;
                       else {
-                        widget.links[selected].result = r.key;
+                        widget.links[selected]!.result = r.key;
                         selected = null;
                       }
                       setState(() {});
@@ -110,7 +111,7 @@ class _LinkLineState extends State<LinkLine> {
                             .forEach((a, keys) => keys.result ??= result.key);
                       setState(() {});
                     },
-                    targetFormatter: templates[widget.rip.template]
+                    targetFormatter: templates[widget.rip.template]!
                         .tipologia
                         .targetFormatter,
                     isSpecial: result.result.isNaN ||
@@ -126,15 +127,13 @@ class _LinkLineState extends State<LinkLine> {
 }
 
 class LinksPainter extends CustomPainter {
-  final RenderObject paintRO;
+  final RenderObject? paintRO;
   final Color color;
   final List<Keys> keys;
   final Paint p = Paint();
 
   LinksPainter(
-      {@required this.paintRO,
-      this.color = Colors.black,
-      @required this.keys}) {
+      {required this.paintRO, this.color = Colors.black, required this.keys}) {
     p.color = color;
     p.strokeWidth = 2;
     p.strokeCap = StrokeCap.round;
@@ -147,18 +146,18 @@ class LinksPainter extends CustomPainter {
     for (Keys key in keys) {
       if (key.result == null) continue;
 
-      dynamic atleta = key.atleta.currentContext
-          .findRenderObject()
+      dynamic atleta = key.atleta.currentContext!
+          .findRenderObject()!
           .getTransformTo(paintRO)
           .getTranslation();
-      atleta = Offset(atleta.x + key.atleta.currentContext.size.width + 4,
-          atleta.y + key.atleta.currentContext.size.height / 2);
-      dynamic result = key.result.currentContext
-          .findRenderObject()
+      atleta = Offset(atleta.x + key.atleta.currentContext!.size!.width + 4,
+          atleta.y + key.atleta.currentContext!.size!.height / 2);
+      dynamic result = key.result!.currentContext!
+          .findRenderObject()!
           .getTransformTo(paintRO)
           .getTranslation();
-      result = Offset(
-          result.x - 4, result.y + key.result.currentContext.size.height / 2);
+      result = Offset(result.x - 4,
+          result.y + key.result!.currentContext!.size!.height / 2);
       Offset q1 = Offset((atleta.dx + result.dx) / 2, atleta.dy);
       Offset q2 = Offset((atleta.dx + result.dx) / 2, result.dy);
 

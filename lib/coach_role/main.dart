@@ -1,3 +1,4 @@
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/athletes_route.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
@@ -19,7 +20,7 @@ class CoachMainPage extends StatefulWidget {
 }
 
 class _CoachMainPageState extends State<CoachMainPage> {
-  DateTime selectedDay;
+  Date? selectedDay;
 
   bool get _canAddEvents {
     if (selectedDay == null) return false;
@@ -28,7 +29,7 @@ class _CoachMainPageState extends State<CoachMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<IconButton> actions = [
+    List<dynamic> actions = [
       LogoutButton(context: context),
       SwapButton(context: context),
       if (user.admin) RunasButton(context: context),
@@ -45,13 +46,13 @@ class _CoachMainPageState extends State<CoachMainPage> {
         appBar: orientation == Orientation.portrait
             ? AppBar(
                 title: Text('Atletica - Allenatore'),
-                actions: actions,
+                actions: actions.cast(),
               )
             : null,
         body: HomePageWidget(
           onSelectedDayChanged: (day) {
             selectedDay = day;
-            WidgetsBinding.instance
+            WidgetsBinding.instance!
                 .addPostFrameCallback((_) => setState(() {}));
           },
           orientation: orientation,
@@ -62,7 +63,7 @@ class _CoachMainPageState extends State<CoachMainPage> {
                   if (await showDialog<bool>(
                         context: context,
                         builder: (context) =>
-                            ScheduledTrainingDialog(selectedDay),
+                            ScheduledTrainingDialog(selectedDay!),
                       ) ??
                       false) setState(() {});
                 },
@@ -96,18 +97,77 @@ class _CoachMainPageState extends State<CoachMainPage> {
 class _BottomAppBar extends StatelessWidget {
   final void Function(void Function()) setState;
 
-  _BottomAppBar({@required this.setState});
+  _BottomAppBar({required this.setState});
 
-  static IconButton _sectionBtn({
-    @required BuildContext context,
-    @required IconData icon,
-    @required Widget route,
-    @required void Function(void Function()) setState,
-    bool notify = false,
-    bool onPop = false,
-    String tooltip,
-    bool onPrimary: true,
-  }) {
+  static List<SectionBtn> children({
+    required final BuildContext context,
+    required void Function(void Function())? setState,
+    bool onPrimary = true,
+  }) =>
+      [
+        /*_sectionBtn(
+          context: context,
+          icon: Icons.schedule,
+          route: ScheduleRoute(),
+          onPop: true,
+          tooltip:
+              'programma gli allenamenti per uno specifico gruppo di atleti',
+        ),*/
+        SectionBtn(
+          icon: Icons.directions_run,
+          route: AthletesRoute(),
+          setState: setState,
+          notify: Athlete.hasRequests,
+          tooltip: 'ATLETI',
+          onPrimary: onPrimary,
+        ),
+        SectionBtn(
+          icon: Mdi.table,
+          route: PlansRoute(),
+          setState: setState,
+          tooltip: 'PIANI DI LAVORO',
+          onPrimary: onPrimary,
+        ),
+        SectionBtn(
+          icon: Icons.fitness_center,
+          route: TrainingRoute(),
+          setState: setState,
+          tooltip: 'ALLENAMENTI',
+          onPrimary: onPrimary,
+        ),
+      ];
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomAppBar(
+      shape: CircularNotchedRectangle(),
+      child: Row(children: children(context: context, setState: setState)),
+      color: Theme.of(context).primaryColor,
+    );
+  }
+}
+
+class SectionBtn extends StatelessWidget {
+  final Function(void Function())? setState;
+  final IconData icon;
+  final Widget route;
+  final bool notify;
+  final bool onPop;
+  final String? tooltip;
+  final bool onPrimary;
+
+  const SectionBtn({
+    required this.setState,
+    required this.icon,
+    required this.route,
+    this.notify = false,
+    this.onPop = false,
+    this.tooltip,
+    this.onPrimary: true,
+  });
+
+  @override
+  Widget build(final BuildContext context) {
     Widget iconWidget = Icon(
       icon,
       color: onPrimary
@@ -137,53 +197,6 @@ class _BottomAppBar extends StatelessWidget {
         route: route,
         setState: onPop ? setState : null,
       ),
-    );
-  }
-
-  static List<IconButton> children({
-    @required final BuildContext context,
-    @required void Function(void Function()) setState,
-    bool onPrimary = true,
-  }) =>
-      [
-        /*_sectionBtn(
-          context: context,
-          icon: Icons.schedule,
-          route: ScheduleRoute(),
-          onPop: true,
-          tooltip:
-              'programma gli allenamenti per uno specifico gruppo di atleti',
-        ),*/
-        _sectionBtn(
-            context: context,
-            icon: Icons.directions_run,
-            route: AthletesRoute(),
-            setState: setState,
-            notify: userC.requests.isNotEmpty,
-            tooltip: 'ATLETI',
-            onPrimary: onPrimary),
-        _sectionBtn(
-            context: context,
-            icon: Mdi.table,
-            setState: setState,
-            route: PlansRoute(),
-            tooltip: 'PIANI DI LAVORO',
-            onPrimary: onPrimary),
-        _sectionBtn(
-            context: context,
-            icon: Icons.fitness_center,
-            setState: setState,
-            route: TrainingRoute(),
-            tooltip: 'ALLENAMENTI',
-            onPrimary: onPrimary),
-      ];
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomAppBar(
-      shape: CircularNotchedRectangle(),
-      child: Row(children: children(context: context, setState: setState)),
-      color: Theme.of(context).primaryColor,
     );
   }
 }

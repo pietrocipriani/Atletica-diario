@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 final Brightness _brightness = Brightness.light;
 final MaterialColor _primarySwatch = Colors.amber;
-final Color _disabledColor = Colors.grey[300];
+final Color _disabledColor = Colors.grey[300]!;
 
 final TextTheme _textTheme = TextTheme(
   overline: TextStyle(
     fontWeight: FontWeight.bold,
     color: Colors.black,
     fontSize: 10,
+    letterSpacing: 0,
   ),
 );
 
@@ -18,11 +19,21 @@ final ChipThemeData _chipTheme = ChipThemeData(
   selectedColor: Colors.transparent,
   secondarySelectedColor: Colors.transparent,
   padding: const EdgeInsets.all(4),
-  labelStyle: _textTheme.overline,
-  secondaryLabelStyle: _textTheme.overline,
+  labelStyle: _textTheme.overline!,
+  secondaryLabelStyle: _textTheme.overline!,
   brightness: _brightness,
   side: BorderSide(color: _primarySwatch),
   checkmarkColor: _primarySwatch,
+);
+
+final CardTheme _cardTheme = CardTheme(
+  elevation: 6,
+  margin: const EdgeInsets.all(8),
+  shadowColor: Colors.black,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(20)),
+    side: BorderSide(color: Colors.black),
+  ),
 );
 
 final DialogTheme _dialogTheme = DialogTheme(
@@ -49,6 +60,7 @@ ThemeData lightTheme = ThemeData(
   disabledColor: _disabledColor,
   dialogTheme: _dialogTheme,
   iconTheme: _iconTheme,
+  cardTheme: _cardTheme,
   buttonTheme: ButtonThemeData(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20),

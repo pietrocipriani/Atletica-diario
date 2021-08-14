@@ -1,4 +1,4 @@
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<bool> trainingSnapshot(
@@ -7,11 +7,13 @@ Future<bool> trainingSnapshot(
 ) async {
   switch (changeType) {
     case DocumentChangeType.added:
+      Training.parse(snapshot);
+      break;
     case DocumentChangeType.modified:
-      Allenamento.parse(snapshot);
+      Training.update(snapshot);
       break;
     case DocumentChangeType.removed:
-      removeTraining(snapshot.reference);
+      Training.remove(snapshot.reference);
       break;
   }
   return true;
