@@ -104,8 +104,8 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
                   },
                   onFieldSubmitted: (value) {
                     if (_acceptable(value))
-                      widget.results
-                          .set(r.key, Tipologia.corsaDist.targetParser(value));
+                      widget.results[r.key] =
+                          Tipologia.corsaDist.targetParser(value);
 
                     Iterable<SimpleRipetuta> nextIterable =
                         keys.skipWhile((key) => key != r.key);
@@ -113,8 +113,7 @@ class _ResultsEditDialogState extends State<ResultsEditDialog> {
                         nextIterable.firstWhereNullable(
                       (key) => widget.results[key] == null,
                       orElse: () {
-                        if (value != null &&
-                            Tipologia.corsaDist.targetValidator(value))
+                        if (Tipologia.corsaDist.targetValidator(value))
                           nextIterable = nextIterable.skip(1);
                         if (nextIterable.isEmpty) return null;
                         return nextIterable.first;

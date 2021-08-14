@@ -7,6 +7,7 @@ import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/plan/week.dart';
 import 'package:atletica/plan/widgets/plan_dialog.dart';
 import 'package:atletica/schedule/schedule.dart';
+import 'package:atletica/training/training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,15 +15,15 @@ import 'package:intl/date_symbol_data_local.dart';
 
 List<String> itMonths = dateTimeSymbolMap()['it'].MONTHS;
 
-class Plan {
+class Plan with Notifier<Plan> {
   static final Cache<DocumentReference, Plan> _cache = Cache();
 
   static Iterable<Plan> get plans => _cache.values;
 
   static void Function() cacheReset = _cache.reset;
 
-  static void Function(Callback c) signIn = _cache.signIn;
-  static void Function(Callback c) signOut = _cache.signOut;
+  static void Function(Callback c) signInGlobal = _cache.signIn;
+  static void Function(Callback c) signOutGlobal = _cache.signOut;
 
   final DocumentReference reference;
   String name;
@@ -31,7 +32,7 @@ class Plan {
   List<Athlete> get athletes => Athlete.getAthletes(_athletes).toList();
   List<DocumentReference> get athletesRefs =>
       _athletes.where((a) => Athlete.exists(a)).toList();
-  DateTime? start, stop;
+  Date? start, stop;
 
   factory Plan.of(final DocumentReference ref) {
     final Plan? a = _cache[ref];
@@ -49,35 +50,36 @@ class Plan {
 
   factory Plan.parse(final DocumentSnapshot raw) {
     final Plan p = _cache[raw.reference] ??= Plan._parse(raw);
-    _cache.notifyAll(p);
+    _cache.notifyAll(p, Change.ADDED);
     return p;
   }
   Plan._parse(DocumentSnapshot raw)
-      : reference = raw.reference,
+      : assert((raw['start'] == null) == (raw['stop'] == null)),
+        reference = raw.reference,
         name = raw['name'],
-        start = raw['start']?.toDate(),
-        stop = raw['stop']?.toDate() {
+        start = raw['start'] == null ? null : Date.fromTimeStamp(raw['start']),
+        stop = raw['stop'] == null ? null : Date.fromTimeStamp(raw['stop']) {
     raw['weeks']?.forEach((raw) => Week.parse(this, raw));
-    athletes.addAll(raw['athletes']?.cast<DocumentReference>() ??
+    _athletes.addAll(raw['athletes']?.cast<DocumentReference>() ??
         Iterable<DocumentReference>.empty());
   }
   factory Plan.update(final DocumentSnapshot raw) {
     final Plan p = Plan.of(raw.reference);
     p.name = raw['name'];
-    p.start = raw['start']?.toDate();
-    p.stop = raw['stop']?.toDate();
+    p.start = raw['start'] == null ? null : Date.fromTimeStamp(raw['start']);
+    p.stop = raw['stop'] == null ? null : Date.fromTimeStamp(raw['stop']);
     p.weeks.clear();
     raw['weeks']?.forEach((raw) => Week.parse(p, raw));
-    p.athletes.clear();
-    p.athletes.addAll(raw['athletes']?.cast<DocumentReference>() ??
+    p._athletes.clear();
+    p._athletes.addAll(raw['athletes']?.cast<DocumentReference>() ??
         Iterable<DocumentReference>.empty());
-    _cache.notifyAll(p);
+    p.notifyAll(p, Change.UPDATED);
     return p;
   }
 
   static void remove(final DocumentReference ref) {
     final Plan? p = _cache.remove(ref);
-    if (p != null) _cache.notifyAll(p);
+    if (p != null) _cache.notifyAll(p, Change.DELETED);
   }
 
   static Future<bool> fromDialog({required BuildContext context}) async {
@@ -91,8 +93,8 @@ class Plan {
   static Future<void> create({
     required String name,
     List<Athlete>? athletes,
-    DateTime? start,
-    DateTime? stop,
+    Date? start,
+    Date? stop,
   }) {
     return userC.userReference.collection('plans').add({
       'name': name,
@@ -124,29 +126,27 @@ class Plan {
   }) {
     if (this.start == null || this.weeks.isEmpty)
       return; // if this wasn't a scheduled plan
-    final Date now = Date.now();
 
-    userC.scheduledTrainings.entries.forEach((final e) {
-      if (e.value == null || now > e.key)
-        return; // TODO: check if ignore same-day trainings
-      final Date date = Date.fromDateTime(e.key);
-      if (date < this.start || date > this.stop) return;
-      final DocumentReference? oldScheduled = getScheduledTraining(date: date);
+    final bool defaultDelete = start == null || newWeeks.isEmpty;
+    ScheduledTraining.inRange(Date.last(this.start!, Date.now()), this.stop!)
+        .forEach((final st) {
+      final DocumentReference? oldScheduled =
+          getScheduledTraining(date: st.date);
       if (oldScheduled == null) return; // nothing was scheduled for this day
-      bool delete =
-          start == null || date < start || date > stop || newWeeks.isEmpty;
-      final DocumentReference? scheduled = delete
-          ? null
-          : getScheduledTraining(date: date, start: start, weeks: newWeeks);
-      delete |= scheduled != oldScheduled;
-      for (ScheduledTraining st in e.value) {
-        if (st.workRef != oldScheduled) continue;
-        st.update(
-          athletes: delete ? null : athletes,
-          removedAthletes: _athletes.toList(),
-          batch: batch,
-        );
-      }
+      if (st.workRef != oldScheduled) return;
+      bool delete = defaultDelete || st.date < start || st.date > stop;
+      delete |= getScheduledTraining(
+            date: st.date,
+            start: start,
+            weeks: newWeeks,
+          ) !=
+          oldScheduled;
+
+      st.update(
+        athletes: delete ? null : athletes,
+        removedAthletes: _athletes.toList(),
+        batch: batch,
+      );
     });
   }
 
@@ -158,23 +158,21 @@ class Plan {
     required final WriteBatch batch,
   }) {
     if (start == null || weeks.isEmpty) return;
-    final Date now = Date.now();
+    assert(stop != null);
 
-    for (Date current = start; current <= stop; current++) {
-      // FIXME: stop is ignored
-      if (current < now) continue;
+    for (Date current = Date.last(Date.now(), start);
+        current <= stop;
+        current++) {
       final DocumentReference? training =
           getScheduledTraining(date: current, start: start, weeks: weeks);
       if (training == null) continue;
-      if (userC.scheduledTrainings[current]
-              ?.any((st) => st.workRef == training) ??
-          false) {
-        final ScheduledTraining st = userC.scheduledTrainings[current]!
-            .firstWhere((st) => st.workRef == training);
-        st.update(athletes: athletes, batch: batch);
+      final ScheduledTraining? alreadyScheduled =
+          ScheduledTraining.ofDateRef(current, training);
+      if (alreadyScheduled != null) {
+        alreadyScheduled.update(athletes: athletes, batch: batch);
       } else {
         ScheduledTraining.create(
-          work: training,
+          work: Training.of(training),
           date: current,
           athletes: athletes,
           plan: this,
@@ -185,12 +183,12 @@ class Plan {
   }
 
   Future<void> update({
-    String? name,
+    final String? name,
     List<Week>? weeks,
     List<DocumentReference>? athletes,
-    DateTime? start,
-    DateTime? stop,
-    bool removingSchedules = false,
+    Date? start,
+    Date? stop,
+    final bool removingSchedules = false,
   }) {
     weeks ??= this.weeks;
     athletes ??= athletesRefs;
@@ -206,16 +204,16 @@ class Plan {
     });
     _removeScheduledTrainings(
       newWeeks: weeks,
-      start: start == null ? null : Date.fromDateTime(start),
-      stop: stop == null ? null : Date.fromDateTime(stop),
+      start: start,
+      stop: stop,
       athletes: athletes,
       batch: batch,
     );
     _addScheduledTrainings(
       weeks: weeks,
       athletes: athletes,
-      start: start == null ? null : Date.fromDateTime(start),
-      stop: stop == null ? null : Date.fromDateTime(stop),
+      start: start,
+      stop: stop,
       batch: batch,
     );
 
@@ -245,9 +243,9 @@ class Plan {
   }
 
   String get athletesAsList {
-    final List<Athlete> athletes = List.from(this.athletes);
-    final Iterable<Group> gs =
-        Group.groups.where((group) => group.isContainedIn(athletes));
+    final List<Athlete> athletes = this.athletes;
+    final List<Group> gs =
+        Group.groups.where((group) => group.isContainedIn(athletes)).toList();
     gs.forEach((g) => g.athletes.forEach(athletes.remove));
     return gs
         .map((g) => g.name)

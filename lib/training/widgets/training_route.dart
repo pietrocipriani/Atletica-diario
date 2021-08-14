@@ -11,67 +11,178 @@ import 'package:atletica/training/training_description.dart';
 import 'package:atletica/training/widgets/training_info_route.dart';
 import 'package:flutter/material.dart';
 
-/// [Route] which displays the list of existing [Training] (coach)
 class TrainingRoute extends StatefulWidget {
-  final String? tag1, tag2;
-  TrainingRoute([this.tag1, this.tag2])
-      : assert(!(tag2 != null && tag1 == null), 'must set tag1 before tag2');
-
   @override
   _TrainingRouteState createState() => _TrainingRouteState();
 }
 
-/// [State] for [TrainingRoute]
 class _TrainingRouteState extends State<TrainingRoute> {
+  final PageController _controller = PageController();
+  String? tag1, tag2;
+
   /// the `callback` triggered when modifies occours
-  late final Callback callback = Callback((_) => setState(() {}));
+  late final Callback callback = Callback((_, c) => setState(() {}));
 
   /// sign `callback` into [CoachHelper.onTrainingCallbacks] to listen on snapshots
   @override
   void initState() {
-    Training.signIn(callback);
+    Training.signInGlobal(callback);
     super.initState();
   }
 
   /// remove `callback` from [CoachHelper.onTrainingCallbacks]
   @override
   void dispose() {
-    Training.signOut(callback.stopListening);
+    Training.signOutGlobal(callback.stopListening);
     super.dispose();
   }
 
+  static const Duration kAnimDuration = const Duration(milliseconds: 500);
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget _fab = FloatingActionButton(
+      onPressed: () {
+        Training.create(tag1, tag2);
+        tag1 ??= Training.defaultTag;
+        tag2 ??= Training.defaultTag;
+        setState(() {});
+        _controller.animateToPage(
+          2,
+          curve: Curves.fastOutSlowIn,
+          duration: kAnimDuration,
+        );
+      },
+      child: Icon(Icons.add),
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: Text('ALLENAMENTI')),
+      body: PageView(
+        children: [
+          TrainingRouteFolder(onSelected: (t) {
+            setState(() => tag1 = t);
+            _controller.animateToPage(
+              1,
+              curve: Curves.fastOutSlowIn,
+              duration: kAnimDuration,
+            );
+          }),
+          if (tag1 != null)
+            TrainingRouteFolder(
+              tag1: tag1,
+              onBack: () => _controller.previousPage(
+                curve: Curves.fastOutSlowIn,
+                duration: kAnimDuration,
+              ),
+              onSelected: (t) {
+                setState(() => tag2 = t);
+                _controller.animateToPage(
+                  2,
+                  curve: Curves.fastOutSlowIn,
+                  duration: kAnimDuration,
+                );
+              },
+            ),
+          if (tag2 != null)
+            TrainingRouteFolder(
+              tag1: tag1,
+              tag2: tag2,
+              onBack: () => _controller.previousPage(
+                curve: Curves.fastOutSlowIn,
+                duration: kAnimDuration,
+              ),
+            ),
+        ],
+        controller: _controller,
+      ),
+      floatingActionButton: _fab,
+    );
+  }
+}
+
+/// [Route] which displays the list of existing [Training] (coach)
+class TrainingRouteFolder extends StatefulWidget {
+  final String? tag1, tag2;
+  final void Function(String t)? onSelected;
+  final String? selected;
+  final void Function()? onBack;
+  TrainingRouteFolder({
+    this.tag1,
+    this.tag2,
+    this.onSelected,
+    this.selected,
+    this.onBack,
+  }) : assert(!(tag2 != null && tag1 == null), 'must set tag1 before tag2');
+
+  @override
+  _TrainingRouteFolderState createState() => _TrainingRouteFolderState();
+}
+
+/// [State] for [TrainingRoute]
+class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
   static const Widget _emptyMessage =
       Center(child: Text('non hai creato ancora nessun allenamento'));
 
   bool get _hasItems => Training.hasItems(widget.tag1, widget.tag2);
 
-  String get _path {
-    if (widget.tag1 == null) return 'ALLENAMENTI';
-    if (widget.tag2 == null) return 'ALLENAMENTI/${widget.tag1}';
-    return 'ALLENAMENTI/${widget.tag1}/${widget.tag2}';
-  }
-
   Iterable<Widget> get _children {
     if (widget.tag1 == null)
-      return Training.fromPath().map((e) => _PathWidget(e));
+      return Training.fromPath().map(
+        (e) => _PathWidget(
+          tag: e,
+          onTap: widget.onSelected == null ? null : () => widget.onSelected!(e),
+        ),
+      );
     if (widget.tag2 == null)
-      return Training.fromPath(widget.tag1)
-          .map((e) => _PathWidget(e, widget.tag1!));
+      return Training.fromPath(widget.tag1).map(
+        (e) => _PathWidget(
+          tag: e,
+          path: widget.tag1!,
+          onTap: widget.onSelected == null ? null : () => widget.onSelected!(e),
+        ),
+      );
     return Training.fromPath(widget.tag1, widget.tag2)
         .map((e) => _TrainingWidget(e));
   }
 
+  String get _path {
+    if (widget.tag1 == null) return '/';
+    if (widget.tag2 == null) return '/${widget.tag1}/';
+    return '/${widget.tag1}/${widget.tag2}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Widget _fab = FloatingActionButton(
-      onPressed: () => Training.create(widget.tag1, widget.tag2),
-      child: Icon(Icons.add),
+    if (!_hasItems) return _emptyMessage;
+    final Row path = Row(
+      children: [
+        if (widget.onBack != null)
+          IconButton(
+            icon: Icon(Icons.arrow_back_ios, size: 12),
+            onPressed: widget.onBack,
+          ),
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            child: Text(
+              _path,
+              style: Theme.of(context)
+                  .textTheme
+                  .overline!
+                  .copyWith(fontWeight: FontWeight.normal),
+              maxLines: 1,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ),
+      ],
     );
-
-    return Scaffold(
-      appBar: AppBar(title: Text(_path)),
-      body: !_hasItems ? _emptyMessage : ListView(children: _children.toList()),
-      floatingActionButton: _fab,
+    return Column(
+      children: [
+        path,
+        Expanded(child: ListView(children: _children.toList())),
+      ],
     );
   }
 }
@@ -80,8 +191,9 @@ class _PathWidget extends StatelessWidget {
   final String tag1;
   final String? tag2;
   final int trainingsCount;
+  final void Function()? onTap;
 
-  _PathWidget(final String tag, [final String? path])
+  _PathWidget({required final String tag, final String? path, this.onTap})
       : tag1 = path ?? tag,
         tag2 = path == null ? null : tag,
         trainingsCount = Training.trainingsCount(
@@ -100,16 +212,7 @@ class _PathWidget extends StatelessWidget {
         info: '$trainingsCount',
         bottom: singularPlural('allenament', 'o', 'i', trainingsCount),
       ),
-      trailing: IconButton(
-        icon: Icon(
-          Icons.arrow_forward_ios,
-          size: 18,
-        ),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => TrainingRoute(tag1, tag2)),
-        ),
-      ),
+      onTap: onTap,
     );
   }
 }
@@ -127,6 +230,19 @@ class _TrainingWidget extends StatefulWidget {
 class _TrainingWidgetState extends State<_TrainingWidget> {
   /// the `training` to display
   int variant = 0;
+  late final Callback<Training> _callback = Callback((t, c) => setState(() {}));
+
+  @override
+  void initState() {
+    widget.training.signIn(_callback);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.training.signOut(_callback.stopListening);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +266,6 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
     ];
 
     children.addAll(TrainingDescription.fromTraining(
-      context,
       widget.training,
       widget.training.variants[variant],
     ));

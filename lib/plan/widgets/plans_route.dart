@@ -10,17 +10,17 @@ class PlansRoute extends StatefulWidget {
 
 class _PlansRouteState extends State<PlansRoute>
     with SingleTickerProviderStateMixin {
-  late final Callback callback = Callback((_) => setState(() {}));
+  late final Callback callback = Callback((_, c) => setState(() {}));
 
   @override
   void initState() {
-    Plan.signIn(callback);
+    Plan.signInGlobal(callback);
     super.initState();
   }
 
   @override
   void dispose() {
-    Plan.signOut(callback.stopListening);
+    Plan.signOutGlobal(callback.stopListening);
     super.dispose();
   }
 

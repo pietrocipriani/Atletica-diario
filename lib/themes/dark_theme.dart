@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-final Brightness _brightness = Brightness.dark;
-final MaterialColor _primarySwatch = Colors.amber;
+const Brightness _brightness = Brightness.dark;
+const MaterialColor _primarySwatch = Colors.amber;
 final Color _disabledColor = Colors.grey[700]!;
 
 final TextTheme _textTheme = TextTheme(
@@ -9,6 +9,17 @@ final TextTheme _textTheme = TextTheme(
     fontWeight: FontWeight.bold,
     color: Colors.white,
     fontSize: 10,
+    letterSpacing: 0,
+  ),
+);
+
+final CardTheme _cardTheme = CardTheme(
+  elevation: 6,
+  margin: const EdgeInsets.all(8),
+  shadowColor: Colors.black,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(20)),
+    side: BorderSide(color: Colors.white),
   ),
 );
 
@@ -54,6 +65,8 @@ ThemeData darkTheme = ThemeData(
   disabledColor: _disabledColor,
   dialogTheme: _dialogTheme,
   iconTheme: _iconTheme,
+  cardTheme: _cardTheme,
+  errorColor: Colors.red[400],
   buttonTheme: ButtonThemeData(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20),

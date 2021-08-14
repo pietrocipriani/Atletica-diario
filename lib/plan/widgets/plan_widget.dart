@@ -1,6 +1,7 @@
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
+import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/plan/plan.dart';
 import 'package:atletica/plan/week.dart';
 import 'package:atletica/plan/widgets/week_widget.dart';
@@ -15,6 +16,20 @@ class PlanWidget extends StatefulWidget {
 }
 
 class _PlanWidgetState extends State<PlanWidget> {
+  late final Callback<Plan> callback = Callback((_, c) => setState(() {}));
+
+  @override
+  void initState() {
+    widget.plan.signIn(callback);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.plan.signOut(callback.stopListening);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => CustomDismissible(
         key: ValueKey(widget.plan.reference),

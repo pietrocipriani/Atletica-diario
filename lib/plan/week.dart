@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 class Week {
   Map<int, DocumentReference?> trainings;
 
-  Week({this.trainings = const {}});
+  Week({final Map<int, DocumentReference?>? trainings})
+      : trainings = trainings ?? {};
   Week.parse(final Plan p, Map raw)
       : trainings = raw.map((key, value) => MapEntry(int.parse(key), value)) {
     p.weeks.add(this);
@@ -46,7 +47,6 @@ class Week {
   String toString([bool extended = false]) {
     if (!extended)
       return () sync* {
-        if (trainings == null) return;
         for (int i = 0; i < 7; i++) {
           final DocumentReference? ref = trainings[(i + DateTime.monday) % 7];
           if (ref == null) continue;

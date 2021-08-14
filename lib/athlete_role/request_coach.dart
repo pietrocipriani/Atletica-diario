@@ -12,13 +12,12 @@ class RequestCoachRoute extends StatefulWidget {
 }
 
 class _RequestCoachRoute extends State<RequestCoachRoute> {
-  final Callback callback = Callback();
+  late final Callback callback = Callback((_, c) => setState(() {}));
   final TextEditingController controller = TextEditingController(),
       _nameController = TextEditingController(text: userA.name);
 
   @override
   void initState() {
-    callback.f = (_) => setState(() {});
     AthleteHelper.onCoachChanged.add(callback);
     super.initState();
   }

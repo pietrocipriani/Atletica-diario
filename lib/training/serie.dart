@@ -50,4 +50,14 @@ class Serie {
     return ripetute.fold<int>(0, (sum, rip) => sum + rip.ripetizioni) *
         ripetizioni;
   }
+
+  Iterable<Recupero> get recuperi sync* {
+    for (int i = 0; i < ripetizioni; i++) {
+      for (Ripetuta r in ripetute) {
+        yield* r.recuperi;
+        if (r != ripetute.last) yield r.nextRecupero;
+      }
+      if (i != ripetizioni - 1) yield recupero;
+    }
+  }
 }

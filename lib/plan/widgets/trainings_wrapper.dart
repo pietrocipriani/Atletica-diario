@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class TrainingsWrapper extends StatefulWidget {
   final Widget Function(Training a) builder;
+  final List<Training>? trainings;
 
-  TrainingsWrapper({required this.builder});
+  TrainingsWrapper({required this.builder, this.trainings});
 
   @override
   _TrainingsWrapperState createState() => _TrainingsWrapperState();
@@ -52,6 +53,11 @@ class _TrainingsWrapperState extends State<TrainingsWrapper> {
     );
     return Column(
       children: [
+        if (widget.trainings != null && widget.trainings!.isNotEmpty)
+          Wrap(
+            alignment: WrapAlignment.center,
+            children: widget.trainings!.map(_child).toList(),
+          ),
         Row(
           children: [
             if (tag1 != null)

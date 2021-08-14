@@ -1,5 +1,7 @@
-bool matchTimePattern(String? s, [bool onlySec = false]) {
+bool matchTimePattern(String? s, [bool onlySec = false, bool isPace = false]) {
   if (s == null || s.isEmpty) return false;
+  if (isPace && s.endsWith('/km'))
+    return matchTimePattern(s.substring(0, s.length - 3), onlySec);
   final String? raw =
       RegExp(onlySec ? r'^\s*[0-5]?\d' : r'^\s*\d+').stringMatch(s);
   if (raw == null) return false;

@@ -10,22 +10,10 @@ import 'package:atletica/persistence/user_helper/snapshots_managers/schedule_sna
 import 'package:atletica/persistence/user_helper/snapshots_managers/template_snapshot.dart';
 import 'package:atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
 import 'package:atletica/results/result.dart';
-import 'package:atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CoachHelper extends FirebaseUserHelper {
-  static final List<Callback> onRequestCallbacks = [];
-  static final List<Callback> onSchedulesCallbacks = [];
-
-  final Map<DateTime, List<ScheduledTraining>> scheduledTrainings = {};
-
-  static void callAll<T>(List<Callback<T?>> callbacks, [T? value]) =>
-      callbacks.forEach((callback) => callback.call(value));
-
-  static void requestsCallAll() => callAll(onRequestCallbacks);
-  static void schedulesCallAll() => callAll(onSchedulesCallbacks);
-
   Future<bool> listener(
     QuerySnapshot snap,
     Future<bool> Function(DocumentSnapshot docSnap, DocumentChangeType type)
@@ -51,12 +39,10 @@ class CoachHelper extends FirebaseUserHelper {
         .collection('templates')
         .snapshots()
         .listen((snap) => listener(snap, templateSnapshot));
-
-    userReference.collection('athletes').snapshots().listen((snap) async {
-      if (await listener(snap, athleteSnapshot)) {
-        requestsCallAll();
-      }
-    });
+    userReference
+        .collection('athletes')
+        .snapshots()
+        .listen((snap) => listener(snap, athleteSnapshot));
     userReference
         .collection('trainings')
         .snapshots()
@@ -65,9 +51,10 @@ class CoachHelper extends FirebaseUserHelper {
         .collection('plans')
         .snapshots()
         .listen((snap) => listener(snap, planSnapshot));
-    userReference.collection('schedules').snapshots().listen((snap) async {
-      if (await listener(snap, scheduleSnapshot)) schedulesCallAll();
-    });
+    userReference
+        .collection('schedules')
+        .snapshots()
+        .listen((snap) => listener(snap, scheduleSnapshot));
   }
 
   /// `athleteUser` is the reference to [users/uid]
@@ -121,8 +108,7 @@ class CoachHelper extends FirebaseUserHelper {
     Query q = ref.collection('results').where('coach', isEqualTo: uid);
     //TODO: ripristinate filtering & ordering when all the results have the 'date' field
     //.orderBy('date', descending: true);
-    /*if (date != null)
-      q = q.where('date', isEqualTo: Timestamp.fromDate(date.dateTime));*/
+    if (date != null) q = q.where('date', isEqualTo: Timestamp.fromDate(date));
     return q.snapshots();
   }
 }

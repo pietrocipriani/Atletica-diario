@@ -24,6 +24,15 @@ class Date extends DateTime {
   Date.parse(final String raw)
       : this.fromDateTime(DateTime.parse(raw + 'T12:00:00Z'));
 
+  factory Date.first(final Date d1, final Date d2) {
+    if (d2 < d1) return d2;
+    return d1;
+  }
+  factory Date.last(final Date d1, final Date d2) {
+    if (d2 > d1) return d2;
+    return d1;
+  }
+
   /// operator to perform a comparison against `other`
   ///
   /// if `other` is `DateTime` or `Timestamp`, [time] is not ignored
@@ -34,9 +43,6 @@ class Date extends DateTime {
     if (other is Timestamp) return isAfter(other.toDate());
     throw StateError('cannot compare Date to ${other.runtimeType}');
   }
-
-  /// see `DateTime.weekday` for informations
-  int get weekday => weekday;
 
   /// operator to perform a comparison against `other`
   ///
@@ -88,8 +94,8 @@ class Date extends DateTime {
   bool operator ==(dynamic other) {
     assert(other is Date || other is DateTime || other is Timestamp);
     if (other is Date) return isAtSameMomentAs(other);
-    if (other is DateTime) return isAtSameMomentAs(other);
-    if (other is Timestamp) return isAtSameMomentAs(other.toDate());
+    if (other is DateTime) return isAtSameMomentAs(Date.fromDateTime(other));
+    if (other is Timestamp) return isAtSameMomentAs(Date.fromTimeStamp(other));
     throw StateError('cannot compare Date to ${other.runtimeType}');
   }
 
@@ -106,5 +112,11 @@ class Date extends DateTime {
     final String d = day.toString().padLeft(2, '0');
 
     return '$y$m$d';
+  }
+
+  @override
+  int compareTo(final DateTime dt) {
+    if (dt is Date) return super.compareTo(dt);
+    return super.compareTo(Date.fromDateTime(dt));
   }
 }

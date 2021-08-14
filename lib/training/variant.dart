@@ -5,7 +5,7 @@ class Variant {
   /// in case of default values... actually useless
   static const Map<String, dynamic> emptyMap = {'targets': []};
 
-  final Map<Ripetuta, double> targets;
+  final Map<Ripetuta, double?> targets;
 
   Map<String, dynamic> asMap(final Training a) => {
         'targets': a.serie
@@ -17,7 +17,7 @@ class Variant {
   Variant.parse(final Map<String, dynamic> raw, final Training a)
       : targets = Map.fromIterables(
           a.serie.expand((s) => s.ripetute),
-          raw['targets'].cast<double>(),
+          raw['targets'].cast<double?>(),
         ) {
     a.variants.add(this);
   }
@@ -30,4 +30,11 @@ class Variant {
         ) {
     a.variants.add(this);
   }
+
+  double? operator [](final Ripetuta? rip) {
+    if (rip == null) return null;
+    return targets[rip];
+  }
+
+  operator []=(final Ripetuta rip, final double? t) => targets[rip] = t;
 }

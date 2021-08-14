@@ -18,6 +18,7 @@ class _RecuperoWidgetExtendedState extends State<RecuperoWidget> {
       children: <Widget>[
         Container(width: 40, height: 1, color: theme.primaryColor),
         GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () async {
             await showRecoverDialog(context, widget.recupero);
             setState(() {});

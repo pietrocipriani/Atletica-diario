@@ -1,6 +1,5 @@
 import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/results/results_route.dart';
-import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
@@ -33,22 +32,10 @@ class ResultsEditRoute extends StatelessWidget {
             .map((a) => StreamBuilder<QuerySnapshot>(
                 stream: userC.resultSnapshots(athlete: a, date: results.date),
                 builder: (context, snapshot) {
-                  if (snapshot.data?.docs != null) {
-                    snapshot.data!.docs
-                        .where((doc) =>
-                            results.date ==
-                            (doc['date'] == null
-                                ? Date.parse(doc.id)
-                                : Date.fromTimeStamp(doc['date'])))
-                        .any(
-                          (doc) => results.update(
-                            reference: doc.reference,
-                            athlete: a,
-                            results: doc['results'].cast<String>(),
-                            fatigue: doc['fatigue'],
-                            info: doc['info'],
-                          ),
-                        );
+                  if (snapshot.hasData) {
+                    snapshot.data!.docs.any(
+                      (doc) => results.update(a, Result.updateOrParse(doc)),
+                    );
                   }
 
                   final int count = results.results[a]!.results.values
@@ -98,8 +85,6 @@ class ResultsEditRoute extends StatelessWidget {
                           ),
                         ],
                       ),
-                      childrenBackgroundColor: Theme.of(context).primaryColor,
-                      childrenPadding: const EdgeInsets.all(8),
                       hiddenSubtitle: res.info,
                       children: res.asIterable
                           .map((e) => CustomListTile(
@@ -112,8 +97,6 @@ class ResultsEditRoute extends StatelessWidget {
                                           .targetFormatter(e.value),
                                   style: Theme.of(context).textTheme.headline5,
                                 ),
-                                tileColor:
-                                    Theme.of(context).scaffoldBackgroundColor,
                                 trailing: RichText(
                                   text: TextSpan(
                                       style:

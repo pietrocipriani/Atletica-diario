@@ -5,14 +5,14 @@ import 'dart:math';
 import 'package:atletica/athlete/athlete_dialog.dart';
 import 'package:atletica/athlete/group.dart';
 import 'package:atletica/cache.dart';
+import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart' as auth;
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/results/result.dart';
-import 'package:atletica/results/simple_training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class Athlete {
+class Athlete with auth.Notifier<Athlete> {
   static final Cache<DocumentReference, Athlete> _cache = Cache();
   static final SplayTreeSet<Athlete> sortedFullAthletes = SplayTreeSet((a, b) {
     int compare = 0;
@@ -45,8 +45,8 @@ class Athlete {
 
   static void Function() cacheReset = _cache.reset;
 
-  static void Function(auth.Callback c) signIn = _cache.signIn;
-  static void Function(auth.Callback c) signOut = _cache.signOut;
+  static void Function(auth.Callback c) signInGlobal = _cache.signIn;
+  static void Function(auth.Callback c) signOutGlobal = _cache.signOut;
 
   static bool exists(final DocumentReference ref) => _cache.contains(ref);
 
@@ -64,9 +64,12 @@ class Athlete {
   String? get group => _group;
   set group(String? group) => lastGroup = (_group = group) ?? lastGroup;
 
-  int get trainingsCount => results.values.where((r) => !r.isBooking).length;
+  int get trainingsCount => results.where((r) => !r.isBooking).length;
   late StreamSubscription _trainingsCountSubscription;
-  final Map<String, Result> results = {};
+  final Map<DocumentReference, Result> _results = {};
+  Iterable<Result> get results => _results.values;
+  Iterable<Result> resultsOf(final Date dt) =>
+      results.where((r) => r.date == dt);
 
   /// `tbs`: training bests
   ///
@@ -85,25 +88,16 @@ class Athlete {
   double? pb(String rip) => pbs[rip];
 
   void _reloadPbsTbs() {
-    for (String key in results.keys) {
-      if (key == null) continue;
-      _updatePbsTbs(key);
-    }
+    results.forEach(_updatePbsTbs);
   }
 
-  void _updatePbsTbs(String added) {
-    final Result? result = results[added];
-    if (result == null) return;
+  void _updatePbsTbs(final Result result) {
     final String identifier = result.uniqueIdentifier;
-    for (final MapEntry<SimpleRipetuta, double?> e in result.asIterable) {
-      if (e.value == null) continue;
+    result.asIterable.where((e) => e.value != null).forEach((e) {
       pbs[e.key.name] = min(e.value!, pbs[e.key.name] ?? double.infinity);
-      final Map<String, double> map = tbs[identifier] ??= <String, double>{};
-      map[e.key.name] = min(
-        e.value!,
-        map[e.key.name] ?? double.infinity,
-      );
-    }
+      final Map<String, double> map = tbs[identifier] ??= {};
+      map[e.key.name] = min(e.value!, map[e.key.name] ?? double.infinity);
+    });
   }
 
   bool get isRequest => group == null;
@@ -127,7 +121,7 @@ class Athlete {
 
   factory Athlete.parse(final DocumentSnapshot raw, final bool exists) {
     final Athlete p = _cache[raw.reference] ??= Athlete._parse(raw, exists);
-    _cache.notifyAll(p);
+    _cache.notifyAll(p, auth.Change.ADDED);
     return p;
   }
 
@@ -141,18 +135,23 @@ class Athlete {
     group = raw['group'];
     _trainingsCountSubscription =
         auth.userC.resultSnapshots(athlete: this).listen((e) {
-      if (e == null) return;
       final QuerySnapshot cast = e;
       for (DocumentChange change in cast.docChanges) {
-        if (change.type == DocumentChangeType.removed)
-          results.remove(change.doc.id);
-        else
-          results[change.doc.id] = Result(change.doc);
-
-        if (change.type == DocumentChangeType.added)
-          _updatePbsTbs(change.doc.id);
-        else
-          _reloadPbsTbs();
+        switch (change.type) {
+          case DocumentChangeType.removed:
+            Result.remove(change.doc.reference);
+            _results.remove(change.doc);
+            _reloadPbsTbs();
+            break;
+          case DocumentChangeType.added:
+            _updatePbsTbs(
+                _results[change.doc.reference] = Result.parse(change.doc));
+            break;
+          case DocumentChangeType.modified:
+            Result.update(change.doc);
+            _reloadPbsTbs();
+            break;
+        }
       }
     });
     sortedFullAthletes.add(this);
@@ -164,14 +163,14 @@ class Athlete {
     p.group = raw['group'];
     sortedFullAthletes.add(p);
     //TODO: update _trainingsCountSubscription
-    _cache.notifyAll(p);
+    p.notifyAll(p, auth.Change.UPDATED);
     return p;
   }
 
   static void remove(final DocumentReference ref) {
     final Athlete? p = _cache.remove(ref);
     sortedFullAthletes.remove(p);
-    if (p != null) _cache.notifyAll(p);
+    if (p != null) _cache.notifyAll(p, auth.Change.DELETED);
   }
 
   static Future<bool?> fromDialog(

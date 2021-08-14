@@ -5,7 +5,6 @@ import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,24 +16,20 @@ class AthletesRoute extends StatefulWidget {
 final AppBar _appBar = AppBar(title: Text('ATLETI'));
 
 class _AthletesRouteState extends State<AthletesRoute> {
-  late final Callback _callback = Callback((_) => setState(() {}));
+  late final Callback _callback = Callback((_, c) => setState(() {}));
   Icon? _requestIcon;
   TextStyle? _subtitle1Bold, _overlineBoldPrimaryDark;
   bool _showUidInfo = false;
 
   @override
   void initState() {
-    CoachHelper.onRequestCallbacks.add(_callback);
-    Athlete.signIn(_callback);
-
+    Athlete.signInGlobal(_callback);
     super.initState();
   }
 
   @override
   void dispose() {
-    _callback.stopListening;
-    CoachHelper.onRequestCallbacks.remove(_callback.stopListening);
-    Athlete.signOut(_callback.stopListening);
+    Athlete.signOutGlobal(_callback.stopListening);
     super.dispose();
   }
 
@@ -68,10 +63,10 @@ class _AthletesRouteState extends State<AthletesRoute> {
                 style: TextStyle(fontWeight: FontWeight.w900),
               )
             ],
-            style: Theme.of(context)
-                .textTheme
-                .overline!
-                .copyWith(fontWeight: FontWeight.normal),
+            style: Theme.of(context).textTheme.overline!.copyWith(
+                  fontWeight: FontWeight.normal,
+                  color: Theme.of(context).disabledColor,
+                ),
           ),
           textAlign: TextAlign.justify,
         ),

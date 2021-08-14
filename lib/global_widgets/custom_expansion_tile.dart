@@ -8,6 +8,7 @@ class CustomExpansionTile extends StatefulWidget {
     Key? key,
     this.leading,
     required this.title,
+    this.titleDecoration,
     this.titleColor,
     this.subtitle,
     this.hiddenSubtitle,
@@ -16,13 +17,15 @@ class CustomExpansionTile extends StatefulWidget {
     this.onExpansionChanged,
     this.children = const <Widget>[],
     this.trailing,
+    this.follower,
     this.initiallyExpanded = false,
     this.childrenPadding = EdgeInsets.zero,
-  })  : assert(initiallyExpanded != null && childrenPadding != null),
-        super(key: key);
+    this.isThreeLine = false,
+  }) : super(key: key);
 
   final Widget? leading;
   final String title;
+  final TextDecoration? titleDecoration;
   final Color? titleColor;
   final Widget? subtitle;
   final String? hiddenSubtitle;
@@ -30,11 +33,33 @@ class CustomExpansionTile extends StatefulWidget {
   final List<Widget> children;
   final Color? backgroundColor, childrenBackgroundColor;
   final Widget? trailing;
+  final LayerLink? follower;
   final bool initiallyExpanded;
   final EdgeInsets childrenPadding;
+  final bool isThreeLine;
 
   @override
   _ExpansionTileState createState() => _ExpansionTileState();
+}
+
+class _ShapeBorderTween extends Tween<ShapeBorder> {
+  _ShapeBorderTween({ShapeBorder? begin, ShapeBorder? end})
+      : super(begin: begin, end: end);
+
+  @override
+  ShapeBorder lerp(final double t) {
+    return ShapeBorder.lerp(begin, end, t) ?? const Border();
+  }
+}
+
+class _PaddingTween extends Tween<EdgeInsets> {
+  _PaddingTween({EdgeInsets? begin, EdgeInsets? end})
+      : super(begin: begin, end: end);
+
+  @override
+  EdgeInsets lerp(final double t) {
+    return EdgeInsets.lerp(begin, end, t) ?? EdgeInsets.zero;
+  }
 }
 
 class _ExpansionTileState extends State<CustomExpansionTile>
@@ -47,13 +72,25 @@ class _ExpansionTileState extends State<CustomExpansionTile>
   final ColorTween _borderColorTween = ColorTween();
   final ColorTween _headerColorTween = ColorTween();
   final ColorTween _iconColorTween = ColorTween();
-  final ColorTween _backgroundColorTween = ColorTween();
+  final ColorTween _cardColorTween = ColorTween();
+  final Tween<double> _elevationTween = Tween(begin: 0);
+  final _ShapeBorderTween _shapeTween =
+      _ShapeBorderTween(begin: const RoundedRectangleBorder());
+  final _PaddingTween _paddingTween = _PaddingTween(begin: EdgeInsets.zero);
 
   late final AnimationController _controller =
       AnimationController(duration: _kExpand, vsync: this);
   late final Animation<double> _iconTurns =
       _controller.drive(_halfTween.chain(_easeInTween));
   late final Animation<double> _heightFactor = _controller.drive(_easeInTween);
+  late final Animation<double> _elevationFactor =
+      _heightFactor.drive(_elevationTween);
+  late final Animation<ShapeBorder> _shapeFactor =
+      _shapeTween.animate(_heightFactor);
+  late final Animation<Color?> _colorFactor =
+      _cardColorTween.animate(_heightFactor);
+  late final Animation<EdgeInsets> _marginFactor =
+      _paddingTween.animate(_heightFactor);
 
   bool _isExpanded = false;
 
@@ -91,7 +128,8 @@ class _ExpansionTileState extends State<CustomExpansionTile>
   }
 
   Widget _buildChildren(BuildContext context, Widget? child) {
-    return Column(
+    final bool closed = !_isExpanded && _controller.isDismissed;
+    final Widget innerChild = Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         CustomListTile(
@@ -100,11 +138,14 @@ class _ExpansionTileState extends State<CustomExpansionTile>
             style: TextStyle(
               fontWeight: _isExpanded ? FontWeight.bold : FontWeight.normal,
               color: widget.titleColor,
+              decoration: widget.titleDecoration,
             ),
           ),
           leading: widget.leading,
           onTap: _handleTap,
-          tileColor: widget.backgroundColor,
+          isThreeLine: widget.isThreeLine,
+          tileColor: widget.backgroundColor ??
+              (closed ? null : Theme.of(context).canvasColor),
           subtitle: widget.subtitle,
           trailing: widget.trailing ??
               RotationTransition(
@@ -115,10 +156,28 @@ class _ExpansionTileState extends State<CustomExpansionTile>
         ClipRect(
           child: Align(
             heightFactor: _heightFactor.value,
-            child: child,
+            child: Container(
+              padding: widget.childrenPadding,
+              color: _colorFactor.value,
+              child: child,
+            ),
           ),
         ),
+        if (widget.follower != null)
+          CompositedTransformTarget(link: widget.follower!, child: Container()),
       ],
+    );
+    return Padding(
+      padding: _marginFactor.value,
+      child: Material(
+        elevation: _elevationFactor.value,
+        color: Colors.transparent,
+        shadowColor: Theme.of(context).cardTheme.shadowColor,
+        shape: _shapeFactor.value,
+        animationDuration: Duration.zero,
+        clipBehavior: Clip.antiAlias,
+        child: innerChild,
+      ),
     );
   }
 
@@ -132,22 +191,25 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     _iconColorTween
       ..begin = theme.unselectedWidgetColor
       ..end = theme.accentColor;
-    _backgroundColorTween.end = widget.backgroundColor;
+    _cardColorTween.end = widget.childrenBackgroundColor ??
+        theme.cardTheme.color ??
+        theme.cardColor;
+    _elevationTween.end = theme.cardTheme.elevation ?? 1;
+    _shapeTween.end = theme.cardTheme.shape ??
+        const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(4)));
+    _paddingTween.end = theme.cardTheme.margin as EdgeInsets?;
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
     final bool closed = !_isExpanded && _controller.isDismissed;
-    Widget? child = closed
+    Widget? child = closed || widget.children.isEmpty
         ? null
-        : Container(
-            padding: widget.childrenPadding,
-            color: widget.childrenBackgroundColor,
-            child: Column(
-              children: widget.children,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-            ),
+        : Column(
+            children: widget.children,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
           );
     if (!closed &&
         widget.hiddenSubtitle != null &&

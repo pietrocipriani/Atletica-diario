@@ -3,7 +3,6 @@ import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_calendar.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:atletica/results/results.dart';
 import 'package:atletica/results/results_edit_route.dart';
 import 'package:atletica/schedule/schedule.dart';
@@ -13,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
 class HomePageWidget extends StatefulWidget {
-  final void Function(DateTime day)? onSelectedDayChanged;
+  final void Function(Date day)? onSelectedDayChanged;
   final Orientation orientation;
 
   HomePageWidget({
@@ -28,7 +27,7 @@ class HomePageWidget extends StatefulWidget {
 
 class _HomePageWidgetState extends State<HomePageWidget> {
   Date selectedDay = Date.now();
-  late final Callback callback = Callback((_) => setState(() {}));
+  late final Callback callback = Callback((_, c) => setState(() {}));
 
   /// must listen `onAthleteCallbacks` because insertion/removal
   /// can change schedule's disponibility
@@ -38,15 +37,15 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   /// ```
   @override
   void initState() {
-    CoachHelper.onSchedulesCallbacks.add(callback);
-    Athlete.signIn(callback);
+    ScheduledTraining.signInGlobal(callback);
+    Athlete.signInGlobal(callback);
     super.initState();
   }
 
   @override
   void dispose() {
-    CoachHelper.onSchedulesCallbacks.remove(callback.stopListening);
-    Athlete.signOut(callback);
+    ScheduledTraining.signOutGlobal(callback.stopListening);
+    Athlete.signOutGlobal(callback);
     super.dispose();
   }
 
@@ -72,9 +71,9 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             )),
         color: IconTheme.of(context).color,
       ),
-      children: TrainingDescription.fromTraining(context, a, a.variants.first)
+      children: TrainingDescription.fromTraining(a, a.variants.first)
           .toList(), // TODO: select variant
-      childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
+      childrenPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
         onPressed: () {},
@@ -89,18 +88,18 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     final CustomCalendar calendar = CustomCalendar(
       onDaySelected: (day, focused) {
         widget.onSelectedDayChanged?.call(day);
-        setState(() => selectedDay = Date.fromDateTime(day));
+        setState(() => selectedDay = day);
       },
+      selectedDay: selectedDay,
       onCalendarCreated: (controller) =>
           widget.onSelectedDayChanged?.call(selectedDay),
-      events: userC.scheduledTrainings,
+      events: (dt) => ScheduledTraining.ofDate(dt),
     );
     final Widget list = Expanded(
       child: ListView(
-        children: userC.scheduledTrainings[selectedDay]
-                ?.map((st) => _trainingWidget(st))
-                .toList() ??
-            [],
+        children: ScheduledTraining.ofDate(selectedDay)
+            .map((st) => _trainingWidget(st))
+            .toList(),
       ),
     );
 

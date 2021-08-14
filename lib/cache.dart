@@ -1,23 +1,27 @@
 import 'dart:collection';
 
 import 'package:atletica/persistence/auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Cache<K, V> {
-  final SplayTreeMap<K, V> _cache = SplayTreeMap();
-  final List<Callback> callbacks = [];
+class Cache<K extends Object, V> with Notifier {
+  late final SplayTreeMap<K, V> _cache;
 
-  void signIn(final Callback c) => callbacks.add(c);
-  void signOut(final Callback c) => callbacks.remove(c);
+  Cache([int Function(K, K)? compare]) {
+    if (compare == null && K == DocumentReference)
+      compare = (a, b) {
+        return (a as DocumentReference)
+            .path
+            .compareTo((b as DocumentReference).path);
+      };
+    _cache = SplayTreeMap(compare);
+  }
 
   void reset() {
     _cache.clear();
-    callbacks.forEach((c) => c.f?.call(null));
   }
 
   V? remove(final K ref) {
-    final V? t = _cache.remove(ref);
-    if (t != null) notifyAll(ref);
-    return t;
+    return _cache.remove(ref);
   }
 
   Iterable<V> get values => _cache.values;
@@ -28,11 +32,6 @@ class Cache<K, V> {
   bool contains(final K key) => _cache.containsKey(key);
   V? operator [](final K key) => _cache[key];
   void operator []=(final K key, final V value) {
-    callbacks.forEach((c) => c.f?.call(value));
     _cache[key] = value;
-  }
-
-  void notifyAll([final value]) {
-    callbacks.forEach((c) => c.f?.call(value));
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/group.dart';
@@ -8,6 +9,7 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/plan/plan.dart';
+import 'package:atletica/main.dart' show IterableExtension;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 DateTime bareDT([DateTime? dt]) {
@@ -24,20 +26,41 @@ DateTime nextStartOfWeek([DateTime? dt]) {
   return dt.add(Duration(days: shift));
 }
 
-class ScheduledTraining {
+class ScheduledTraining with Notifier<ScheduledTraining> {
   static final Cache<DocumentReference, ScheduledTraining> _cache = Cache();
+  static final SplayTreeMap<Date, List<ScheduledTraining>> cachedByDate =
+      SplayTreeMap();
 
-  static void Function(Callback c) signIn = _cache.signIn;
-  static void Function(Callback c) signOut = _cache.signOut;
+  static void Function(Callback c) signInGlobal = _cache.signIn;
+  static void Function(Callback c) signOutGlobal = _cache.signOut;
 
-  static void Function() cacheReset = _cache.reset;
-
-  static void remove(final DocumentReference ref) {
-    final ScheduledTraining? a = _cache.remove(ref);
-    if (a != null) _cache.notifyAll(a);
+  static void cacheReset() {
+    _cache.reset();
+    cachedByDate.clear();
   }
 
-  static Iterable<ScheduledTraining> get trainings => _cache.values;
+  static void remove(final DocumentReference ref) {
+    final ScheduledTraining? t = ScheduledTraining.tryOf(ref);
+    if (t == null) return;
+    removeSt(t);
+  }
+
+  static void removeSt(final ScheduledTraining st) {
+    _cache.remove(st.reference);
+    final List<ScheduledTraining>? sts = cachedByDate[st.date];
+    if (sts == null) return;
+    sts.remove(st);
+    if (sts.isEmpty) cachedByDate.remove(st.date);
+    _cache.notifyAll(st, Change.DELETED);
+  }
+
+  static Iterable<ScheduledTraining> get scheduledTrainings => _cache.values;
+  static Iterable<ScheduledTraining> inRange(final Date start, final Date end) {
+    return cachedByDate.entries
+        .skipWhile((e) => e.key < start)
+        .takeWhile((e) => e.key <= end)
+        .expand((e) => e.value);
+  }
 
   static bool get isEmpty => _cache.isEmpty;
   static bool get isNotEmpty => _cache.isNotEmpty;
@@ -51,6 +74,15 @@ class ScheduledTraining {
     }
   }
 
+  static List<ScheduledTraining> ofDate(final Date date) {
+    return cachedByDate[date] ?? List.empty();
+  }
+
+  static ScheduledTraining? ofDateRef(
+      final Date date, final DocumentReference training) {
+    return ofDate(date).firstWhereNullable((s) => s.workRef == training);
+  }
+
   factory ScheduledTraining.of(final DocumentReference ref) {
     final ScheduledTraining? a = _cache[ref];
     if (a == null)
@@ -61,15 +93,15 @@ class ScheduledTraining {
   final DocumentReference reference;
   final DocumentReference workRef;
   final Date date;
-  final DocumentReference plan;
-  final List<DocumentReference> _athletes;
+  final DocumentReference? plan;
+  final Set<DocumentReference> _athletes;
   Iterable<Athlete> get athletes => Athlete.getAthletes(_athletes);
-  List<DocumentReference> get athletesRefs => _athletes;
+  Set<DocumentReference> get athletesRefs => _athletes;
 
   factory ScheduledTraining.parse(final DocumentSnapshot raw) {
     final ScheduledTraining a =
         _cache[raw.reference] ??= ScheduledTraining._parse(raw);
-    _cache.notifyAll(a);
+    _cache.notifyAll(a, Change.ADDED);
     return a;
   }
   ScheduledTraining._parse(DocumentSnapshot snap)
@@ -77,11 +109,18 @@ class ScheduledTraining {
         workRef = snap['work'],
         date = Date.fromTimeStamp(snap['date']),
         plan = snap['plan'],
-        _athletes = snap['athletes']?.cast<DocumentReference>() ??
-            <DocumentReference>[];
+        _athletes = Set.from(
+            snap.getNullable('athletes')?.cast<DocumentReference>() ??
+                Iterable.empty()) {
+    (cachedByDate[date] ??= []).add(this);
+  }
 
   factory ScheduledTraining.update(final DocumentSnapshot raw) {
     final ScheduledTraining a = ScheduledTraining.of(raw.reference);
+    a._athletes.clear();
+    a._athletes
+        .addAll(raw['athletes']?.cast<DocumentReference>() ?? Iterable.empty());
+    _cache.notifyAll(a, Change.UPDATED);
     return a;
   }
 
@@ -104,26 +143,25 @@ class ScheduledTraining {
       'work': work.reference,
       'date': date,
       'plan': plan?.reference,
-      'athletes': athletes?.toList(),
+      'athletes':
+          (athletes ?? Athlete.athletes.map((e) => e.reference)).toList(),
     });
   }
 
-  FutureOr<void> update({
+  Future<void> update({
     List<DocumentReference>? athletes,
     List<DocumentReference>? removedAthletes,
     WriteBatch? batch,
-  }) {
+  }) async {
     if (batch == null) {
       final WriteBatch b = firestore.batch();
-      update(athletes: athletes, removedAthletes: removedAthletes, batch: b);
-      return b.commit();
+      await update(
+          athletes: athletes, removedAthletes: removedAthletes, batch: b);
+      return await b.commit();
     }
     final Set<DocumentReference> remainingAthletes = Set.from(_athletes);
-    if (removedAthletes != null)
-      remainingAthletes.removeWhere(removedAthletes.contains);
-    if (athletes != null)
-      remainingAthletes
-          .addAll(athletes.where((a) => !remainingAthletes.contains(a)));
+    if (removedAthletes != null) remainingAthletes.removeAll(removedAthletes);
+    if (athletes != null) remainingAthletes.addAll(athletes);
     if (remainingAthletes.isEmpty)
       batch.delete(reference);
     else
@@ -132,13 +170,11 @@ class ScheduledTraining {
 
   bool get isValid => date < Date.now(); // ?
 
-  bool get isOk => workRef != null && date != null;
-
   /// do not call in athlete role: crash
   String get athletesAsList {
     final List<Athlete> athletes = Athlete.getAthletes(_athletes).toList();
-    Iterable<Group> gs =
-        Group.groups.where((group) => group.isContainedIn(athletes));
+    final List<Group> gs =
+        Group.groups.where((group) => group.isContainedIn(athletes)).toList();
     gs.forEach((g) => g.athletes.forEach(athletes.remove));
     return gs
         .map((g) => g.name)

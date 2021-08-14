@@ -35,7 +35,7 @@ class Template extends SimpleTemplate {
       : this(
           name: raw.id,
           lastTarget: raw['lastTarget'],
-          tipologia: Tipologia.parse(raw['tipologia']),
+          tipologia: Tipologia.parse(raw.getNullable('tipologia')),
         );
 
   Template({
@@ -56,6 +56,9 @@ class Template extends SimpleTemplate {
         .doc(name)
         .update({'lastTarget': lastTarget, 'tipologia': tipologia.name});
   }
+
+  @override
+  String toString() => name;
 }
 
 class RegularExpressions {
@@ -78,7 +81,7 @@ class Tipologia {
   final String? targetSuffix;
   final double? Function(String target) targetParser;
 
-  Tipologia({
+  const Tipologia({
     required this.name,
     required this.icon,
     required this.targetFormatter,
@@ -95,7 +98,8 @@ class Tipologia {
     esercizi,
   ];
 
-  static Tipologia parse(final String raw) {
+  static Tipologia parse(final String? raw) {
+    if (raw == null) return Tipologia.corsaDist;
     for (final Tipologia t in values) if (t.name == raw) return t;
     return Tipologia.corsaDist;
   }
@@ -138,11 +142,17 @@ class Tipologia {
         ),
       ],
     ),
-    targetFormatter: (target) => target == null ? '' : '${target.round()} m',
-    targetValidator: (s) =>
-        s == null ? false : RegularExpressions.integer.hasMatch(s),
-    targetScheme: 'es: 5000 m',
-    targetParser: (target) => double.parse(target),
+    targetFormatter: (target) => target == null
+        ? ''
+        : (target >= 60 ? "${target ~/ 60}'" : '') +
+            '${(target.truncate() % 60).toString().padLeft(target >= 60 ? 2 : 1, '0')}"' +
+            (target < 60 || target != target.truncate()
+                ? ((target * 100).round() % 100).toString().padLeft(2, '0')
+                : '') +
+            '/km',
+    targetValidator: (s) => matchTimePattern(s, false, true),
+    targetScheme: 'es: 4\'30"',
+    targetParser: parseTimePattern,
   );
   static final Tipologia palestra = Tipologia(
     name: 'palestra',

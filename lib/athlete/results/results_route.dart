@@ -35,7 +35,7 @@ class _ResultsRouteListState extends State<ResultsRouteList>
         controller: _controller,
         children: [
           ListView(
-            children: widget.athlete.results.values
+            children: widget.athlete.results
                 .where((res) =>
                     !res.isBooking &&
                     (filter == null || res.training == filter))
@@ -47,7 +47,7 @@ class _ResultsRouteListState extends State<ResultsRouteList>
                     ))
                 .toList(),
           ),
-          PbsWidget(res: widget.athlete.results.values, clear: true)
+          PbsWidget(res: widget.athlete.results, clear: true)
         ],
       ),
     );

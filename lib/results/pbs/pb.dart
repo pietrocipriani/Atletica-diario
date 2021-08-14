@@ -1,7 +1,6 @@
 import 'package:atletica/date.dart';
 import 'package:atletica/results/pbs/pbs_page_route.dart';
 import 'package:atletica/results/result.dart';
-import 'package:flutter/material.dart';
 
 class Pb {
   final List<SimpleResult> results = [];

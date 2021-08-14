@@ -1,6 +1,5 @@
 import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/date.dart';
-import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/plan/plan.dart';
 import 'package:atletica/schedule/athletes_picker.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +16,12 @@ class _PlanDialogState extends State<PlanDialog> {
   late String? name = widget.plan?.name;
   late DateTime? start = widget.plan?.start;
   late DateTime? stop = widget.plan?.stop;
-  DateTime firstAvaiableStartDay = () {
-    DateTime tr = Date.now();
-    return tr.subtract(Duration(days: (tr.weekday - DateTime.monday) % 7));
-  }();
+  DateTime get firstAvaiableStartDay {
+    final Date tr = Date.now();
+    return tr.subtract(
+        Duration(days: (tr.weekday - DateTime.monday) % DateTime.daysPerWeek));
+  }
+
   late final bool isNew = widget.plan == null;
   late List<Athlete> athletes = widget.plan?.athletes ?? [];
 
@@ -69,7 +70,8 @@ class _PlanDialogState extends State<PlanDialog> {
                       start = await showDatePicker(
                             context: context,
                             initialDate: start == null ||
-                                    start!.isBefore(firstAvaiableStartDay)
+                                    start!.isBefore(firstAvaiableStartDay) ||
+                                    start!.weekday != DateTime.monday
                                 ? firstAvaiableStartDay
                                 : start!,
                             firstDate: firstAvaiableStartDay,
@@ -135,15 +137,23 @@ class _PlanDialogState extends State<PlanDialog> {
                       Plan.create(
                         name: name!,
                         athletes: athletes,
-                        start: start,
-                        stop: stop,
+                        start: start == null
+                            ? null
+                            : Date(start!.year, start!.month, start!.day),
+                        stop: stop == null
+                            ? null
+                            : Date(stop!.year, stop!.month, stop!.day),
                       );
                     else
                       widget.plan!.update(
                         name: name,
                         athletes: athletes.map((a) => a.reference).toList(),
-                        start: start,
-                        stop: stop,
+                        start: start == null
+                            ? null
+                            : Date(start!.year, start!.month, start!.day),
+                        stop: stop == null
+                            ? null
+                            : Date(stop!.year, stop!.month, stop!.day),
                         removingSchedules: start == null,
                       );
                     Navigator.pop(context, true);

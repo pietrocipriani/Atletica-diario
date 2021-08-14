@@ -50,8 +50,6 @@ class ResultWidget extends StatelessWidget {
                 icon: Icon(Icons.filter_alt),
                 onPressed: () => onFilter!(res.training),
               ),
-        childrenBackgroundColor: Theme.of(context).primaryColor,
-        childrenPadding: const EdgeInsets.all(8),
         children: res.asIterable
             .map((e) => CustomListTile(
                   title: Text(e.key.name, textAlign: TextAlign.center),
@@ -61,7 +59,6 @@ class ResultWidget extends StatelessWidget {
                         : Tipologia.corsaDist.targetFormatter(e.value),
                     style: Theme.of(context).textTheme.headline5,
                   ),
-                  tileColor: Theme.of(context).scaffoldBackgroundColor,
                   trailing: RichText(
                     text: TextSpan(
                         style: Theme.of(context).textTheme.overline,

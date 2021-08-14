@@ -4,6 +4,7 @@ import 'package:atletica/home/home_page.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/themes/dark_theme.dart';
 import 'package:atletica/themes/light_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ const double kListTileHeight = 72.0;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await Firebase.initializeApp();
+  await Firebase.initializeApp();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
   runApp(MyApp());
 }
@@ -96,7 +97,7 @@ void startRoute(
 extension IterableExtension<T> on Iterable<T> {
   T? firstWhereNullable(final bool Function(T) f, {T? Function()? orElse}) {
     try {
-      firstWhere(f);
+      return firstWhere(f);
     } on StateError {
       return orElse?.call();
     }

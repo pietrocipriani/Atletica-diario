@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:atletica/persistence/user_helper/snapshots_managers/schedule_snapshot.dart';
 import 'package:atletica/results/result.dart';
-import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/persistence/user_helper/snapshots_managers/result_snapshot.dart';
@@ -11,16 +11,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AthleteHelper extends FirebaseUserHelper {
-  static final List<Callback> onResultCallbacks = [];
   static final List<Callback> onCoachChanged = <Callback>[];
 
-  final Map<DocumentReference, Result> results = {};
-  final Map<DocumentReference, ScheduledTraining> scheduledTrainings = {};
-
-  final Map<DateTime, List<dynamic>> events = {};
-
-  void coachCallAll() => onCoachChanged.forEach((c) => c.call(null));
-  void resultsCallAll() => onResultCallbacks.forEach((c) => c.call(null));
+  void coachCallAll() =>
+      onCoachChanged.forEach((c) => c.call(null, Change.UPDATED));
 
   DocumentReference? _athleteCoachReference;
   StreamSubscription<DocumentSnapshot>? _requestSubscription;
@@ -42,7 +36,7 @@ class AthleteHelper extends FirebaseUserHelper {
       const Duration(milliseconds: 10),
       onTimeout: (sink) {
         if (last == null) return;
-        if (last!.data == null)
+        if (!last!.exists)
           userReference.update({'coach': null});
         else {
           accepted = last!['nickname'] != null && last!['group'] != null;
@@ -52,9 +46,6 @@ class AthleteHelper extends FirebaseUserHelper {
     ).listen((snap) => last = snap);
     justRequested = false;
   }
-
-  Iterable<Result> getResults(Date date) =>
-      results.values.where((r) => r.date == date);
 
   StreamSubscription<QuerySnapshot>? _schedulesSubscription;
   StreamSubscription<QuerySnapshot>? _trainingsSubscription;
@@ -66,44 +57,19 @@ class AthleteHelper extends FirebaseUserHelper {
     _accepted = accepted;
     if (accepted) {
       _schedulesSubscription =
-          coach!.collection('schedules').snapshots().listen((snap) {
-        for (DocumentChange doc in snap.docChanges) {
-          switch (doc.type) {
-            case DocumentChangeType.modified:
-              final ScheduledTraining st =
-                  scheduledTrainings[doc.doc.reference]!;
-              events[st.date]?.remove(st);
-              continue ca;
-            ca:
-            case DocumentChangeType.added:
-              final ScheduledTraining st =
-                  scheduledTrainings[doc.doc.reference] =
-                      ScheduledTraining.parse(doc.doc);
-              if (st.athletes.isEmpty ||
-                  st.athletes.contains(userA.athleteCoachReference))
-                (events[st.date] ??= []).add(st);
-              break;
-            case DocumentChangeType.removed:
-              ScheduledTraining st =
-                  scheduledTrainings.remove(doc.doc.reference)!;
-              events[st.date]?.remove(st);
-              break;
-          }
-        }
-        resultsCallAll();
+          coach!.collection('schedules').snapshots().listen((snap) async {
+        for (DocumentChange doc in snap.docChanges)
+          await scheduleSnapshot(doc.doc, doc.type);
       });
       _trainingsSubscription =
           coach!.collection('trainings').snapshots().listen((snap) async {
-        bool ok = false;
-        for (DocumentChange changed in snap.docChanges)
-          ok |= await trainingSnapshot(changed.doc, changed.type);
-        if (ok) resultsCallAll();
+        for (DocumentChange doc in snap.docChanges)
+          await trainingSnapshot(doc.doc, doc.type);
       });
     } else {
       _schedulesSubscription?.cancel();
       _trainingsSubscription?.cancel();
-      events.clear();
-      scheduledTrainings.clear();
+      ScheduledTraining.cacheReset();
     }
   }
 
@@ -137,20 +103,15 @@ class AthleteHelper extends FirebaseUserHelper {
       coachCallAll();
     });
 
-    print('initted');
-    print(StackTrace.current);
-
     userReference.collection('results').snapshots().listen((snap) {
-      bool modified = false;
       for (DocumentChange change in snap.docChanges)
-        modified |= resultSnapshot(change.doc, change.type);
-      if (modified) resultsCallAll();
+        resultSnapshot(change.doc, change.type);
     });
   }
 
   Future<bool> requestCoach(
       {required String uid, required String nickname}) async {
-    if (uid == null || uid == userReference.id) return false;
+    if (uid == userReference.id) return false;
     final DocumentReference request = firestore
         .collection('users')
         .doc(uid)

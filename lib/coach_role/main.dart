@@ -20,7 +20,7 @@ class CoachMainPage extends StatefulWidget {
 }
 
 class _CoachMainPageState extends State<CoachMainPage> {
-  DateTime? selectedDay;
+  Date? selectedDay;
 
   bool get _canAddEvents {
     if (selectedDay == null) return false;

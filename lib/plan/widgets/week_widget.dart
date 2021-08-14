@@ -41,7 +41,8 @@ class _WeekWidgetState extends State<WeekWidget> {
           maxLines: 3,
           style: TextStyle(color: theme.primaryColorDark),
         ),
-        childrenPadding: const EdgeInsets.symmetric(horizontal: 40.0),
+        childrenPadding:
+            const EdgeInsets.symmetric(horizontal: 40.0, vertical: 8),
         children: () sync* {
           for (int i = 0; i < weekdays.length; i++)
             yield Row(

@@ -9,6 +9,7 @@ final TextTheme _textTheme = TextTheme(
     fontWeight: FontWeight.bold,
     color: Colors.black,
     fontSize: 10,
+    letterSpacing: 0,
   ),
 );
 
@@ -23,6 +24,16 @@ final ChipThemeData _chipTheme = ChipThemeData(
   brightness: _brightness,
   side: BorderSide(color: _primarySwatch),
   checkmarkColor: _primarySwatch,
+);
+
+final CardTheme _cardTheme = CardTheme(
+  elevation: 6,
+  margin: const EdgeInsets.all(8),
+  shadowColor: Colors.black,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(20)),
+    side: BorderSide(color: Colors.black),
+  ),
 );
 
 final DialogTheme _dialogTheme = DialogTheme(
@@ -49,6 +60,7 @@ ThemeData lightTheme = ThemeData(
   disabledColor: _disabledColor,
   dialogTheme: _dialogTheme,
   iconTheme: _iconTheme,
+  cardTheme: _cardTheme,
   buttonTheme: ButtonThemeData(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20),

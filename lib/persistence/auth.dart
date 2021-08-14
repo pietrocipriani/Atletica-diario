@@ -18,7 +18,17 @@ FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 GoogleSignInAccount? _guser;
 GoogleSignInAuthentication? _auth;
 
-dynamic _user;
+extension DocumentSnapshotExtension<T extends Object?> on DocumentSnapshot<T> {
+  T? getNullable<T>(final String field) {
+    try {
+      return this[field];
+    } on StateError {
+      return null;
+    }
+  }
+}
+
+Object? _user;
 set user(dynamic user) {
   assert(user == null || user is FirebaseUserHelper || user is User,
       'user is ${user.runtimeType}');
@@ -26,9 +36,9 @@ set user(dynamic user) {
 }
 
 bool get hasRole => _user != null && _user is FirebaseUserHelper;
-FirebaseUserHelper get user => hasRole ? _user : null;
-AthleteHelper get userA => _user is AthleteHelper ? _user : null;
-CoachHelper get userC => _user is CoachHelper ? _user : null;
+FirebaseUserHelper get user => _user as FirebaseUserHelper;
+AthleteHelper get userA => _user as AthleteHelper;
+CoachHelper get userC => _user as CoachHelper;
 dynamic get rawUser => _user;
 
 abstract class FirebaseUserHelper {
@@ -161,16 +171,28 @@ Future requestLoginDialog({required BuildContext context}) {
 
 class Callback<T> {
   bool active = true;
-  void Function(T arg)? f;
+  void Function(T arg, Change c)? f;
 
   Callback([this.f]);
 
-  void call(T arg) {
-    if (active) f?.call(arg);
+  void call(final T arg, final Change c) {
+    if (active) f?.call(arg, c);
   }
 
   Callback<T> get stopListening {
     active = false;
     return this;
+  }
+}
+
+enum Change { ADDED, UPDATED, DELETED }
+
+mixin Notifier<T> {
+  final List<Callback<T>> _callbacks = [];
+  void signIn(final Callback<T> c) => _callbacks.add(c);
+  bool signOut(final Callback<T> c) => _callbacks.remove(c);
+
+  void notifyAll(final T arg, final Change change) {
+    _callbacks.forEach((c) => c.call(arg, change));
   }
 }
