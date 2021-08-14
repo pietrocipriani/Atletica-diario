@@ -1,4 +1,4 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/athlete/results/results_route.dart';
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
@@ -10,12 +10,12 @@ import 'package:flutter/material.dart';
 class AthleteWidget extends StatelessWidget {
   final Athlete atleta;
   final TextStyle overlineBoldPrimaryDark;
-  final void Function() onModified;
+  final void Function()? onModified;
 
   AthleteWidget({
-    Key key,
-    @required this.atleta,
-    @required this.overlineBoldPrimaryDark,
+    Key? key,
+    required this.atleta,
+    required this.overlineBoldPrimaryDark,
     this.onModified,
   }) : super(key: key);
 
@@ -31,7 +31,7 @@ class AthleteWidget extends StatelessWidget {
         ),
       ),
       title: Text(atleta.name),
-      subtitle: Text(atleta.group, style: overlineBoldPrimaryDark),
+      subtitle: Text(atleta.group!, style: overlineBoldPrimaryDark),
       trailing: LeadingInfoWidget(
         info: '${atleta.trainingsCount}',
         bottom: singularPlural('allenament', 'o', 'i', atleta.trainingsCount),

@@ -1,5 +1,4 @@
-import 'package:atletica/athlete/atleta.dart';
-import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -9,17 +8,15 @@ Future<bool> athleteSnapshot(
 ) async {
   switch (changeType) {
     case DocumentChangeType.added:
+      bool exists =
+          (await firestore.collection('users').doc(snapshot.id).get()).exists;
+      Athlete.parse(snapshot, exists);
+      break;
     case DocumentChangeType.modified:
-
-      bool exists = (await firestore
-              .collection('users')
-              .document(snapshot.documentID)
-              .get())
-          .exists;
-      userC.rawAthletes[snapshot.reference] = Athlete.parse(snapshot, exists);
+      Athlete.update(snapshot);
       break;
     case DocumentChangeType.removed:
-      userC.rawAthletes.remove(snapshot.reference);
+      Athlete.remove(snapshot.reference);
       break;
   }
   return true;

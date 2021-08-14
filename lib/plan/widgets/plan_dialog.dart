@@ -1,12 +1,11 @@
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/date.dart';
-import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/plan/plan.dart';
 import 'package:atletica/schedule/athletes_picker.dart';
 import 'package:flutter/material.dart';
 
 class PlanDialog extends StatefulWidget {
-  final Tabella plan;
+  final Plan? plan;
   PlanDialog([this.plan]);
 
   @override
@@ -14,43 +13,36 @@ class PlanDialog extends StatefulWidget {
 }
 
 class _PlanDialogState extends State<PlanDialog> {
-  String name;
-  DateTime start,
-      stop,
-      firstAvaiableStartDay = () {
-        DateTime tr = Date.now().dateTime;
-        return tr.subtract(Duration(days: (tr.weekday - DateTime.monday) % 7));
-      }();
-  bool isNew;
-  List<Athlete> athletes;
+  late String? name = widget.plan?.name;
+  late DateTime? start = widget.plan?.start;
+  late DateTime? stop = widget.plan?.stop;
+  DateTime get firstAvaiableStartDay {
+    final Date tr = Date.now();
+    return tr.subtract(
+        Duration(days: (tr.weekday - DateTime.monday) % DateTime.daysPerWeek));
+  }
+
+  late final bool isNew = widget.plan == null;
+  late List<Athlete> athletes = widget.plan?.athletes ?? [];
 
   @override
   void initState() {
     super.initState();
-    name = widget.plan?.name;
-    start = widget.plan?.start;
-    stop = widget.plan?.stop;
-    isNew = widget.plan == null;
-    athletes = widget.plan?.athletes
-            ?.map((a) => userC.rawAthletes[a])
-            ?.where((a) => a != null)
-            ?.toList() ??
-        <Athlete>[];
 
     if (stop?.isBefore(DateTime.now()) ??
         start?.isBefore(DateTime.now()) ??
         false) start = stop = null;
   }
 
-  String validator([String s]) {
+  String? validator([String? s]) {
     s ??= name ?? '';
     if (s.isEmpty) return 'inserire il nome';
-    if (plans.values.any((p) => p != widget.plan && p.name == s))
+    if (Plan.plans.any((p) => p != widget.plan && p.name == s))
       return 'nome già in uso';
     return null;
   }
 
-  String _format(DateTime d) => d == null
+  String _format(DateTime? d) => d == null
       ? 'seleziona'
       : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year % 100}';
 
@@ -78,9 +70,10 @@ class _PlanDialogState extends State<PlanDialog> {
                       start = await showDatePicker(
                             context: context,
                             initialDate: start == null ||
-                                    start.isBefore(firstAvaiableStartDay)
+                                    start!.isBefore(firstAvaiableStartDay) ||
+                                    start!.weekday != DateTime.monday
                                 ? firstAvaiableStartDay
-                                : start,
+                                : start!,
                             firstDate: firstAvaiableStartDay,
                             helpText: "seleziona la data di inizio",
                             selectableDayPredicate: (day) =>
@@ -89,8 +82,8 @@ class _PlanDialogState extends State<PlanDialog> {
                                 .add(const Duration(days: 7 * 52)),
                           ) ??
                           start;
-                      if (stop != null && start.isAfter(stop))
-                        stop = start.add(const Duration(days: 6));
+                      if (stop != null && start!.isAfter(stop!))
+                        stop = start!.add(const Duration(days: 6));
                       setState(() {});
                     },
                     onLongPress: () => setState(() => start = stop = null),
@@ -106,8 +99,8 @@ class _PlanDialogState extends State<PlanDialog> {
                             stop = await showDatePicker(
                                   context: context,
                                   initialDate:
-                                      stop ?? start.add(Duration(days: 6)),
-                                  firstDate: start,
+                                      stop ?? start!.add(Duration(days: 6)),
+                                  firstDate: start!,
                                   helpText:
                                       "seleziona la data di fine. Premi a lungo sulla data della schermata precendente per eliminare la scadenza.",
                                   selectableDayPredicate: (day) =>
@@ -141,18 +134,26 @@ class _PlanDialogState extends State<PlanDialog> {
                 ? null
                 : () async {
                     if (isNew)
-                      Tabella.create(
-                        name: name,
+                      Plan.create(
+                        name: name!,
                         athletes: athletes,
-                        start: start,
-                        stop: stop,
+                        start: start == null
+                            ? null
+                            : Date(start!.year, start!.month, start!.day),
+                        stop: stop == null
+                            ? null
+                            : Date(stop!.year, stop!.month, stop!.day),
                       );
                     else
-                      widget.plan.update(
+                      widget.plan!.update(
                         name: name,
                         athletes: athletes.map((a) => a.reference).toList(),
-                        start: start,
-                        stop: stop,
+                        start: start == null
+                            ? null
+                            : Date(start!.year, start!.month, start!.day),
+                        stop: stop == null
+                            ? null
+                            : Date(stop!.year, stop!.month, stop!.day),
                         removingSchedules: start == null,
                       );
                     Navigator.pop(context, true);

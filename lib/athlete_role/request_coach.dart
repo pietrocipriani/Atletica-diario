@@ -1,5 +1,6 @@
 import 'package:atletica/global_widgets/animated_text.dart';
 import 'package:atletica/global_widgets/logout_button.dart';
+import 'package:atletica/global_widgets/runas_button.dart';
 import 'package:atletica/global_widgets/swap_button.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
@@ -11,13 +12,12 @@ class RequestCoachRoute extends StatefulWidget {
 }
 
 class _RequestCoachRoute extends State<RequestCoachRoute> {
-  final Callback callback = Callback();
+  late final Callback callback = Callback((_, c) => setState(() {}));
   final TextEditingController controller = TextEditingController(),
       _nameController = TextEditingController(text: userA.name);
 
   @override
   void initState() {
-    callback.f = (_) => setState(() {});
     AthleteHelper.onCoachChanged.add(callback);
     super.initState();
   }
@@ -29,15 +29,12 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
   }
 
   bool get _hasText =>
-      controller.text != null &&
-      controller.text.isNotEmpty &&
-      _nameController.text != null &&
-      _nameController.text.isNotEmpty;
+      controller.text.isNotEmpty && _nameController.text.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
     if (userA.hasCoach)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
         if (Navigator.canPop(context)) Navigator.pop(context);
       });
 
@@ -50,6 +47,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
           actions: [
             LogoutButton(context: context),
             SwapButton(context: context),
+            if (user.admin) RunasButton(context: context),
           ],
         ),
         body: Padding(
@@ -93,8 +91,11 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                       children: <Widget>[
                         AnimatedText(
                           text: 'in attesa di risposta',
-                          style: Theme.of(context).textTheme.headline6.copyWith(
-                              color: Theme.of(context).primaryColorDark),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(
+                                  color: Theme.of(context).primaryColorDark),
                         ),
                         Icon(Icons.check_circle, color: Colors.green)
                       ],

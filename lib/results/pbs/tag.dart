@@ -9,28 +9,30 @@ final List<TagsEvaluator> tags = [
     (sr) => sr.training,
   ),
   TagsEvaluator(
-      // meet
-      (sr, value) => sr.isMeet,
-      (sr) => sr.isMeet ? 'meeting' : 'training',
-      {'meeting': Colors.red, 'training': Colors.blue}),
+    // meet
+    (sr, value) => sr.isMeet,
+    (sr) => sr.isMeet ? 'meeting' : 'training',
+    {'meeting': Colors.red, 'training': Colors.blue},
+  ),
   TagsEvaluator(
-      // stagional
-      (sr, value) => sr.stagional,
-      (sr) => sr.stagional ? 'stagional' : null,
-      {'stagional': Colors.green})
+    // stagional
+    (sr, value) => sr.stagional,
+    (sr) => sr.stagional ? 'stagional' : null,
+    {'stagional': Colors.green},
+  )
 ];
 
 class TagsEvaluator {
   final bool Function(SimpleResult sr, String value) accept;
-  final String Function(SimpleResult sr) evaluate;
-  final Map<String, Color> _color;
+  final String? Function(SimpleResult sr) evaluate;
+  final Map<String, Color>? _color;
   TagsEvaluator(this.accept, this.evaluate, [this._color]);
 
-  Color color(final String value) => _color == null ? null : _color[value];
+  Color? color(final String value) => _color == null ? null : _color![value];
 }
 
 class Tags extends StatelessWidget {
-  final void Function(String tag, TagsEvaluator evaluator) onTap;
+  final void Function(String? tag, TagsEvaluator evaluator)? onTap;
   final SimpleResult simpleResult;
   final Color defaultColor;
   Tags(this.simpleResult, this.defaultColor, {this.onTap});
@@ -40,7 +42,7 @@ class Tags extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.end,
       children: tags
           .map((tag) {
-            final String value = tag.evaluate(simpleResult);
+            final String? value = tag.evaluate(simpleResult);
             if (value == null) return null;
             return _Tag(
               value,
@@ -50,12 +52,12 @@ class Tags extends StatelessWidget {
               onTap: onTap,
             );
           })
-          .where((w) => w != null)
+          .whereType<Widget>()
           .toList());
 }
 
 class _Tag extends StatelessWidget {
-  final void Function(String tag, TagsEvaluator evaluator) onTap;
+  final void Function(String? tag, TagsEvaluator evaluator)? onTap;
   final bool selected;
   final String value;
   final TagsEvaluator evaluator;

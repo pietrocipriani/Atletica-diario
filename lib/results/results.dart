@@ -1,51 +1,27 @@
-import 'package:atletica/athlete/results/result_widget.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/date.dart';
-import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/results/result.dart';
-import 'package:atletica/results/simple_training.dart';
-import 'package:atletica/training/allenamento.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:atletica/training/training.dart';
 
 class Results {
   /// the `key` is the reference for the Athlete
-  final Map<DocumentReference, Result> results = {};
+  final Map<Athlete, Result> results = {};
   final Date date;
-  final Allenamento training;
+  final Training training;
   final int ripetuteCount;
 
-  Results(
-      {@required this.training,
-      @required this.date,
-      List<DocumentReference> athletes})
-      : ripetuteCount = training.ripetute.length {
+  Results({
+    required this.training,
+    required this.date,
+    Iterable<Athlete>? athletes,
+  }) : ripetuteCount = training.ripetute.length {
     if (athletes == null || athletes.isEmpty)
-      athletes = userC.athletes
-          .map((a) => a.reference)
-          .where((a) => a != null)
-          .toList();
-    for (DocumentReference ref in athletes)
-      results[ref] = Result.empty(training, date);
+      athletes = Athlete.athletes.toList();
+    for (final Athlete a in athletes) results[a] = Result.temp(training, date);
   }
 
-  bool update(
-      {@required final DocumentReference reference,
-      @required final DocumentReference athlete,
-      @required final List<String> results,
-      final int fatigue,
-      final String info}) {
-    final Result updated = Result.empty(training, date);
-    updated.reference = reference;
-
-    if (results.length != training.ripetute.length) return false;
-    updated.fatigue = fatigue;
-    updated.info = info;
-    int count = 0;
-    for (SimpleRipetuta rip in updated.ripetute) {
-      final MapEntry e = parseRawResult(results[count++]);
-      if (e == null || e.key != rip.name) return false;
-      updated.set(rip, e.value);
-    }
+  bool update(final Athlete athlete, final Result updated) {
+    if (updated.ripetute.length != training.ripetute.length) return false;
     this.results[athlete] = updated;
     return true;
   }

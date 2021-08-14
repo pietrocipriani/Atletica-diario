@@ -1,14 +1,14 @@
 import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
-import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/plan/plan.dart';
 import 'package:atletica/plan/week.dart';
-import 'package:atletica/training/allenamento.dart';
+import 'package:atletica/training/training.dart';
 import 'package:flutter/material.dart';
 
 class WeekWidget extends StatefulWidget {
   final Week week;
-  final Tabella plan;
+  final Plan plan;
   WeekWidget(this.plan, this.week);
 
   @override
@@ -41,7 +41,8 @@ class _WeekWidgetState extends State<WeekWidget> {
           maxLines: 3,
           style: TextStyle(color: theme.primaryColorDark),
         ),
-        childrenPadding: const EdgeInsets.symmetric(horizontal: 40.0),
+        childrenPadding:
+            const EdgeInsets.symmetric(horizontal: 40.0, vertical: 8),
         children: () sync* {
           for (int i = 0; i < weekdays.length; i++)
             yield Row(
@@ -49,14 +50,14 @@ class _WeekWidgetState extends State<WeekWidget> {
                 Expanded(
                   child: Text(
                     weekdays[(i + DateTime.monday) % 7],
-                    style: theme.textTheme.overline
+                    style: theme.textTheme.overline!
                         .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Text(
-                  allenamenti(widget.week.trainings[(i + 1) % 7])?.name ??
+                  Training.tryOf(widget.week.trainings[(i + 1) % 7])?.name ??
                       'riposo',
-                  style: theme.textTheme.overline.copyWith(
+                  style: theme.textTheme.overline!.copyWith(
                     fontWeight: FontWeight.bold,
                     color: widget.week.trainings[(i + 1) % 7] == null
                         ? theme.disabledColor

@@ -7,7 +7,7 @@ class PlanScheduleDialogContent extends StatelessWidget {
   final PlanSchedule schedule;
 
   PlanScheduleDialogContent(
-      {@required this.schedule, @required this.onChanged});
+      {required this.schedule, required this.onChanged});
 
   String _format(DateTime d) => d == null
       ? 'seleziona'
@@ -45,11 +45,11 @@ class PlanScheduleDialogContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        DropdownButton<Tabella>(
+        DropdownButton<Plan>(
           value: schedule.work,
           isExpanded: true,
           items: plans.values
-              .map((plan) => DropdownMenuItem<Tabella>(
+              .map((plan) => DropdownMenuItem<Plan>(
                     value: plan,
                     child: Text(plan.name),
                   ))

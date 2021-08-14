@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 abstract class ScheduleWidget<T extends Schedule> extends StatelessWidget {
   final T schedule;
   final Icon leading;
-  ScheduleWidget({Key key, @required this.schedule, @required this.leading})
+  ScheduleWidget({Key key, required this.schedule, required this.leading})
       : super(key: key);
 
   @override

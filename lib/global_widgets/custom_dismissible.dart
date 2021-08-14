@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 class CustomDismissible extends StatelessWidget {
   final Key key;
   final Widget child;
-  final Color firstBackgroundColor, secondBackgroundColor;
-  final IconData firstBackgroundIcon, secondBackgroundIcon;
-  final Future<bool> Function(DismissDirection) confirmDismiss;
-  final void Function(DismissDirection) onDismissed;
-  final void Function() onResize;
+  final Color? firstBackgroundColor, secondBackgroundColor;
+  final IconData? firstBackgroundIcon, secondBackgroundIcon;
+  final Future<bool?> Function(DismissDirection)? confirmDismiss;
+  final void Function(DismissDirection)? onDismissed;
+  final void Function()? onResize;
   final DismissDirection direction;
 
   CustomDismissible({
-    @required this.key,
-    @required this.child,
+    required this.key,
+    required this.child,
     this.firstBackgroundColor,
     this.secondBackgroundColor,
     this.firstBackgroundIcon,

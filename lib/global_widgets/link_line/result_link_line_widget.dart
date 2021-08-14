@@ -9,18 +9,18 @@ class ResultLinkLineWidget extends StatelessWidget {
   final dynamic selected;
 
   ResultLinkLineWidget({
-    @required this.result,
-    @required this.selected,
-    @required this.onTap,
-    @required this.onLongPress,
-    @required this.targetFormatter,
+    required this.result,
+    required this.selected,
+    required this.onTap,
+    required this.onLongPress,
+    required this.targetFormatter,
     this.isSpecial = false,
   }) : super(key: result.key);
 
   @override
   Widget build(BuildContext context) {
     return Draggable(
-      dragAnchor: DragAnchor.pointer,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
       feedbackOffset: const Offset(-9, -9),
       feedback: Container(
         padding: const EdgeInsets.all(4),
@@ -42,7 +42,7 @@ class ResultLinkLineWidget extends StatelessWidget {
         child: Chip(
           label: Text(
             result.result.isNaN ? 'N.P.' : targetFormatter(result.result),
-            style: Theme.of(context).textTheme.overline.copyWith(
+            style: Theme.of(context).textTheme.overline!.copyWith(
                   fontWeight: FontWeight.bold,
                   color: isSpecial ? Colors.red : null,
                 ),
@@ -51,7 +51,7 @@ class ResultLinkLineWidget extends StatelessWidget {
           shape: StadiumBorder(
             side: BorderSide(
               color: selected != result
-                  ? Colors.grey[300]
+                  ? Colors.grey[300]!
                   : Theme.of(context).primaryColor,
             ),
           ),

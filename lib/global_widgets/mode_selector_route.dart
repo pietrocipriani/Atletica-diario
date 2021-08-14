@@ -5,7 +5,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-Future<void> showModeSelectorRoute({@required BuildContext context}) =>
+Future<void> showModeSelectorRoute({required BuildContext context}) =>
     showDialog(
       context: context,
       barrierDismissible: false,

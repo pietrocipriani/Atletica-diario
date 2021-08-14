@@ -15,60 +15,78 @@ GoogleSignIn _googleSignIn = GoogleSignIn(
       '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com',
 );
 FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-GoogleSignInAccount _guser;
-GoogleSignInAuthentication _auth;
+GoogleSignInAccount? _guser;
+GoogleSignInAuthentication? _auth;
 
-dynamic _user;
+extension DocumentSnapshotExtension<T extends Object?> on DocumentSnapshot<T> {
+  T? getNullable<T>(final String field) {
+    try {
+      return this[field];
+    } on StateError {
+      return null;
+    }
+  }
+}
+
+Object? _user;
 set user(dynamic user) {
-  assert(user == null || user is FirebaseUserHelper || user is FirebaseUser,
+  assert(user == null || user is FirebaseUserHelper || user is User,
       'user is ${user.runtimeType}');
   _user = user;
 }
 
 bool get hasRole => _user != null && _user is FirebaseUserHelper;
-FirebaseUserHelper get user => hasRole ? _user : null;
-AthleteHelper get userA => _user is AthleteHelper ? _user : null;
-CoachHelper get userC => _user is CoachHelper ? _user : null;
+FirebaseUserHelper get user => _user as FirebaseUserHelper;
+AthleteHelper get userA => _user as AthleteHelper;
+CoachHelper get userC => _user as CoachHelper;
 dynamic get rawUser => _user;
 
 abstract class FirebaseUserHelper {
-  final FirebaseUser user;
-  String get uid => user.uid;
-  String get name => user.displayName;
-  String get email => user.email;
+  final User user;
+  final bool admin;
+  String get uid => userReference.id;
+  String? get name => user.displayName;
+  String? get email => user.email;
   final DocumentReference userReference;
+  final DocumentReference realUser;
 
-  FirebaseUserHelper({@required this.user, @required this.userReference})
-      : assert(user != null);
+  FirebaseUserHelper({
+    required this.user,
+    required this.userReference,
+    this.admin = false,
+  }) : this.realUser = userFromUid(user.uid);
 }
 
 class BasicUser {
   final String uid;
-  String name;
-  BasicUser({@required this.uid, this.name});
+  String? name;
+  BasicUser({required this.uid, this.name});
   BasicUser.parse(Map<String, dynamic> raw)
       : uid = raw['uid'],
         name = raw['name'];
   BasicUser.snapshot(DocumentSnapshot snap)
-      : uid = snap.documentID,
+      : uid = snap.id,
         name = snap['name'];
 }
 
 class Request extends BasicUser {
   final DocumentReference reference;
-  Request({@required this.reference, @required String uid, String name})
+  Request({required this.reference, required String uid, String? name})
       : super(uid: uid, name: name);
 }
 
-Stream<double> login({@required BuildContext context}) async* {
+Stream<double> login({required BuildContext context}) async* {
   final int N = 4;
   yield 0;
+  print('logging');
 
   if (rawUser != null) {
+    print('already authenticated');
     await initFirestore();
     yield 1;
     return;
   }
+  print('requesting google account');
 
   do {
     _guser =
@@ -76,14 +94,16 @@ Stream<double> login({@required BuildContext context}) async* {
     if (_guser == null) await requestLoginDialog(context: context);
   } while (_guser == null);
 
+  print('authenticating google');
+
   yield 1 / N;
-  _auth = await _guser.authentication;
+  _auth = await _guser!.authentication;
   yield 2 / N;
 
   user = (await _firebaseAuth.signInWithCredential(
-    GoogleAuthProvider.getCredential(
-      idToken: _auth.idToken,
-      accessToken: _auth.accessToken,
+    GoogleAuthProvider.credential(
+      idToken: _auth!.idToken,
+      accessToken: _auth!.accessToken,
     ),
   ))
       .user;
@@ -100,12 +120,12 @@ Future<void> logout() async {
   user = null;
 }
 
-void changeAccount({@required BuildContext context}) async {
+void changeAccount({required BuildContext context}) async {
   await logout();
   await for (double _ in login(context: context)) {}
 }
 
-Future requestLoginDialog({@required BuildContext context}) {
+Future requestLoginDialog({required BuildContext context}) {
   return showDialog(
     context: context,
     barrierDismissible: false,
@@ -151,16 +171,28 @@ Future requestLoginDialog({@required BuildContext context}) {
 
 class Callback<T> {
   bool active = true;
-  void Function(T arg) f;
+  void Function(T arg, Change c)? f;
 
   Callback([this.f]);
 
-  void call(T arg) {
-    if (active) f?.call(arg);
+  void call(final T arg, final Change c) {
+    if (active) f?.call(arg, c);
   }
 
   Callback<T> get stopListening {
     active = false;
     return this;
+  }
+}
+
+enum Change { ADDED, UPDATED, DELETED }
+
+mixin Notifier<T> {
+  final List<Callback<T>> _callbacks = [];
+  void signIn(final Callback<T> c) => _callbacks.add(c);
+  bool signOut(final Callback<T> c) => _callbacks.remove(c);
+
+  void notifyAll(final T arg, final Change change) {
+    _callbacks.forEach((c) => c.call(arg, change));
   }
 }

@@ -1,4 +1,4 @@
-import 'package:atletica/plan/tabella.dart';
+import 'package:atletica/plan/plan.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<bool> planSnapshot(
@@ -7,11 +7,13 @@ Future<bool> planSnapshot(
 ) async {
   switch (changeType) {
     case DocumentChangeType.added:
+      Plan.parse(snapshot);
+      break;
     case DocumentChangeType.modified:
-      Tabella.parse(snapshot);
+      Plan.update(snapshot);
       break;
     case DocumentChangeType.removed:
-      plans.remove(snapshot.reference);
+      Plan.remove(snapshot.reference);
       break;
   }
   return true;

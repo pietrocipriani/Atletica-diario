@@ -1,9 +1,9 @@
-import 'package:atletica/training/allenamento.dart';
-import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:atletica/global_widgets/auto_complete_text_view.dart';
+import 'package:atletica/training/training.dart';
 import 'package:flutter/material.dart';
 
 class TagsSelectorWidget extends StatefulWidget {
-  final Allenamento training;
+  final Training training;
   TagsSelectorWidget(this.training);
 
   @override
@@ -18,7 +18,7 @@ class _TagsSelectorWidgetState extends State<TagsSelectorWidget> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: _TagTextField(
-                TextEditingController(text: widget.training.tag1),
+                widget.training.tag1,
                 widget.training,
                 1,
                 setState,
@@ -30,63 +30,48 @@ class _TagsSelectorWidgetState extends State<TagsSelectorWidget> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: _TagTextField(
-                  TextEditingController(text: widget.training.tag2),
-                  widget.training,
-                  2,
-                  setState),
+                widget.training.tag2,
+                widget.training,
+                2,
+                setState,
+              ),
             ),
           ),
         ],
       );
 }
 
-class _TagTextField extends AutoCompleteTextField<String> {
-  _TagTextField(
-      final TextEditingController _controller,
-      final Allenamento training,
-      final int index,
-      void Function(void Function()) setState)
-      : super(
-          key: GlobalKey(),
-          controller: _controller,
-          itemSubmitted: (tag) => setState(() => _controller.text =
-              (index == 1 ? training.tag1 = tag : training.tag2 = tag)),
-          textSubmitted: (tag) =>
-              index == 1 ? training.tag1 = tag : training.tag2 = tag,
-          textChanged: (tag) =>
-              index == 1 ? training.tag1 = tag : training.tag2 = tag,
-          clearOnSubmit: false,
-          suggestions: index == 1
-              ? trainingsTree.keys.toList()
-              : trainingsTree.values.expand((t1) => t1.keys).toSet().toList(),
-          itemBuilder: (context, suggestion) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RichText(
-              text: TextSpan(
-                text: suggestion.substring(
-                    0, suggestion.indexOf(_controller.text)),
-                style: TextStyle(color: Colors.black),
-                children: [
-                  TextSpan(
-                    text: _controller.text,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  TextSpan(
-                    text: suggestion.substring(
-                      suggestion.indexOf(_controller.text) +
-                          _controller.text.length,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          itemSorter: (a, b) {
-            if (a.startsWith(_controller.text) ==
-                b.startsWith(_controller.text)) return a.compareTo(b);
-            if (a.startsWith(_controller.text)) return -1;
-            return 1;
-          },
-          itemFilter: (suggestion, query) => suggestion.contains(query),
-        );
+class _TagTextField extends StatelessWidget {
+  final String? _initialText;
+  final Training training;
+  final int index;
+  final void Function(void Function()) setState;
+
+  _TagTextField(this._initialText, this.training, this.index, this.setState);
+
+  @override
+  Widget build(final BuildContext context) {
+    return AutoCompleteTextView<String>(
+      initialText: _initialText,
+      onSelected: (tag) => setState(
+          () => (index == 1 ? training.tag1 = tag : training.tag2 = tag)),
+      onSubmitted: (tag) =>
+          index == 1 ? training.tag1 = tag : training.tag2 = tag,
+      submitOnChange: true,
+      optionsBuilder: (v) {
+        final List<String> ts = (index == 1
+                ? Training.fromPath().cast<String>()
+                : Training.tag2s(training.tag1))
+            .where((t) => t.contains(v.text))
+            .toList();
+        ts.sort((a, b) {
+          if (a.startsWith(v.text) == b.startsWith(v.text))
+            return a.compareTo(b);
+          if (a.startsWith(v.text)) return -1;
+          return 1;
+        });
+        return ts;
+      },
+    );
+  }
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:atletica/athlete/atleta.dart';
+import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
@@ -10,97 +10,64 @@ import 'package:atletica/persistence/user_helper/snapshots_managers/schedule_sna
 import 'package:atletica/persistence/user_helper/snapshots_managers/template_snapshot.dart';
 import 'package:atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
 import 'package:atletica/results/result.dart';
-import 'package:atletica/schedule/schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
 class CoachHelper extends FirebaseUserHelper {
-  static final List<Callback> onRequestCallbacks = [];
-  static final List<Callback> onAthleteCallbacks = [];
-  static final List<Callback> onTrainingCallbacks = [];
-  static final List<Callback> onPlansCallbacks = [];
-  static final List<Callback> onSchedulesCallbacks = [];
-
-  Map<DocumentReference, Athlete> rawAthletes = {};
-  List<Athlete> get requests =>
-      List.unmodifiable(rawAthletes.values.where((a) => a.isRequest));
-  List<Athlete> get athletes =>
-      List.unmodifiable(rawAthletes.values.where((a) => a.isAthlete));
-
-  final Map<DateTime, List<ScheduledTraining>> scheduledTrainings = {};
-
-  static void callAll<T>(List<Callback<T>> callbacks, [T value]) =>
-      callbacks.forEach((callback) => callback.call(value));
-
-  static void requestsCallAll() => callAll(onRequestCallbacks);
-  static void athletesCallAll() => callAll(onAthleteCallbacks);
-  static void trainingsCallAll() => callAll(onTrainingCallbacks);
-  static void plansCallAll() => callAll(onPlansCallbacks);
-  static void schedulesCallAll() => callAll(onSchedulesCallbacks);
-
   Future<bool> listener(
     QuerySnapshot snap,
     Future<bool> Function(DocumentSnapshot docSnap, DocumentChangeType type)
         parse,
   ) async {
     bool modified = false;
-    for (DocumentChange doc in snap.documentChanges)
-      if (await parse(doc.document, doc.type)) modified = true;
+    for (DocumentChange doc in snap.docChanges)
+      if (await parse(doc.doc, doc.type)) modified = true;
     return modified;
   }
 
   CoachHelper({
-    @required FirebaseUser user,
-    @required DocumentReference userReference,
-  }) : super(user: user, userReference: userReference) {
+    required User user,
+    required DocumentReference userReference,
+    bool admin = false,
+  }) : super(user: user, userReference: userReference, admin: admin) {
     firestore
         .collection('global')
-        .document('templates')
+        .doc('templates')
         .get()
         .then((snapshot) => addGlobalTemplates(snapshot));
     userReference
         .collection('templates')
         .snapshots()
         .listen((snap) => listener(snap, templateSnapshot));
-
-    userReference.collection('athletes').snapshots().listen((snap) async {
-      if (await listener(snap, athleteSnapshot)) {
-        final List<Athlete> athletes = rawAthletes.values.toList();
-        athletes.sort((a, b) {
-          int compare = 0;
-          if (a.group != null) compare += a.group.compareTo(b.group ?? '') * 4;
-          if (a.name != null) compare += a.name.compareTo(b.name ?? '') * 2;
-          return compare;
-        });
-        rawAthletes = Map.fromIterable(athletes,
-            key: (a) => a.reference, value: (a) => a);
-        requestsCallAll();
-        athletesCallAll();
-      }
-    });
-    userReference.collection('trainings').snapshots().listen((snap) async {
-      if (await listener(snap, trainingSnapshot)) trainingsCallAll();
-    });
-    userReference.collection('plans').snapshots().listen((snap) async {
-      if (await listener(snap, planSnapshot)) plansCallAll();
-    });
-    userReference.collection('schedules').snapshots().listen((snap) async {
-      if (await listener(snap, scheduleSnapshot)) schedulesCallAll();
-    });
+    userReference
+        .collection('athletes')
+        .snapshots()
+        .listen((snap) => listener(snap, athleteSnapshot));
+    userReference
+        .collection('trainings')
+        .snapshots()
+        .listen((snap) => listener(snap, trainingSnapshot));
+    userReference
+        .collection('plans')
+        .snapshots()
+        .listen((snap) => listener(snap, planSnapshot));
+    userReference
+        .collection('schedules')
+        .snapshots()
+        .listen((snap) => listener(snap, scheduleSnapshot));
   }
 
   /// `athleteUser` is the reference to [users/uid]
   /// `name` is the nickname displayed
   Future<void> addAthlete(
-    DocumentReference athlete,
+    DocumentReference? athlete,
     String nickname,
     String group,
   ) {
     return userReference
         .collection('athletes')
-        .document(athlete?.documentID)
-        .setData({'nickname': nickname, 'group': group});
+        .doc(athlete?.id)
+        .set({'nickname': nickname, 'group': group});
   }
 
   Future<void> acceptRequest(
@@ -109,39 +76,39 @@ class CoachHelper extends FirebaseUserHelper {
     String group,
   ) async {
     await refuseRequest(request);
-    await request.updateData({'nickname': nickname, 'group': group});
+    await request.update({'nickname': nickname, 'group': group});
   }
 
   Future<void> refuseRequest(DocumentReference request) => request.delete();
 
   /// `athlete` is the reference to /coaches/$coach/athletes/$athlete
   Future<void> saveResult({
-    @required DocumentReference athlete,
-    @required Result results,
-  }) async {
-    rawAthletes[athlete].resultsDoc.collection('results').document().setData({
-      'date': Timestamp.fromDate(results.date.dateTime),
+    required Athlete athlete,
+    required Result results,
+  }) {
+    return athlete.resultsDoc
+        .collection('results')
+        .doc(results.reference?.id)
+        .set({
+      'date': Timestamp.fromDate(results.date),
       'coach': uid,
       'training': results.training,
       'results':
           results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
       'fatigue': results.fatigue,
       'info': results.info,
-    }, merge: true);
+    }, SetOptions(merge: true));
   }
 
   Stream<QuerySnapshot> resultSnapshots({
-    @required Athlete athlete,
-    final Date date,
+    required Athlete athlete,
+    final Date? date,
   }) {
     final DocumentReference ref = athlete.resultsDoc;
-    Query q = ref
-        .collection('results')
-        .where('coach', isEqualTo: uid);
-        //TODO: ripristinate filtering & ordering when all the results have the 'date' field
-        //.orderBy('date', descending: true);
-    /*if (date != null)
-      q = q.where('date', isEqualTo: Timestamp.fromDate(date.dateTime));*/
+    Query q = ref.collection('results').where('coach', isEqualTo: uid);
+    //TODO: ripristinate filtering & ordering when all the results have the 'date' field
+    //.orderBy('date', descending: true);
+    if (date != null) q = q.where('date', isEqualTo: Timestamp.fromDate(date));
     return q.snapshots();
   }
 }

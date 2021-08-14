@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:mdi/mdi.dart';
 
 class PlanScheduleWidget extends ScheduleWidget<PlanSchedule> {
-  PlanScheduleWidget({@required PlanSchedule schedule})
+  PlanScheduleWidget({required PlanSchedule schedule})
       : super(
           schedule: schedule,
           leading: Icon(Mdi.table, color: Colors.black),
@@ -26,7 +26,7 @@ class PlanScheduleWidget extends ScheduleWidget<PlanSchedule> {
               text: DateFormat.MMMMd('it').format(schedule.to),
             )
         ],
-        style: Theme.of(context).textTheme.overline.copyWith(
+        style: Theme.of(context).textTheme.overline!.copyWith(
               color: Theme.of(context).primaryColorDark,
               fontWeight: FontWeight.bold,
             ),
