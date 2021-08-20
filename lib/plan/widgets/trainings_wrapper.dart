@@ -1,3 +1,4 @@
+import 'package:atletica/global_widgets/auto_complete_text_view.dart';
 import 'package:atletica/training/training.dart';
 import 'package:flutter/material.dart';
 
@@ -53,6 +54,16 @@ class _TrainingsWrapperState extends State<TrainingsWrapper> {
     );
     return Column(
       children: [
+        AutoCompleteTextView<Training>(
+          optionsBuilder: (v) =>
+              Training.trainings.where((t) => t.name.contains(v.text)),
+          dense: true,
+          displayStringForOption: (t) => '${t.tag1}/${t.tag2}/${t.name}',
+          onSelected: (t) => setState(() {
+            tag1 = t.tag1;
+            tag2 = t.tag2;
+          }),
+        ),
         if (widget.trainings != null && widget.trainings!.isNotEmpty)
           Wrap(
             alignment: WrapAlignment.center,

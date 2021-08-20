@@ -186,7 +186,9 @@ class Training with Notifier<Training> {
   bool isSerieRec(int index) {
     for (Serie s in serie) {
       if (index < 0) return false;
-      if ((index + 1) % (s.ripetuteCount / s.ripetizioni) == 0) return true;
+      if ((index + 1) % (s.ripetuteCount / s.ripetizioni) == 0 &&
+          index ~/ (s.ripetuteCount / s.ripetizioni) < s.ripetizioni)
+        return true;
       index -= s.ripetuteCount;
     }
     return false;
@@ -194,7 +196,6 @@ class Training with Notifier<Training> {
 
   /// deletes current [training] from [firestore]
   Future<void> delete() {
-    // TODO: checks for schedules
     return reference.delete();
   }
 
@@ -252,4 +253,6 @@ class Training with Notifier<Training> {
 
   @override
   String toString() => name;
+
+  String get suggestName => serie.map((s) => s.suggestName).join(' + ');
 }

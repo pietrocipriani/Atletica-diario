@@ -35,6 +35,7 @@ class _PlansRouteState extends State<PlansRoute>
           if (await Plan.fromDialog(context: context)) setState(() {});
         },
         child: Icon(Icons.add),
+        mini: true,
       ),
       body: ListView(
         children: Plan.plans.map((plan) => PlanWidget(plan)).toList(),

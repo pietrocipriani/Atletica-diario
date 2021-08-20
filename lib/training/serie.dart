@@ -60,4 +60,11 @@ class Serie {
       if (i != ripetizioni - 1) yield recupero;
     }
   }
+
+  String get suggestName {
+    final String inner = ripetute.map((r) => r.suggestName).join('-');
+    if (ripetizioni == 1) return inner;
+    if (ripetute.length == 1) return '${ripetizioni}x$inner';
+    return '${ripetizioni}x($inner)';
+  }
 }

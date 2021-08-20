@@ -19,5 +19,5 @@ Future<bool> templateSnapshot(
 
 void addGlobalTemplates(DocumentSnapshot snapshot) {
   for (String name in snapshot['templates'])
-    templates[name] ??= Template(name: name, tipologia: Tipologia.corsaDist);
+    SimpleTemplate(name: name, tipologia: Tipologia.corsaDist, save: true);
 }

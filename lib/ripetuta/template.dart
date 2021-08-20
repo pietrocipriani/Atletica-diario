@@ -1,10 +1,13 @@
+import 'dart:collection';
+
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/ripetuta/time_pattern.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
-Map<String, Template> templates = <String, Template>{};
+final SplayTreeMap<String, SimpleTemplate> templates =
+    SplayTreeMap<String, SimpleTemplate>();
 
 class SimpleTemplate {
   final String name;
@@ -23,8 +26,18 @@ class SimpleTemplate {
         .set({'lastTarget': lastTarget, 'tipologia': tipologia.name});
   }
 
-  SimpleTemplate(
-      {required this.name, required this.tipologia, this.lastTarget});
+  SimpleTemplate({
+    required this.name,
+    required this.tipologia,
+    this.lastTarget,
+    final bool save = false,
+  }) {
+    if (save) {
+      final SimpleTemplate? last = templates[name];
+      if (last == null || this is Template || last is SimpleTemplate)
+        templates[name] = this;
+    }
+  }
 
   @override
   String toString() => name;
@@ -46,9 +59,8 @@ class Template extends SimpleTemplate {
           name: name,
           lastTarget: lastTarget,
           tipologia: tipologia,
-        ) {
-    templates[name] = this;
-  }
+          save: true,
+        );
 
   Future<void> update() {
     return user.userReference
@@ -56,9 +68,6 @@ class Template extends SimpleTemplate {
         .doc(name)
         .update({'lastTarget': lastTarget, 'tipologia': tipologia.name});
   }
-
-  @override
-  String toString() => name;
 }
 
 class RegularExpressions {

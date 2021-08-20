@@ -21,7 +21,8 @@ class Results {
   }
 
   bool update(final Athlete athlete, final Result updated) {
-    if (updated.ripetute.length != training.ripetute.length) return false;
+    if (updated.ripetute.length != training.ripetute.length ||
+        updated.isNotCompatible(training)) return false;
     this.results[athlete] = updated;
     return true;
   }

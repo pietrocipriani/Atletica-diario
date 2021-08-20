@@ -47,43 +47,61 @@ class PbsWidget extends StatefulWidget {
 class _PbsWidgetState extends State<PbsWidget> {
   @override
   Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: widget._sorted.length,
+      itemBuilder: (c, i) {
+        final String name = widget._sorted[i];
+        final Pb pb = widget.results[name]!;
+        if (pb.isEmpty) return Container();
+        return _PbWidget(
+          name: name,
+          pb: pb,
+          onFilter: (t, e) => setState(() => filters[e] = t),
+        );
+      },
+    );
+  }
+}
+
+class _PbWidget extends StatelessWidget {
+  final String name;
+  final Pb pb;
+  final void Function(String? filter, TagsEvaluator)? onFilter;
+  _PbWidget({required this.name, required this.pb, this.onFilter});
+
+  @override
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return ListView(
-      children: widget._sorted
-          .map(
-            (name) {
-              final Pb pb = widget.results[name]!;
-              final List<SimpleResultWidget> children = pb.results
-                  .where((r) => r.acceptable)
-                  .map((r) => SimpleResultWidget(
-                        r: r,
-                        defaultColor: theme.primaryColorDark,
-                        onTap: (tag, evaluator) =>
-                            setState(() => filters[evaluator] = tag),
-                      ))
-                  .toList();
-              if (children.isEmpty) return null;
-              return CustomExpansionTile(
-                title: name,
-                children: children,
-                leading: LeadingInfoWidget(
-                  info: '${children.length}/${pb.realCount}',
-                  bottom: singularPlural(
-                    '    ripetut',
-                    'a    ',
-                    'e    ',
-                    pb.count,
-                  ), // TODO: this is shit
-                ),
-                trailing: LeadingInfoWidget(
-                  info: Tipologia.corsaDist.targetFormatter(children[0].r.r),
-                  //bottom: singularPlural('ripetut', 'a', 'e', e.value.count),
-                ),
-              );
-            },
-          )
-          .whereType<Widget>()
-          .toList(),
+
+    final List<SimpleResult> results =
+        pb.results.where((r) => r.acceptable).toList();
+
+    if (results.isEmpty) return Container();
+
+    String count = '${results.length}/${pb.realCount}';
+    if (count.length > 6) count = '${results.length}';
+
+    final List<SimpleResultWidget> children = results
+        .map((r) => SimpleResultWidget(
+              r: r,
+              defaultColor: theme.primaryColorDark,
+              onTap: onFilter,
+            ))
+        .toList();
+
+    return CustomExpansionTile(
+      title: name,
+      children: children,
+      leading: SizedBox(
+        width: 80,
+        child: LeadingInfoWidget(
+          info: count,
+          bottom: singularPlural('ripetut', 'a', 'e', pb.count),
+        ),
+      ),
+      trailing: LeadingInfoWidget(
+        info: Tipologia.corsaDist.targetFormatter(results[0].r),
+      ),
     );
   }
 }

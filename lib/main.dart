@@ -5,7 +5,6 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/themes/dark_theme.dart';
 import 'package:atletica/themes/light_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
-//import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,15 +19,34 @@ void main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+final GlobalKey<_MyAppState> _myAppKey = GlobalKey();
+ThemeMode _themeMode = ThemeMode.system;
+ThemeMode get themeMode => _themeMode;
+set themeMode(final ThemeMode themeMode) {
+  _themeMode = themeMode;
+  _myAppKey.currentState?.themeModeChanged();
+}
+
+class MyApp extends StatefulWidget {
+  MyApp() : super(key: _myAppKey);
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  void themeModeChanged() => setState(() {});
+
+  final SplashScreen _splash = SplashScreen();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Atletica',
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system,
-      home: SplashScreen(),
+      themeMode: themeMode,
+      home: _splash,
       supportedLocales: [Locale('it')],
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
