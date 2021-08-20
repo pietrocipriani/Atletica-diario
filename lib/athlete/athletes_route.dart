@@ -172,6 +172,7 @@ class _AthletesRouteState extends State<AthletesRoute> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Athlete.fromDialog(context: context),
         child: Icon(Icons.add),
+        mini: true,
       ),
     );
   }

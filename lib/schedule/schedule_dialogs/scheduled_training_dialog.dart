@@ -40,8 +40,14 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
   }
 
   Widget _trainingChipBuilder(final Training a) => GestureDetector(
-        onTap: () => setState(() =>
-            trainings.contains(a) ? trainings.remove(a) : trainings.add(a)),
+        onTap: () => setState(() {
+          if (trainings.contains(a))
+            trainings.remove(a);
+          else {
+            trainings.add(a);
+            _selectAthletes = a;
+          }
+        }),
         onLongPress: trainings.contains(a)
             ? () => setState(() => _selectAthletes = a)
             : null,
@@ -58,15 +64,9 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
   Widget build(BuildContext context) {
     final Widget title = _selectAthletes == null
         ? Text(DateFormat.yMMMMd('it').format(widget.selectedDay))
-        : Row(
-            children: [
-              GestureDetector(
-                child: Icon(Icons.arrow_back),
-                onTap: () => setState(() => _selectAthletes = null),
-              ),
-              SizedBox(width: 8),
-              Text('SCEGLI'),
-            ],
+        : Text(
+            _selectAthletes!.name,
+            overflow: TextOverflow.ellipsis,
           );
 
     final Widget content = _selectAthletes == null
@@ -75,7 +75,7 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
             trainings: trainings,
           )
         : AthletesPicker(
-            athletes[_selectAthletes!] ??= Athlete.athletes.toList(),
+            athletes[_selectAthletes!] ??= [],
             onChanged: (a) => setState(() {}),
           );
 
@@ -126,7 +126,9 @@ class _ScheduledTrainingDialogState extends State<ScheduledTrainingDialog> {
                   batch.commit();
                   Navigator.pop(context, true);
                 }
-              : () => setState(() => _selectAthletes = null),
+              : athletes[_selectAthletes!]!.isNotEmpty
+                  ? () => setState(() => _selectAthletes = null)
+                  : null,
           child: Text('Seleziona'),
         )
       ],

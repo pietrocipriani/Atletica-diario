@@ -54,6 +54,7 @@ class _TrainingRouteState extends State<TrainingRoute> {
         );
       },
       child: Icon(Icons.add),
+      mini: true,
     );
 
     return Scaffold(
@@ -291,7 +292,8 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
         },
         child: CustomExpansionTile(
           title: widget.training.name,
-          childrenPadding: const EdgeInsets.symmetric(horizontal: 40),
+          childrenPadding:
+              const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
           children: children,
           leading: LeadingInfoWidget(
             info: widget.training.ripetuteCount.toString(),

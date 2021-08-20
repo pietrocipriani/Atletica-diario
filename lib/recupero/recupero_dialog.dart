@@ -70,7 +70,7 @@ class _RecuperoDialogState extends State<RecuperoDialog> {
           widget.recupero.recupero is int
               ? DurationPicker(widget.recupero.recupero,
                   (duration) => widget.recupero.recupero = duration.inSeconds)
-              : AutoCompleteTextView<Template>(
+              : AutoCompleteTextView<SimpleTemplate>(
                   initialText: widget.recupero.recupero,
                   onSelected: (value) =>
                       setState(() => widget.recupero.recupero = value.name),
@@ -78,7 +78,7 @@ class _RecuperoDialogState extends State<RecuperoDialog> {
                   displayStringForOption: (t) => t.name,
                   optionsBuilder: (v) {
                     _text = v.text;
-                    final List<Template> ts = templates.values
+                    final List<SimpleTemplate> ts = templates.values
                         .where((t) => t.name.contains(v.text))
                         .toList();
                     ts.sort((a, b) {

@@ -9,7 +9,6 @@ import 'package:atletica/main.dart' show IterableExtension;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-//TODO: multiple training for day (for meeting purposes mainly)
 class Result with Notifier<Result> {
   static final Cache<DocumentReference, Result> _cache = Cache();
 

@@ -10,7 +10,6 @@ import 'package:atletica/results/result.dart';
 import 'package:atletica/results/results.dart';
 import 'package:atletica/results/results_edit_dialog.dart';
 import 'package:atletica/ripetuta/template.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
@@ -29,14 +28,12 @@ class ResultsEditRoute extends StatelessWidget {
       ),
       body: ListView(
         children: results.results.keys
-            .map((a) => StreamBuilder<QuerySnapshot>(
-                stream: userC.resultSnapshots(athlete: a, date: results.date),
+            .map((a) => StreamBuilder<Result>(
+                stream: a.resultsStream(date: results.date),
+                initialData: a.resultsOf(results.date).firstWhereNullable(
+                    (r) => r.isCompatible(results.training)),
                 builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    snapshot.data!.docs.any(
-                      (doc) => results.update(a, Result.updateOrParse(doc)),
-                    );
-                  }
+                  if (snapshot.hasData) results.update(a, snapshot.data!);
 
                   final int count = results.results[a]!.results.values
                       .where((v) => v != null)
