@@ -60,6 +60,12 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
     final List<Widget> actions = [
       if (editTitle)
         IconButton(
+          icon: Icon(Icons.lightbulb_outline),
+          onPressed: () =>
+              _titleController.text = widget.allenamento.suggestName,
+        ),
+      if (editTitle)
+        IconButton(
           icon: Icon(Icons.cancel),
           onPressed: () => setState(() {
             editTitle = !editTitle;
@@ -81,6 +87,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
         setState(() {});
       },
       child: Icon(Icons.add),
+      mini: true,
     );
 
     final List<Widget> children = serie
@@ -243,7 +250,7 @@ class _SerieWidgetState extends State<_SerieWidget> {
             IconButton(
               icon: Icon(Icons.add_circle),
               onPressed: () async {
-                final Pair<Ripetuta, double>? rip =
+                final Pair<Ripetuta, double?>? rip =
                     await Ripetuta.fromDialog(context: context);
                 if (rip == null) return;
                 setState(() {
@@ -297,7 +304,7 @@ class _RipetutaWidgetState extends State<_RipetutaWidget> {
       },
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) return true;
-        final Pair<Ripetuta, double>? rip = await Ripetuta.fromDialog(
+        final Pair<Ripetuta, double?>? rip = await Ripetuta.fromDialog(
           context: context,
           ripetuta: widget.rip,
           target: widget.active.targets[widget.rip],

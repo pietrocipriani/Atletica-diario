@@ -7,6 +7,7 @@ class AutoCompleteTextView<T extends Object> extends StatefulWidget {
   final String Function(T)? displayStringForOption;
   final Iterable<T> Function(TextEditingValue) optionsBuilder;
   final String? initialText;
+  final bool dense;
 
   AutoCompleteTextView({
     final GlobalKey? key,
@@ -16,6 +17,7 @@ class AutoCompleteTextView<T extends Object> extends StatefulWidget {
     this.submitOnChange = false,
     this.displayStringForOption,
     this.initialText,
+    this.dense = false,
   }) : super(key: key ?? GlobalKey());
 
   @override
@@ -58,6 +60,12 @@ class _AutoCompleteTextViewState<T extends Object>
   }
 
   @override
+  void didUpdateWidget(AutoCompleteTextView<T> oldWidget) {
+    WidgetsBinding.instance?.addPostFrameCallback((_) => _width = _formWidth);
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Autocomplete<T>(
       onSelected: widget.onSelected,
@@ -65,6 +73,20 @@ class _AutoCompleteTextViewState<T extends Object>
         return TextFormField(
           focusNode: focus,
           controller: this.controller = controller,
+          style: widget.dense
+              ? Theme.of(context)
+                  .textTheme
+                  .overline!
+                  .copyWith(fontWeight: FontWeight.normal)
+              : null,
+          decoration: InputDecoration(
+            isDense: widget.dense,
+            hintText: 'ricerca allenamento',
+          ),
+          onTap: () {
+            if (focus.hasFocus)
+              FocusScope.of(context).requestFocus(FocusNode());
+          },
           onFieldSubmitted: (s) {
             widget.onSubmitted?.call(s);
             onSubmit();
@@ -77,9 +99,9 @@ class _AutoCompleteTextViewState<T extends Object>
         child: Material(
           elevation: 4,
           child: ConstrainedBox(
-            constraints: BoxConstraints.loose(_width == null
-                ? const Size.fromHeight(200)
-                : Size(_width!, 200)),
+            constraints: BoxConstraints.loose(
+              _width == null ? const Size.fromHeight(200) : Size(_width!, 200),
+            ),
             child: ListView(
               shrinkWrap: true,
               padding: const EdgeInsets.all(0),
@@ -94,14 +116,18 @@ class _AutoCompleteTextViewState<T extends Object>
                       padding: const EdgeInsets.all(16.0),
                       child: RichText(
                         text: TextSpan(
+                          style: widget.dense
+                              ? Theme.of(context)
+                                  .textTheme
+                                  .overline!
+                                  .copyWith(fontWeight: FontWeight.normal)
+                              : null,
                           text:
                               name.substring(0, name.indexOf(controller.text)),
                           children: [
                             TextSpan(
                               text: controller.text,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.w900),
                             ),
                             TextSpan(
                               text: name.substring(

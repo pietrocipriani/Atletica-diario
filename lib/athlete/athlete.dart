@@ -133,27 +133,7 @@ class Athlete with auth.Notifier<Athlete> {
         name = raw['nickname'],
         athlete = exists ? firestore.collection('users').doc(raw.id) : null {
     group = raw['group'];
-    _trainingsCountSubscription =
-        auth.userC.resultSnapshots(athlete: this).listen((e) {
-      final QuerySnapshot cast = e;
-      for (DocumentChange change in cast.docChanges) {
-        switch (change.type) {
-          case DocumentChangeType.removed:
-            Result.remove(change.doc.reference);
-            _results.remove(change.doc);
-            _reloadPbsTbs();
-            break;
-          case DocumentChangeType.added:
-            _updatePbsTbs(
-                _results[change.doc.reference] = Result.parse(change.doc));
-            break;
-          case DocumentChangeType.modified:
-            Result.update(change.doc);
-            _reloadPbsTbs();
-            break;
-        }
-      }
-    });
+    _createTrainingsCountSubscription();
     sortedFullAthletes.add(this);
   }
   factory Athlete.update(final DocumentSnapshot raw) {
@@ -162,9 +142,52 @@ class Athlete with auth.Notifier<Athlete> {
     p.name = raw['nickname'];
     p.group = raw['group'];
     sortedFullAthletes.add(p);
-    //TODO: update _trainingsCountSubscription
     p.notifyAll(p, auth.Change.UPDATED);
     return p;
+  }
+
+  final StreamController<Result> _streamController =
+      StreamController.broadcast();
+
+  Stream<Result> resultsStream({final Date? date}) {
+    return _streamController.stream.where((r) => r.date == date);
+  }
+
+  Stream<QuerySnapshot> _resultSnapshots() {
+    final DocumentReference ref = resultsDoc;
+    return ref
+        .collection('results')
+        .where('coach', isEqualTo: auth.userC.uid)
+        .snapshots();
+  }
+
+  void _createTrainingsCountSubscription() {
+    _trainingsCountSubscription = _resultSnapshots().listen(
+      (e) {
+        final QuerySnapshot cast = e;
+        for (DocumentChange change in cast.docChanges) {
+          switch (change.type) {
+            case DocumentChangeType.removed:
+              Result.remove(change.doc.reference);
+              _results.remove(change.doc);
+              _reloadPbsTbs();
+              break;
+            case DocumentChangeType.added:
+              final Result result = Result.parse(change.doc);
+              _results[change.doc.reference] = result;
+              _updatePbsTbs(result);
+              _streamController.add(result);
+              break;
+            case DocumentChangeType.modified:
+              final Result result = Result.update(change.doc);
+              _reloadPbsTbs();
+              _streamController.add(result);
+              break;
+          }
+        }
+      },
+      onDone: () => _streamController.close(),
+    );
   }
 
   static void remove(final DocumentReference ref) {

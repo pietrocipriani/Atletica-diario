@@ -49,14 +49,14 @@ class Ripetuta {
     for (int i = 0; i < ripetizioni - 1; i++) yield recupero;
   }
 
-  static Future<Pair<Ripetuta, double>?> fromDialog(
+  static Future<Pair<Ripetuta, double?>?> fromDialog(
       {required BuildContext context,
       Ripetuta? ripetuta,
       double? target}) async {
     SimpleTemplate? template = templates[ripetuta?.template];
     final GlobalKey _autoCompleteKey = GlobalKey();
     assert((ripetuta == null) == (template == null));
-    return showDialog<Pair<Ripetuta, double>>(
+    return showDialog<Pair<Ripetuta, double?>>(
       barrierDismissible: false,
       context: context,
       builder: (context) => StatefulBuilder(
@@ -67,7 +67,7 @@ class Ripetuta {
             title: Text('RIPETUTA'),
             content: Column(
               children: <Widget>[
-                AutoCompleteTextView<Template>(
+                AutoCompleteTextView<SimpleTemplate>(
                   key: _autoCompleteKey,
                   initialText: template?.name,
                   onSelected: (value) {
@@ -94,7 +94,7 @@ class Ripetuta {
                   },
                   displayStringForOption: (s) => s.name,
                   optionsBuilder: (v) {
-                    final List<Template> ts = templates.values
+                    final List<SimpleTemplate> ts = templates.values
                         .where((t) => t.name.contains(v.text))
                         .toList();
                     ts.sort((a, b) {
@@ -195,7 +195,7 @@ class Ripetuta {
                           ripetuta!.template = template!.name;
 
                         Navigator.pop(context,
-                            Pair<Ripetuta, double>(ripetuta!, target!));
+                            Pair<Ripetuta, double?>(ripetuta!, target));
                       },
                 child: Text('Conferma'),
               ),
@@ -204,5 +204,10 @@ class Ripetuta {
         ),
       ),
     );
+  }
+
+  String get suggestName {
+    if (ripetizioni == 1) return template;
+    return '${ripetizioni}x$template';
   }
 }

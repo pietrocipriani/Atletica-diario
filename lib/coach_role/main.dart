@@ -3,6 +3,7 @@ import 'package:atletica/athlete/athletes_route.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/logout_button.dart';
+import 'package:atletica/global_widgets/preferences_button.dart';
 import 'package:atletica/global_widgets/runas_button.dart';
 import 'package:atletica/global_widgets/swap_button.dart';
 import 'package:atletica/home/home_page.dart';
@@ -29,11 +30,7 @@ class _CoachMainPageState extends State<CoachMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> actions = [
-      LogoutButton(context: context),
-      SwapButton(context: context),
-      if (user.admin) RunasButton(context: context),
-    ];
+    List<dynamic> actions = [PreferencesButton(context: context)];
 
     return OrientationBuilder(builder: (context, orientation) {
       if (orientation == Orientation.landscape)
@@ -68,6 +65,7 @@ class _CoachMainPageState extends State<CoachMainPage> {
                       false) setState(() {});
                 },
                 child: Icon(Icons.add),
+                mini: true,
               )
             : null,
         drawer: orientation == Orientation.landscape

@@ -25,6 +25,7 @@ class LeadingInfoWidget extends StatelessWidget {
               .textTheme
               .overline!
               .copyWith(fontWeight: FontWeight.normal),
+          textAlign: TextAlign.center,
         )
       ],
     );

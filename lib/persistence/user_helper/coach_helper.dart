@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:atletica/athlete/athlete.dart';
-import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/persistence/user_helper/snapshots_managers/athlete_snapshot.dart';
@@ -98,17 +97,5 @@ class CoachHelper extends FirebaseUserHelper {
       'fatigue': results.fatigue,
       'info': results.info,
     }, SetOptions(merge: true));
-  }
-
-  Stream<QuerySnapshot> resultSnapshots({
-    required Athlete athlete,
-    final Date? date,
-  }) {
-    final DocumentReference ref = athlete.resultsDoc;
-    Query q = ref.collection('results').where('coach', isEqualTo: uid);
-    //TODO: ripristinate filtering & ordering when all the results have the 'date' field
-    //.orderBy('date', descending: true);
-    if (date != null) q = q.where('date', isEqualTo: Timestamp.fromDate(date));
-    return q.snapshots();
   }
 }
