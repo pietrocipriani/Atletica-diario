@@ -7,10 +7,12 @@ import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart' as storage;
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -54,6 +56,9 @@ abstract class FirebaseUserHelper {
   String? get email => user.email;
   final DocumentReference userReference;
   final DocumentReference realUser;
+
+  bool get isCoach;
+  bool get isAthlete;
 
   FirebaseUserHelper({
     required this.user,
@@ -118,51 +123,45 @@ Stream<double> login({required BuildContext context}) async* {
   assert(rawUser != null);
   await initFirestore();
 
-  try {
-    if (Platform.isAndroid) {
-      final storage.ListResult releases = await storage.FirebaseStorage.instance
-          .ref('releases/')
-          .list(storage.ListOptions());
-      final PackageInfo package = await PackageInfo.fromPlatform();
-      final int currentVersion = int.parse(package.buildNumber);
-      final storage.Reference? lastRelease = releases.items.fold(null, (v, r) {
-        if (v == null) return r;
-        final int vCode = int.parse(v.name.split('+').last.split('.').first);
-        final int rCode = int.parse(r.name.split('+').last.split('.').first);
-        if (rCode > vCode) return r;
-        return v;
-      });
-      if (lastRelease == null) {
-        yield 1;
-        return;
-      }
+  await checkForRelease(context: context);
 
-      final int lastVersion =
-          int.parse(lastRelease.name.split('+').last.split('.').first);
-      if (lastVersion > currentVersion) {
-        if (await showNewReleaseDialog(
-              context: context,
-              version: lastRelease.name.split('+').first,
-            ) ??
-            false) {
-          final Directory dir = await getTemporaryDirectory();
-          final File rel =
-              File('${dir.path}${Platform.pathSeparator}release.apk');
-          if (!rel.existsSync()) rel.createSync(recursive: true);
-          rel.writeAsBytesSync((await lastRelease.getData(100 * 1024 * 1024))!,
-              flush: true);
-          await AppInstaller.installApk(rel.path);
-          //rel.deleteSync();
-        }
-      } else
-        print('$lastVersion vs $currentVersion');
+  yield 1;
+}
+
+Future<void> checkForRelease({required final BuildContext context}) async {
+  if (kIsWeb || !Platform.isAndroid) return;
+  try {
+    final storage.Reference release =
+        storage.FirebaseStorage.instance.ref('release/release.apk');
+    final storage.FullMetadata meta = await release.getMetadata();
+
+    final PackageInfo package = await PackageInfo.fromPlatform();
+    final int currentVersion = int.parse(package.buildNumber);
+
+    final int lastVersion = int.parse(meta.customMetadata!['version-code']!);
+
+    if (lastVersion <= currentVersion) {
+      print('$lastVersion vs $currentVersion');
+      return;
+    }
+    final Future<bool?> dialog = showNewReleaseDialog(
+      context: context,
+      version: meta.customMetadata!['version-name']!,
+      changelog: meta.customMetadata!['changelog']!,
+      updateTime: meta.updated!,
+    );
+    if (await dialog ?? false) {
+      final Directory dir = await getTemporaryDirectory();
+      final File rel = File('${dir.path}${Platform.pathSeparator}release.apk');
+      if (!rel.existsSync()) rel.createSync(recursive: true);
+      rel.writeAsBytesSync((await release.getData(100 * 1024 * 1024))!,
+          flush: true);
+      await AppInstaller.installApk(rel.path);
     }
   } catch (e, s) {
     print(e);
     print(s);
   }
-
-  yield 1;
 }
 
 Future<void> logout() async {
@@ -179,12 +178,44 @@ void changeAccount({required BuildContext context}) async {
 Future<bool?> showNewReleaseDialog({
   required BuildContext context,
   required final String version,
+  required String changelog,
+  required final DateTime updateTime,
 }) {
+  changelog =
+      changelog.replaceAll(RegExp(r'^\*', multiLine: true), ' \u{2022} ');
+  final String date = DateFormat.yMMMd('it_IT').format(updateTime);
+  final String time = DateFormat.Hm('it_IT').format(updateTime);
+  final TextStyle bold = const TextStyle(fontWeight: FontWeight.bold);
+
   return showDialog(
     context: context,
     builder: (context) => AlertDialog(
       title: Text('NEW RELEASE'),
-      content: Text('la nuova versione $version è disponibile!'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RichText(
+            text: TextSpan(
+                text: 'la nuova versione ',
+                children: [
+                  TextSpan(text: version, style: bold),
+                  TextSpan(text: ' del '),
+                  TextSpan(text: date, style: bold),
+                  TextSpan(text: ' ore '),
+                  TextSpan(text: time, style: bold),
+                  TextSpan(text: ' è disponibile!')
+                ],
+                style: Theme.of(context)
+                    .textTheme
+                    .overline
+                    ?.copyWith(fontWeight: FontWeight.normal)),
+          ),
+          SizedBox(height: 4),
+          Text('changelog:'),
+          Text(changelog),
+        ],
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),

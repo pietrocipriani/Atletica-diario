@@ -40,6 +40,8 @@ final DialogTheme _dialogTheme = DialogTheme(
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(20),
   ),
+  contentTextStyle:
+      _textTheme.overline?.copyWith(fontWeight: FontWeight.normal),
 );
 
 final ElevatedButtonThemeData _elevatedButtonTheme = ElevatedButtonThemeData(

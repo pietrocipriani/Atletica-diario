@@ -44,7 +44,8 @@ class SplashScreen extends StatelessWidget {
                 );
               }
               print('login progress: ${snapshot.data}');
-              if (snapshot.connectionState == ConnectionState.done) {
+              if (!snapshot.hasError &&
+                  snapshot.connectionState == ConnectionState.done) {
                 print('in');
                 WidgetsBinding.instance!.addPostFrameCallback(
                   (d) {

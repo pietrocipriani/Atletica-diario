@@ -24,9 +24,14 @@ class CoachHelper extends FirebaseUserHelper {
     return modified;
   }
 
+  bool showAsAthlete;
+  bool fictionalAthletes;
+
   CoachHelper({
     required User user,
     required DocumentReference userReference,
+    required this.showAsAthlete,
+    required this.fictionalAthletes,
     bool admin = false,
   }) : super(user: user, userReference: userReference, admin: admin) {
     firestore
@@ -98,4 +103,10 @@ class CoachHelper extends FirebaseUserHelper {
       'info': results.info,
     }, SetOptions(merge: true));
   }
+
+  @override
+  bool get isAthlete => false;
+
+  @override
+  bool get isCoach => true;
 }

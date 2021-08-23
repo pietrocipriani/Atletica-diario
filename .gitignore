@@ -48,3 +48,4 @@ app.*.map.json
 
 atletica-adminsdk.json
 .metals/metals.lock.db
+/releasebot/

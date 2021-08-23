@@ -1,9 +1,6 @@
 import 'package:atletica/global_widgets/custom_calendar.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
-import 'package:atletica/global_widgets/logout_button.dart';
 import 'package:atletica/global_widgets/preferences_button.dart';
-import 'package:atletica/global_widgets/runas_button.dart';
-import 'package:atletica/global_widgets/swap_button.dart';
 import 'package:atletica/results/pbs/pbs_page_route.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/date.dart';

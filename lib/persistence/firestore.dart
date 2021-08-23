@@ -9,6 +9,7 @@ import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 const String COACH_ROLE = 'coach', ATHLETE_ROLE = 'athlete';
@@ -27,7 +28,7 @@ Future<void> initFirestore([
   ScheduledTraining.cacheReset();
   Result.cacheReset();
   Athlete.cacheReset();
-  firestore.settings = Settings(persistenceEnabled: true);
+  if (!kIsWeb) firestore.settings = Settings(persistenceEnabled: true);
   final DocumentReference userDoc = userFromUid(runas ?? rawUser.uid);
   DocumentSnapshot snapshot;
   snapshot = await userDoc.get();
@@ -46,6 +47,8 @@ Future<void> initFirestore([
               rawUser is User ? rawUser : (rawUser as FirebaseUserHelper).user,
           userReference: userFromUid(runas ?? rawUser.uid),
           admin: admin ?? snapshot.getNullable('admin') ?? false,
+          showAsAthlete: snapshot.getNullable('showAsAthlete') ?? false,
+          fictionalAthletes: snapshot.getNullable('fictionalAthletes') ?? true,
         );
       else if (snapshot['role'] == ATHLETE_ROLE)
         user = AthleteHelper(
@@ -70,7 +73,12 @@ Future<void> setRole(String role) {
   assert(rawUser == null && (role == COACH_ROLE || role == ATHLETE_ROLE));
   final DocumentReference userReference = userFromUid(rawUser.uid);
   if (role == COACH_ROLE)
-    user = CoachHelper(user: rawUser, userReference: userReference);
+    user = CoachHelper(
+      user: rawUser,
+      userReference: userReference,
+      fictionalAthletes: true,
+      showAsAthlete: false,
+    );
   else if (role == ATHLETE_ROLE)
     user = AthleteHelper(user: rawUser, userReference: userReference);
   return userReference.update({'role': role});

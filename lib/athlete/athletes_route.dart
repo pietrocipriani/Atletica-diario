@@ -16,7 +16,7 @@ class AthletesRoute extends StatefulWidget {
 final AppBar _appBar = AppBar(title: Text('ATLETI'));
 
 class _AthletesRouteState extends State<AthletesRoute> {
-  late final Callback _callback = Callback((_, c) => setState(() {}));
+  late final Callback<Athlete> _callback = Callback((_, c) => setState(() {}));
   Icon? _requestIcon;
   TextStyle? _subtitle1Bold, _overlineBoldPrimaryDark;
   bool _showUidInfo = false;
@@ -24,12 +24,14 @@ class _AthletesRouteState extends State<AthletesRoute> {
   @override
   void initState() {
     Athlete.signInGlobal(_callback);
+    Athlete.requests.forEach((r) => r.signIn(_callback));
     super.initState();
   }
 
   @override
   void dispose() {
     Athlete.signOutGlobal(_callback.stopListening);
+    Athlete.fullAthletes.forEach((r) => r.signOut(_callback));
     super.dispose();
   }
 
@@ -63,10 +65,10 @@ class _AthletesRouteState extends State<AthletesRoute> {
                 style: TextStyle(fontWeight: FontWeight.w900),
               )
             ],
-            style: Theme.of(context).textTheme.overline!.copyWith(
-                  fontWeight: FontWeight.normal,
-                  color: Theme.of(context).disabledColor,
-                ),
+            style: Theme.of(context)
+                .textTheme
+                .overline!
+                .copyWith(fontWeight: FontWeight.normal),
           ),
           textAlign: TextAlign.justify,
         ),
@@ -169,11 +171,13 @@ class _AthletesRouteState extends State<AthletesRoute> {
     return Scaffold(
       appBar: _appBar,
       body: body,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Athlete.fromDialog(context: context),
-        child: Icon(Icons.add),
-        mini: true,
-      ),
+      floatingActionButton: userC.fictionalAthletes
+          ? FloatingActionButton(
+              onPressed: () => Athlete.fromDialog(context: context),
+              child: Icon(Icons.add),
+              mini: true,
+            )
+          : null,
     );
   }
 }

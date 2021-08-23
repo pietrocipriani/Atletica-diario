@@ -101,7 +101,10 @@ class Athlete with auth.Notifier<Athlete> {
   }
 
   bool get isRequest => group == null;
-  bool get isAthlete => group != null;
+  bool get isAthlete =>
+      group != null &&
+      (auth.userC.fictionalAthletes || athlete != null) &&
+      (auth.userC.showAsAthlete || athlete != auth.userC.userReference);
 
   bool dismissed = false;
 
@@ -132,7 +135,7 @@ class Athlete with auth.Notifier<Athlete> {
         uid = exists ? raw.id : null,
         name = raw['nickname'],
         athlete = exists ? firestore.collection('users').doc(raw.id) : null {
-    group = raw['group'];
+    group = raw.getNullable('group');
     _createTrainingsCountSubscription();
     sortedFullAthletes.add(this);
   }
@@ -219,7 +222,13 @@ class Athlete with auth.Notifier<Athlete> {
   Future<void> delete() {
     dismissed = true;
     _trainingsCountSubscription.cancel();
-    return reference.delete();
+    final WriteBatch batch = firestore.batch();
+    batch.delete(reference);
+    if (athlete == auth.userC.userReference)
+      batch.update(auth.userC.userReference, {
+        'showAsAthlete': auth.userC.showAsAthlete = false,
+      });
+    return batch.commit();
   }
 
   Future<bool?> modify({required BuildContext context}) {

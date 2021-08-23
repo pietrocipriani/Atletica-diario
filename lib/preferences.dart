@@ -1,3 +1,5 @@
+import 'package:atletica/athlete/athlete.dart';
+import 'package:atletica/global_widgets/preferences_button.dart';
 import 'package:atletica/global_widgets/resizable_text_field.dart';
 import 'package:atletica/global_widgets/splash_screen.dart';
 import 'package:atletica/main.dart';
@@ -24,10 +26,10 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
       appBar: AppBar(title: Text('IMPOSTAZIONI')),
       body: ListView(
         children: [
-          ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('LOGOUT'),
-            onTap: () async {
+          PreferencesActionButton(
+            icon: Icons.logout,
+            text: 'LOGOUT',
+            action: () async {
               await auth.logout();
               Navigator.pushAndRemoveUntil(
                 context,
@@ -35,12 +37,11 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
                 (_) => false,
               );
             },
-            trailing: Icon(Icons.arrow_forward_ios),
           ),
-          ListTile(
-            leading: Icon(Icons.swap_vert),
-            title: Text('CAMBIA RUOLO'),
-            onTap: () async {
+          PreferencesActionButton(
+            icon: Icons.swap_vert,
+            text: 'CAMBIA RUOLO',
+            action: () async {
               await auth.user.userReference.update({
                 'role': auth.user is AthleteHelper ? COACH_ROLE : ATHLETE_ROLE
               });
@@ -51,13 +52,12 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
                 (_) => false,
               );
             },
-            trailing: Icon(Icons.arrow_forward_ios),
           ),
           if (auth.user.admin)
-            ListTile(
-              leading: Icon(Mdi.console),
-              title: Text('# RUNAS'),
-              onTap: () async {
+            PreferencesActionButton(
+              icon: Mdi.console,
+              text: '# RUNAS',
+              action: () async {
                 String? runas = await _showRunasDialog(context: context);
                 if (runas == null) return;
                 if (runas == auth.user.user.uid) runas = null;
@@ -70,21 +70,50 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
                   (_) => false,
                 );
               },
-              trailing: Icon(Icons.arrow_forward_ios),
             ),
-          ListTile(
-            leading: Icon(Icons.dark_mode),
-            title: Text('DARK MODE'),
-            subtitle: Text(
-                'alpha: known bugs'), // TODO: update dialog skipped on brightness != themedata.system
-            trailing: Switch(
-              value: Theme.of(context).brightness == Brightness.dark,
-              onChanged: (v) {
-                themeMode = v ? ThemeMode.dark : ThemeMode.light;
-                auth.user.userReference
-                    .update({'themeMode': themeMode.toString()});
+          PreferencesSwitch(
+            icon: Icons.dark_mode,
+            text: 'DARK MODE',
+            // TODO: update dialog skipped on brightness != themedata.system
+            value: Theme.of(context).brightness == Brightness.dark,
+            onSwitch: (v) {
+              themeMode = v ? ThemeMode.dark : ThemeMode.light;
+              auth.user.userReference
+                  .update({'themeMode': themeMode.toString()});
+            },
+            description: 'alpha: known bugs',
+          ),
+          if (auth.user.isCoach)
+            PreferencesSwitch(
+              icon: Icons.build_circle,
+              text: 'MOSTRATI COME ATLETA',
+              description: 'visualizza te stesso nella lista dei tuoi atleti',
+              value: auth.userC.showAsAthlete,
+              onSwitch: (s) async {
+                await auth.user.userReference.update({'showAsAthlete': s});
+                setState(() => auth.userC.showAsAthlete = s);
+                if (s && !Athlete.exists(auth.user.userReference))
+                  auth.user.userReference
+                      .collection('athletes')
+                      .doc(auth.user.userReference.id)
+                      .set({'nickname': 'Tu'});
               },
             ),
+          if (auth.user.isCoach)
+            PreferencesSwitch(
+              icon: Icons.build_circle,
+              text: 'ATLETI FITTIZI',
+              value: auth.userC.fictionalAthletes,
+              onSwitch: (s) async {
+                await auth.user.userReference.update({'fictionalAthletes': s});
+                setState(() => auth.userC.fictionalAthletes = s);
+              },
+            ),
+          PreferencesActionButton(
+            icon: Icons.translate,
+            text: 'CAMBIA LINGUA',
+            disabled: true,
+            action: () {},
           ),
           Row(
             children: [
@@ -200,4 +229,59 @@ class _RunasDialogState extends State<_RunasDialog> {
                 ),
           ),
       );
+}
+
+class PreferencesActionButton extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final void Function() action;
+  final String? description;
+  final bool disabled;
+  PreferencesActionButton({
+    required this.icon,
+    required this.text,
+    required this.action,
+    this.description,
+    this.disabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(text),
+      onTap: action,
+      enabled: !disabled,
+      trailing: Icon(Icons.arrow_forward_ios),
+      subtitle: description == null ? null : Text(description!),
+    );
+  }
+}
+
+class PreferencesSwitch extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final void Function(bool newValue) onSwitch;
+  final bool value;
+  final String? description;
+  final bool disabled;
+  PreferencesSwitch({
+    required this.icon,
+    required this.text,
+    required this.onSwitch,
+    required this.value,
+    this.description,
+    this.disabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(text),
+      enabled: !disabled,
+      trailing: Switch(value: value, onChanged: disabled ? null : onSwitch),
+      subtitle: description == null ? null : Text(description!),
+    );
+  }
 }

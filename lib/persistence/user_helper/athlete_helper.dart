@@ -143,4 +143,10 @@ class AthleteHelper extends FirebaseUserHelper {
   }
 
   Future<void>? deleteCoachSubscription() => athleteCoachReference?.delete();
+
+  @override
+  bool get isAthlete => true;
+
+  @override
+  bool get isCoach => false;
 }
