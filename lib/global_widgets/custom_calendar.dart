@@ -54,7 +54,7 @@ class _CustomCalendarState extends State<CustomCalendar> {
         todayTextStyle: const TextStyle(),
         outsideTextStyle: TextStyle(color: theme.disabledColor),
       ),
-      locale: 'it',
+      locale: Localizations.localeOf(context).toLanguageTag(),
       startingDayOfWeek: StartingDayOfWeek.monday,
       weekendDays: [DateTime.sunday],
       headerStyle: HeaderStyle(

@@ -5,6 +5,7 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SplashScreen extends StatelessWidget {
   @override
@@ -16,7 +17,7 @@ class SplashScreen extends StatelessWidget {
           Expanded(child: Container()),
           Image.asset('assets/icon.png'),
           Text(
-            'ATLETICA',
+            AppLocalizations.of(context)!.appName.toUpperCase(),
             style: Theme.of(context).textTheme.headline3!.copyWith(
                   fontWeight: FontWeight.w900,
                   color: Theme.of(context).primaryColor,
@@ -54,8 +55,10 @@ class SplashScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          if (rawUser == null) return ModeSelectorRoute();
-                          if (user is CoachHelper) return CoachMainPage();
+                          if (rawUser == null ||
+                              !(rawUser is FirebaseUserHelper))
+                            return ModeSelectorRoute();
+                          if (rawUser is CoachHelper) return CoachMainPage();
                           return AthleteMainPage();
                         },
                       ),

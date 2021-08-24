@@ -4,6 +4,7 @@ import 'package:atletica/persistence/firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> showModeSelectorRoute({required BuildContext context}) =>
     showDialog(
@@ -18,6 +19,12 @@ Future<void> showModeSelectorRoute({required BuildContext context}) =>
 class ModeSelectorRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations loc = AppLocalizations.of(context)!;
+    final String coachInfo = loc.coachRoleInfoText;
+    final String athleteInfo = loc.athleteRoleInfoText;
+    final String coach = loc.coach;
+    final String athlete = loc.athlete;
+
     return Padding(
       padding: MediaQuery.of(context).padding,
       child: Scaffold(
@@ -32,7 +39,7 @@ class ModeSelectorRoute extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
                       Text(
-                        'in modalità allenatore puoi creare e programmare gli allenamenti, gestire i tuoi atleti e inserire i risultati.',
+                        coachInfo,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.overline,
                       ),
@@ -46,7 +53,7 @@ class ModeSelectorRoute extends StatelessWidget {
                             ),
                           );
                         },
-                        child: Text('ALLENATORE'),
+                        child: Text(coach.toUpperCase()),
                       ),
                     ],
                   ),
@@ -66,7 +73,7 @@ class ModeSelectorRoute extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
                       Text(
-                        'in modalità atleta puoi visualizzare gli allenamenti condivisi dal tuo allenatore e inserire i tuoi risultati.',
+                        athleteInfo,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.overline,
                       ),
@@ -80,7 +87,7 @@ class ModeSelectorRoute extends StatelessWidget {
                             ),
                           );
                         },
-                        child: Text('ATLETA'),
+                        child: Text(athlete.toUpperCase()),
                       ),
                     ],
                   ),

@@ -1,12 +1,15 @@
 import 'package:atletica/global_widgets/animated_text.dart';
-import 'package:atletica/global_widgets/logout_button.dart';
-import 'package:atletica/global_widgets/runas_button.dart';
-import 'package:atletica/global_widgets/swap_button.dart';
+import 'package:atletica/global_widgets/preferences_button.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RequestCoachRoute extends StatefulWidget {
+  final void Function() onCoachFound;
+
+  RequestCoachRoute({required this.onCoachFound});
+
   @override
   _RequestCoachRoute createState() => _RequestCoachRoute();
 }
@@ -22,6 +25,31 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
     super.initState();
   }
 
+  String? _infoText,
+      _request,
+      _send,
+      _cancel,
+      _insertUid,
+      _loopback,
+      _insertUidPlaceholder,
+      _insertNamePlaceholder,
+      _waitingForResponse;
+
+  @override
+  void didChangeDependencies() {
+    final AppLocalizations loc = AppLocalizations.of(context)!;
+    _infoText = loc.requestCoachInfoText;
+    _request = loc.request.toUpperCase();
+    _send = loc.send;
+    _cancel = loc.cancel;
+    _insertUid = loc.insertUid;
+    _loopback = loc.coachRequestLoopBack;
+    _insertUidPlaceholder = loc.coachRequestUid;
+    _insertNamePlaceholder = loc.insertNamePlaceholder;
+    _waitingForResponse = loc.waitingForResponse;
+    super.didChangeDependencies();
+  }
+
   @override
   void dispose() {
     AthleteHelper.onCoachChanged.remove(callback.stopListening);
@@ -33,22 +61,15 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
 
   @override
   Widget build(BuildContext context) {
-    if (userA.hasCoach)
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
-        if (Navigator.canPop(context)) Navigator.pop(context);
-      });
+    if (userA.hasCoach) widget.onCoachFound();
 
     return WillPopScope(
       onWillPop: () => Future.value(false),
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text('RICHIESTA'),
-          actions: [
-            LogoutButton(context: context),
-            SwapButton(context: context),
-            if (user.admin) RunasButton(context: context),
-          ],
+          title: Text(_request!),
+          actions: [PreferencesButton(context: context)],
         ),
         body: Padding(
           padding: MediaQuery.of(context).padding,
@@ -58,10 +79,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
-                  const Text(
-                    "Inserisci qui sotto l'uid del tuo allenatore per inviargli una richiesta. Una volta ricevuta una risposta affermativa, si verrà automaticamente reindirizzati alla Home! Potrebbe richiedere molto tempo.",
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(_infoText!, textAlign: TextAlign.center),
                   const SizedBox(height: 10),
                   if (userA.needsRequest)
                     TextFormField(
@@ -69,12 +87,12 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                       autofocus: false,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       validator: (str) => str == null || str.isEmpty
-                          ? 'Inserire un UID'
+                          ? _insertUid
                           : str == userA.uid
-                              ? 'Non puoi inviare la richiesta a te stesso'
+                              ? _loopback
                               : null,
                       decoration: InputDecoration(
-                        helperText: "inserisci l'uid dell'allenatore",
+                        helperText: _insertUidPlaceholder,
                       ),
                       onChanged: (value) => setState(() {}),
                     ),
@@ -82,7 +100,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                     TextFormField(
                       controller: _nameController,
                       decoration:
-                          InputDecoration(helperText: "inserisci il tuo nome"),
+                          InputDecoration(helperText: _insertNamePlaceholder),
                       textCapitalization: TextCapitalization.words,
                     ),
                   if (userA.hasRequest)
@@ -90,7 +108,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: <Widget>[
                         AnimatedText(
-                          text: 'in attesa di risposta',
+                          text: _waitingForResponse!,
                           style: Theme.of(context)
                               .textTheme
                               .headline6!
@@ -112,7 +130,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                         : userA.hasRequest
                             ? () => userA.deleteCoachSubscription()
                             : null,
-                    label: Text(userA.coach == null ? 'invia' : 'cancella'),
+                    label: Text(userA.coach == null ? _send! : _cancel!),
                     icon: Icon(userA.coach == null ? Icons.send : Icons.clear),
                   )
                 ],

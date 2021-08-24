@@ -39,7 +39,8 @@ class AthleteHelper extends FirebaseUserHelper {
         if (!last!.exists)
           userReference.update({'coach': null});
         else {
-          accepted = last!['nickname'] != null && last!['group'] != null;
+          accepted = last!.getNullable('nickname') != null &&
+              last!.getNullable('group') != null;
           coachCallAll();
         }
       },
@@ -88,7 +89,7 @@ class AthleteHelper extends FirebaseUserHelper {
   void _init() {
     userReference.snapshots().listen((snap) async {
       print('received update: ${snap.data}');
-      athleteCoachReference = snap['coach'] == null
+      athleteCoachReference = snap.getNullable('coach') == null
           ? null
           : firestore
               .collection('users')
@@ -98,8 +99,8 @@ class AthleteHelper extends FirebaseUserHelper {
       final DocumentSnapshot? athleteCoachSnapshot =
           await athleteCoachReference?.get();
       accepted = athleteCoachSnapshot?.data != null &&
-          athleteCoachSnapshot!['nickname'] != null &&
-          athleteCoachSnapshot['group'] != null;
+          athleteCoachSnapshot!.getNullable('nickname') != null &&
+          athleteCoachSnapshot.getNullable('group') != null;
       coachCallAll();
     });
 

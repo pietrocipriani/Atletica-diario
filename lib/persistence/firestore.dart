@@ -69,8 +69,9 @@ Future<void> initFirestore([
   }
 }
 
-Future<void> setRole(String role) {
-  assert(rawUser == null && (role == COACH_ROLE || role == ATHLETE_ROLE));
+Future<void> setRole(final String role) {
+  assert((rawUser == null || !(rawUser is FirebaseUserHelper)) &&
+      (role == COACH_ROLE || role == ATHLETE_ROLE));
   final DocumentReference userReference = userFromUid(rawUser.uid);
   if (role == COACH_ROLE)
     user = CoachHelper(

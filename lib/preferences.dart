@@ -1,5 +1,4 @@
 import 'package:atletica/athlete/athlete.dart';
-import 'package:atletica/global_widgets/preferences_button.dart';
 import 'package:atletica/global_widgets/resizable_text_field.dart';
 import 'package:atletica/global_widgets/splash_screen.dart';
 import 'package:atletica/main.dart';
@@ -10,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:mdi/mdi.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PreferencesRoute extends StatefulWidget {
   // TODO: route popped on setState
@@ -20,15 +20,46 @@ class PreferencesRoute extends StatefulWidget {
 class _PreferencesRouteState extends State<PreferencesRoute> {
   String writeToDeveloper = '';
 
+  String? _title,
+      _logout,
+      _changeRole,
+      _runas,
+      _darkMode,
+      _showAsAthlete,
+      _showAsAthleteDescription,
+      _fictionalAthletes,
+      _changeLang,
+      _complains,
+      _sent,
+      _emptyMessage;
+
+  @override
+  void didChangeDependencies() {
+    final AppLocalizations loc = AppLocalizations.of(context)!;
+    _title = loc.preferences.toUpperCase();
+    _logout = loc.logout.toUpperCase();
+    _changeRole = loc.changeRole.toUpperCase();
+    _runas = '# ${loc.runAs.toUpperCase()}';
+    _darkMode = loc.darkMode.toUpperCase();
+    _showAsAthlete = loc.showAsAthlete.toUpperCase();
+    _showAsAthleteDescription = loc.showAsAthleteDescription;
+    _fictionalAthletes = loc.fictionalAthletes.toUpperCase();
+    _changeLang = loc.changeLanguage.toUpperCase();
+    _complains = loc.complainsPlaceholder;
+    _sent = loc.messageSent;
+    _emptyMessage = loc.cannotSendMessage;
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('IMPOSTAZIONI')),
+      appBar: AppBar(title: Text(_title!)),
       body: ListView(
         children: [
           PreferencesActionButton(
             icon: Icons.logout,
-            text: 'LOGOUT',
+            text: _logout!,
             action: () async {
               await auth.logout();
               Navigator.pushAndRemoveUntil(
@@ -40,7 +71,7 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
           ),
           PreferencesActionButton(
             icon: Icons.swap_vert,
-            text: 'CAMBIA RUOLO',
+            text: _changeRole!,
             action: () async {
               await auth.user.userReference.update({
                 'role': auth.user is AthleteHelper ? COACH_ROLE : ATHLETE_ROLE
@@ -56,7 +87,7 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
           if (auth.user.admin)
             PreferencesActionButton(
               icon: Mdi.console,
-              text: '# RUNAS',
+              text: _runas!,
               action: () async {
                 String? runas = await _showRunasDialog(context: context);
                 if (runas == null) return;
@@ -73,7 +104,7 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
             ),
           PreferencesSwitch(
             icon: Icons.dark_mode,
-            text: 'DARK MODE',
+            text: _darkMode!,
             // TODO: update dialog skipped on brightness != themedata.system
             value: Theme.of(context).brightness == Brightness.dark,
             onSwitch: (v) {
@@ -86,8 +117,8 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
           if (auth.user.isCoach)
             PreferencesSwitch(
               icon: Icons.build_circle,
-              text: 'MOSTRATI COME ATLETA',
-              description: 'visualizza te stesso nella lista dei tuoi atleti',
+              text: _showAsAthlete!,
+              description: _showAsAthleteDescription,
               value: auth.userC.showAsAthlete,
               onSwitch: (s) async {
                 await auth.user.userReference.update({'showAsAthlete': s});
@@ -102,7 +133,7 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
           if (auth.user.isCoach)
             PreferencesSwitch(
               icon: Icons.build_circle,
-              text: 'ATLETI FITTIZI',
+              text: _fictionalAthletes!,
               value: auth.userC.fictionalAthletes,
               onSwitch: (s) async {
                 await auth.user.userReference.update({'fictionalAthletes': s});
@@ -111,7 +142,7 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
             ),
           PreferencesActionButton(
             icon: Icons.translate,
-            text: 'CAMBIA LINGUA',
+            text: _changeLang!,
             disabled: true,
             action: () {},
           ),
@@ -120,7 +151,7 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
               Expanded(
                 child: ResizableTextField(
                   onChanged: (t) => writeToDeveloper = t,
-                  hint: 'complains / requests / suggestions',
+                  hint: _complains,
                 ),
               ),
               IconButton(
@@ -139,7 +170,7 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
                           );
 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('messaggio inviato!')),
+                        SnackBar(content: Text(_sent!)),
                       );
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -147,12 +178,8 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
                       );
                     }
                   } else
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:
-                            Text('non è possibile inviare un messaggio vuoto!'),
-                      ),
-                    );
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(_emptyMessage!)));
                 },
                 icon: Icon(Icons.send),
               )

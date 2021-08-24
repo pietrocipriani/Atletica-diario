@@ -1,3 +1,4 @@
+import 'package:atletica/athlete_role/request_coach.dart';
 import 'package:atletica/global_widgets/custom_main_page.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/date.dart';
@@ -8,29 +9,48 @@ import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-class AthleteMainPage extends CustomMainPage {
-  AthleteMainPage()
-      : super(
-            section: 'Atleta',
-            events: (dt) => Result.ofDate(dt)
-                .where((r) => r.isOrphan)
-                .cast<Object>()
-                .followedBy(ScheduledTraining.ofDate(dt).where((st) =>
-                    st.athletesRefs.isEmpty ||
-                    st.athletesRefs
-                        .any((r) => r == userA.athleteCoachReference)))
-                .toList(),
-            eventBuilder: (e) {
-              if (e is ScheduledTraining)
-                return TrainingWidget(
-                  scheduledTraining: e,
-                  checkbox: true,
-                  result: Result.ofSchedule(e),
-                );
-              else if (e is Result) return _ResultWidget(e);
-              throw TypeError();
-            });
+class AthleteMainPage extends StatefulWidget {
+  @override
+  _AthleteMainPageState createState() => _AthleteMainPageState();
+}
+
+class _AthleteMainPageState extends State<AthleteMainPage> {
+  String? section;
+  @override
+  void didChangeDependencies() {
+    final AppLocalizations loc = AppLocalizations.of(context)!;
+    section = loc.athlete;
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(final BuildContext context) {
+    if (!userA.hasCoach)
+      return RequestCoachRoute(onCoachFound: () => setState(() {}));
+
+    return CustomMainPage(
+      section: section!,
+      events: (dt) => Result.ofDate(dt)
+          .where((r) => r.isOrphan)
+          .cast<Object>()
+          .followedBy(ScheduledTraining.ofDate(dt).where((st) =>
+              st.athletesRefs.isEmpty ||
+              st.athletesRefs.any((r) => r == userA.athleteCoachReference)))
+          .toList(),
+      eventBuilder: (e) {
+        if (e is ScheduledTraining)
+          return TrainingWidget(
+            scheduledTraining: e,
+            checkbox: true,
+            result: Result.ofSchedule(e),
+          );
+        else if (e is Result) return _ResultWidget(e);
+        throw TypeError();
+      },
+    );
+  }
 }
 
 class _ResultWidget extends StatelessWidget {

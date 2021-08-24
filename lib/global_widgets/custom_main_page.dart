@@ -13,7 +13,7 @@ import 'package:atletica/training/training_description.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
-abstract class CustomMainPage<T extends Object> extends StatefulWidget {
+class CustomMainPage<T extends Object> extends StatefulWidget {
   final List<T> Function(Date dt) events;
   final Widget Function(T) eventBuilder;
   final String section;

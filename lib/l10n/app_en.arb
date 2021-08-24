@@ -1,0 +1,44 @@
+{
+    "@@locale": "en",
+    "appName": "Athletics",
+    "request": "request",
+    "send": "send",
+    "cancel": "cancel",
+    "insertUid": "insert UID",
+    "coachRequestLoopBack": "You cannot send a request to yourself",
+    "coachRequestUid": "insert your coach's UID",
+    "insertNamePlaceholder": "insert your name",
+    "waitingForResponse": "waiting for response",
+    "@appName": {
+        "description": "the app name"
+    },
+    "rep": "{count,plural, =1{rep} other{reps}}",
+    "@rep": {
+        "description": "rep translation",
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "set": "set",
+    "recovery": "recovery",
+    "coach": "coach",
+    "athlete": "athlete",
+    "userIdInfoBox": "this is your user id, share it with your athletes to syncronize data.",
+    "preferences": "preferences",
+    "logout": "logout",
+    "changeRole": "change role",
+    "runAs": "runas",
+    "darkMode": "dark mode",
+    "showAsAthlete": "show as athlete",
+    "showAsAthleteDescription": "show yourself in your athletes list",
+    "fictionalAthletes": "fictional athletes",
+    "changeLanguage": "change language",
+    "complainsPlaceholder": "complains / requests / suggestions",
+    "messageSent": "message sent!",
+    "cannotSendMessage": "cannot send an empty message!",
+    "week": "week",
+    "kTagName": "generic",
+    "requestCoachInfoText": "Insert here your coach's uid in order to send a request. Once accepted you will be redirected to the Home page! It could require a long time.",
+    "coachRoleInfoText": "in coach mode you can create and schedule trainings, manage your athletes and insert results.",
+    "athleteRoleInfoText": "in athlete mode you can view trainings shared by your coach and insert your results."
+}
