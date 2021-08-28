@@ -32,9 +32,9 @@ class Ripetuta {
   Ripetuta.parse(final Serie serie, final Map raw)
       : template = raw['template'],
         target = raw['target']?.toDouble(),
-        recupero = Recupero(raw['recupero']),
+        recupero = Recupero(recupero: raw['recupero']),
         ripetizioni = raw['times'],
-        nextRecupero = Recupero(raw['recuperoNext']) {
+        nextRecupero = Recupero(recupero: raw['recuperoNext']) {
     serie.ripetute.add(this);
   }
 

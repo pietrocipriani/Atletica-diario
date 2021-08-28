@@ -1,4 +1,5 @@
 import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/training.dart';
 
 class Variant {
@@ -7,11 +8,11 @@ class Variant {
 
   final Map<Ripetuta, double?> targets;
 
-  Map<String, dynamic> asMap(final Training a) => {
-        'targets': a.serie
-            .expand((s) => s.ripetute)
-            .map((r) => this.targets[r])
-            .toList(),
+  Map<String, dynamic> asMap([final Training? a]) => {
+        'targets':
+            (a?.serie.expand((s) => s.ripetute).map((r) => this.targets[r]) ??
+                    targets.values)
+                .toList(),
       };
 
   Variant.parse(final Map<String, dynamic> raw, final Training a)
@@ -30,6 +31,12 @@ class Variant {
         ) {
     a.variants.add(this);
   }
+  Variant.fromSerie(final List<Serie> serie)
+      : targets = Map.fromIterable(
+          serie.expand<Ripetuta>((s) => s.ripetute),
+          key: (_) => _,
+          value: (r) => r.target,
+        );
 
   double? operator [](final Ripetuta? rip) {
     if (rip == null) return null;

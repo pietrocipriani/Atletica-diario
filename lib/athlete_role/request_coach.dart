@@ -61,7 +61,9 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
 
   @override
   Widget build(BuildContext context) {
-    if (userA.hasCoach) widget.onCoachFound();
+    if (userA.hasCoach)
+      WidgetsBinding.instance
+          ?.addPostFrameCallback((_) => widget.onCoachFound());
 
     return WillPopScope(
       onWillPop: () => Future.value(false),

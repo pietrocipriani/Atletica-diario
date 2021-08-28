@@ -1,0 +1,162 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+  	function isNotEmpty(str) {
+    	return str != null && !str.matches('^\\s*$');
+    }
+  
+  	function auth () {
+    	return request.auth != null;
+    }
+  	function userIs (uid) {
+    	return auth() && (request.auth.uid == uid || request.auth.uid == 'IWIzMYypH6TjluGqdoQyM9lOSl02');
+    }
+    
+    function keys(required, optional) {
+    	let ks = request.resource.data.keys().toSet();
+      return ks.hasAll(required) && ks.hasOnly(required.concat(optional));
+    }
+    function changed(required, optional) {
+    	let ks = request.resource.data.diff(resource.data).changedKeys();
+      return ks.hasAll(required) && ks.hasOnly(required.concat(optional));
+    }
+    
+    match /users/{user} {
+    	function acceptableCoach() {
+      	let coach = 'coach' in request.resource.data ? request.resource.data.coach : null;
+        let ref = /databases/$(database)/documents/users/$(coach);
+        return coach != user && (coach == null || exists(ref));
+      }
+      function acceptableRole() {
+      	let prevRole = 'role' in resource.data ? resource.data.role : null;
+      	let role = 'role' in request.resource.data ? request.resource.data.role : null;
+        return !('role' in request.resource.data) || (role == 'athlete' || role == 'coach');
+      }
+      function canChangeCoach() {
+      	let prevCoach = 'coach' in resource.data ? resource.data.coach : null;
+        let coach = 'coach' in request.resource.data ? request.resource.data.coach : null;
+        return prevCoach == coach || (prevCoach == null) != (coach == null);
+      }
+      
+      function isUserOrCoach (data) {
+      	return userIs(user)
+        	|| ('coach' in data && data.coach != null && userIs(data.coach));
+      }
+      function hasAthlete() {
+      	let uid = request.auth.uid;
+      	let doc = /databases/$(database)/documents/users/$(user)/athletes/$(uid);
+        let ath = get(doc).data;
+        return exists(doc) && ath.group != null;
+      }
+    
+      allow get, list: if isUserOrCoach(resource.data) || hasAthlete() || (auth() && resource == null);
+      
+      allow create: if userIs(user)
+      	&& isNotEmpty(request.resource.data.name)
+        && keys(['name'], ['coach', 'atletica_me_id', 'last_update', 'themeMode',
+        			'fictionalAthletes', 'showAsAthlete'])
+        && acceptableCoach();
+      allow update: if userIs(user)
+      	&& changed([], ['coach', 'role', 'atletica_me_id', 'last_update', 'runas', 'themeMode',
+        			'fictionalAthletes', 'showAsAthlete'])
+      	&& canChangeCoach()
+        && acceptableCoach()
+        && acceptableRole();
+      allow delete: if false;
+      
+      match /results/{result} {      
+        allow read: if userIs(user) || userIs(resource.data.coach) || (auth() && resource == null);
+        allow create: if (userIs(user) || userIs(request.resource.data.coach))
+          && keys(['coach', 'training', 'results'], ['fatigue', 'info', 'date'])
+          && request.resource.data.coach == get(/databases/$(database)/documents/users/$(user)).data.coach
+          && request.resource.data.results is list
+      		&& (request.resource.data.date == null || request.resource.data.date is timestamp)
+          && (request.resource.data.fatigue == null || request.resource.data.fatigue is int)
+          && (request.resource.data.info == null || request.resource.data.info is string);
+        allow update: if (userIs(user) || userIs(resource.data.coach))
+          && changed([], ['results', 'training', 'fatigue', 'info', 'date'])
+          && request.resource.data.results is list
+          && (request.resource.data.date == null || !('date' in resource.data) || request.resource.data.date == resource.data.date);
+        allow delete: if userIs(user); // check for result to be empty
+      }
+      match /templates/{template} {
+      	allow read: if userIs(user);
+        allow create, update: if userIs(user) && keys(['lastTarget'], ['tipologia']);
+        allow delete: if false;
+      }
+      match /athletes/{athlete} {
+      	function infoNotNull () {
+        	let nick = request.resource.data.nickname;
+          let group = request.resource.data.group;
+        	return isNotEmpty(nick) && isNotEmpty(group);
+        }
+      
+      	allow get, delete: if userIs(user) || userIs(athlete);
+        allow list: if userIs(user);
+        allow create: if keys(['nickname'], ['group'])
+        	&& ((userIs(user) && infoNotNull())
+            || (userIs(athlete)
+            	&& isNotEmpty(request.resource.data.nickname)
+              && (!('group' in request.resource.data) || request.resource.data.group == null)));
+        allow update: if changed([], ['nickname', 'group']) && userIs(user) && infoNotNull();
+        
+        match /results/{result} {
+        	allow read: if userIs(user);
+          allow create: if userIs(user)
+          	&& !exists(/databases/$(database)/documents/athletes/$(athlete))
+            && keys(['coach', 'training', 'results'], ['fatigue', 'info', 'date'])
+            && (request.resource.data.date == null || request.resource.data.date is timestamp)
+            && request.resource.data.coach == user
+            && request.resource.data.results is list;
+          allow update: if userIs(user)
+          	&& changed([], ['results', 'fatigue', 'info', 'date'])
+            && request.resource.data.results is list
+            && (request.resource.data.date == null || request.resource.data.date == resource.data.date)
+          allow delete: if userIs(user);
+        }
+      }
+      match /plans/{plan} {
+      	allow get: if userIs(user) || hasAthlete();
+        allow list: if userIs(user);
+        allow create, update: if userIs(user)
+        	&& keys(['name'], ['weeks', 'start', 'stop', 'athletes'])
+        	&& isNotEmpty(request.resource.data.name);
+        allow delete: if userIs(user); // TODO: check for schedules
+      }
+      match /schedules/{schedule} {
+      	allow read: if userIs(user) || hasAthlete();
+        allow create: if userIs(user)
+        	&& keys(['date', 'work'], ['plan', 'athletes'])
+        	&& request.resource.data.date is timestamp
+          && request.resource.data.work is path
+          // request.resource.data.athlete is list
+          && exists(request.resource.data.work);
+        allow update: if changed([], ['athletes']);
+        allow delete: if userIs(user);
+      }
+      match /trainings/{training} {
+      	allow get: if userIs(user) || hasAthlete();
+        allow list: if userIs(user) || hasAthlete();
+        allow create: if userIs(user)
+        	&& keys(['name', 'serie'], ['description', 'tag1', 'tag2', 'variants'])
+          && request.resource.data.name is string
+          && isNotEmpty(request.resource.data.name)
+          && request.resource.data.serie is list
+          && (request.resource.data.tag1 == null || request.resource.data.tag1 is string)
+          && (request.resource.data.tag2 == null || request.resource.data.tag2 is string);
+        allow update: if userIs(user)
+        	&& changed([], ['name', 'serie', 'description', 'tag1', 'tag2', 'variants'])
+          && request.resource.data.name is string
+          && isNotEmpty(request.resource.data.name)
+          && request.resource.data.serie is list;
+        allow delete: if userIs(user); // check usage in schedules & plans
+      }
+    }
+    
+    match /global/{all=**} {
+    	allow read: if auth();
+      allow write: if false;
+    }
+  }
+}

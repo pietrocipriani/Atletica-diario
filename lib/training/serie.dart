@@ -23,15 +23,21 @@ class Serie {
     final Recupero? recupero,
     this.ripetizioni = 1,
     final Recupero? nextRecupero,
-  })  : recupero = recupero ?? Recupero(),
-        nextRecupero = nextRecupero ?? Recupero() {
+  })  : recupero = recupero ?? Recupero(isSerieRec: true),
+        nextRecupero = nextRecupero ?? Recupero(isSerieRec: true) {
     if (ripetute != null) this.ripetute.addAll(ripetute);
   }
 
   /// creates a new instance from [DocumentSnapshot.data] from the [firestore]
   Serie.parse(final Training t, final Map raw)
-      : recupero = Recupero(raw['recupero'] ?? 3 * 60),
-        nextRecupero = Recupero(raw['recuperoNext'] ?? 3 * 60),
+      : recupero = Recupero(
+          recupero: raw['recupero'] ?? 3 * 60,
+          isSerieRec: true,
+        ),
+        nextRecupero = Recupero(
+          recupero: raw['recuperoNext'] ?? 3 * 60,
+          isSerieRec: true,
+        ),
         ripetizioni = raw['times'] {
     raw['ripetute']?.forEach((raw) => Ripetuta.parse(this, raw));
     t.serie.add(this);

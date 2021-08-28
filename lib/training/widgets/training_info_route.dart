@@ -116,7 +116,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
       body: Column(
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
-          TagsSelectorWidget(widget.allenamento),
+          TagsSelectorWidget(training: widget.allenamento),
           ResizableTextField(
             onChanged: (text) => widget.allenamento.descrizione = text,
             initialText: widget.allenamento.descrizione,

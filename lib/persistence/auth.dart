@@ -1,20 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:app_installer/app_installer.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_storage/firebase_storage.dart' as storage;
 import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 
 GoogleSignIn _googleSignIn = GoogleSignIn(
   signInOption: SignInOption.standard,
@@ -123,45 +117,7 @@ Stream<double> login({required BuildContext context}) async* {
   assert(rawUser != null);
   await initFirestore();
 
-  await checkForRelease(context: context);
-
   yield 1;
-}
-
-Future<void> checkForRelease({required final BuildContext context}) async {
-  if (kIsWeb || !Platform.isAndroid) return;
-  try {
-    final storage.Reference release =
-        storage.FirebaseStorage.instance.ref('release/release.apk');
-    final storage.FullMetadata meta = await release.getMetadata();
-
-    final PackageInfo package = await PackageInfo.fromPlatform();
-    final int currentVersion = int.parse(package.buildNumber);
-
-    final int lastVersion = int.parse(meta.customMetadata!['version-code']!);
-
-    if (lastVersion <= currentVersion) {
-      print('$lastVersion vs $currentVersion');
-      return;
-    }
-    final Future<bool?> dialog = showNewReleaseDialog(
-      context: context,
-      version: meta.customMetadata!['version-name']!,
-      changelog: meta.customMetadata!['changelog']!,
-      updateTime: meta.updated!,
-    );
-    if (await dialog ?? false) {
-      final Directory dir = await getTemporaryDirectory();
-      final File rel = File('${dir.path}${Platform.pathSeparator}release.apk');
-      if (!rel.existsSync()) rel.createSync(recursive: true);
-      rel.writeAsBytesSync((await release.getData(100 * 1024 * 1024))!,
-          flush: true);
-      await AppInstaller.installApk(rel.path);
-    }
-  } catch (e, s) {
-    print(e);
-    print(s);
-  }
 }
 
 Future<void> logout() async {

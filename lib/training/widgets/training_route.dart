@@ -6,8 +6,10 @@ import 'package:atletica/global_widgets/leading_info_widget.dart';
 import 'package:atletica/main.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_description.dart';
+import 'package:atletica/training/widgets/training_dialog.dart';
 import 'package:atletica/training/widgets/training_info_route.dart';
 import 'package:flutter/material.dart';
 
@@ -42,16 +44,22 @@ class _TrainingRouteState extends State<TrainingRoute> {
   @override
   Widget build(BuildContext context) {
     final Widget _fab = FloatingActionButton(
-      onPressed: () {
-        Training.create(tag1, tag2);
-        tag1 ??= Training.defaultTag;
-        tag2 ??= Training.defaultTag;
-        setState(() {});
-        _controller.animateToPage(
-          2,
-          curve: Curves.fastOutSlowIn,
-          duration: kAnimDuration,
+      onPressed: () async {
+        final Pair<String, String>? tags =
+            await showDialog<Pair<String, String>>(
+          context: context,
+          builder: (context) => TrainingDialog(tag1: tag1, tag2: tag2),
         );
+        if (tags != null) {
+          tag1 = tags.v1;
+          tag2 = tags.v2;
+          setState(() {});
+          _controller.animateToPage(
+            2,
+            curve: Curves.fastOutSlowIn,
+            duration: kAnimDuration,
+          );
+        }
       },
       child: Icon(Icons.add),
       mini: true,

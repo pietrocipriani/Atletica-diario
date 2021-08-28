@@ -1,9 +1,12 @@
 class Recupero {
   static const int DEFAULT_TIME = 3 * 60;
   dynamic _recupero;
+  final bool isSerieRec;
 
-  Recupero([this._recupero = 3 * 60])
-      : assert(_recupero is String || (_recupero is int && _recupero >= 0));
+  Recupero({final dynamic recupero = DEFAULT_TIME, this.isSerieRec = false})
+      : _recupero = recupero,
+        assert(recupero is String || (recupero is int && recupero >= 0));
+
   dynamic get recupero => _recupero;
   set recupero(final dynamic recupero) {
     if (recupero == null) return;

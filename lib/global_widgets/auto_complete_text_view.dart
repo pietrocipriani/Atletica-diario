@@ -81,7 +81,7 @@ class _AutoCompleteTextViewState<T extends Object>
               : null,
           decoration: InputDecoration(
             isDense: widget.dense,
-            hintText: 'ricerca allenamento',
+            hintText: 'ricerca allenamento', // TODO
           ),
           onTap: () {
             if (focus.hasFocus)

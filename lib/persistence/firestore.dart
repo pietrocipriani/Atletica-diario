@@ -1,6 +1,7 @@
 import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/main.dart';
 import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/persistence/release.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:atletica/plan/plan.dart';
@@ -30,8 +31,7 @@ Future<void> initFirestore([
   Athlete.cacheReset();
   if (!kIsWeb) firestore.settings = Settings(persistenceEnabled: true);
   final DocumentReference userDoc = userFromUid(runas ?? rawUser.uid);
-  DocumentSnapshot snapshot;
-  snapshot = await userDoc.get();
+  DocumentSnapshot snapshot = await userDoc.get();
 
   if (!snapshot.exists)
     await userDoc.set({'name': rawUser.displayName});
@@ -67,6 +67,8 @@ Future<void> initFirestore([
               : ThemeMode.system;
     }
   }
+
+  await checkAndInstallNewRelease();
 }
 
 Future<void> setRole(final String role) {

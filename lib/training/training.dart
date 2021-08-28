@@ -2,6 +2,7 @@ import 'package:atletica/cache.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/variant.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -144,14 +145,19 @@ class Training with Notifier<Training> {
   ///
   /// [training] is initialized with a progressive `name`, `null` `description`
   /// and an empty `serie`
-  static Future<void> create([final String? tag1, final String? tag2]) {
-    int index = _cache.length + 1;
-    while (isNameInUse('training #$index')) index++;
+  static Future<void> create({
+    required final String name,
+    final String? tag1,
+    final String? tag2,
+    final List<Serie>? serie,
+  }) {
     return user.userReference.collection('trainings').add({
-      'name': 'training #$index',
+      'name': name,
       'description': '',
-      'serie': [],
-      'variants': const [Variant.emptyMap],
+      'serie': serie?.map((serie) => serie.asMap).toList() ?? [],
+      'variants': serie == null
+          ? const [Variant.emptyMap]
+          : [Variant.fromSerie(serie).asMap()],
       'tag1': tag1 ?? defaultTag,
       'tag2': tag2 ?? defaultTag,
     });
@@ -181,17 +187,6 @@ class Training with Notifier<Training> {
       yield* s.recuperi;
       if (s != serie.last) yield s.nextRecupero;
     }
-  }
-
-  bool isSerieRec(int index) {
-    for (Serie s in serie) {
-      if (index < 0) return false;
-      if ((index + 1) % (s.ripetuteCount / s.ripetizioni) == 0 &&
-          index ~/ (s.ripetuteCount / s.ripetizioni) < s.ripetizioni)
-        return true;
-      index -= s.ripetuteCount;
-    }
-    return false;
   }
 
   /// deletes current [training] from [firestore]
@@ -255,4 +250,111 @@ class Training with Notifier<Training> {
   String toString() => name;
 
   String get suggestName => serie.map((s) => s.suggestName).join(' + ');
+
+  static const String _mult = r'(\d+)\s*[x×]\s*';
+  static final RegExp _parenthesis = RegExp(r'\([^\)]*\)');
+  static final RegExp _separator = RegExp(r"\s*[\-\/,\+]\s*");
+  static final RegExp _serie = RegExp(
+    '^(?:$_mult)?\\(([^\\)]*)\\)|(?:(?:$_mult)?$_mult)?(.+)\$',
+    dotAll: true,
+  );
+  static final RegExp _ripRegExp =
+      RegExp("^(?:$_mult)?(\\d+\\s*[(?:k?M|m)'\"(?:hs)(?:min)]?)\\s*\$");
+  static final RegExp _genericRipRegExp = RegExp(
+    '^(?:$_mult)?(.+)\$',
+    dotAll: true,
+  );
+
+  static bool isParsableName(final String name) {
+    final Iterable<RegExpMatch> pMatches = _parenthesis.allMatches(name);
+    final List<RegExpMatch> sMatches =
+        pMatches.isEmpty && !RegExp(_mult).hasMatch(name)
+            ? []
+            : _separator
+                .allMatches(name)
+                .where((s) =>
+                    pMatches.every((p) => p.start > s.start || p.end < s.end))
+                .toList();
+    final List<String> series = List.generate(
+        sMatches.length + 1,
+        (i) => name.substring(i == 0 ? 0 : sMatches[i - 1].end,
+            i == sMatches.length ? null : sMatches[i].start));
+
+    final List<RegExpMatch?> matches = series.map(_serie.firstMatch).toList();
+    if (matches.any((s) => s == null)) return false;
+
+    return matches.whereType<RegExpMatch>().every((match) {
+      final String rip = match.group(2) ?? match.group(5)!;
+      final List<String> split = rip.split(_separator);
+      return split.every((s) {
+        s = s.trim();
+        final RegExpMatch? match = _genericRipRegExp.firstMatch(s);
+        if (match == null) return false;
+        final String ripName = match.group(2)!.trim();
+        final RegExpMatch? match2 =
+            RegExp(r'(\d+)(.*)', dotAll: true).firstMatch(ripName);
+        final RegExp matcher = RegExp(
+          match2 == null
+              ? '^\s*${RegExp.escape(ripName)}\s*\$'
+              : '^\s*${match2.group(1)}\s*${RegExp.escape(match2.group(2)!)}\s*\$',
+          caseSensitive: false,
+        );
+        if (templates.keys.any(matcher.hasMatch)) return true;
+        return _ripRegExp.hasMatch(s);
+      });
+    });
+  }
+
+  static List<Serie>? parseName(final String name) {
+    final Iterable<RegExpMatch> pMatches = _parenthesis.allMatches(name);
+    final List<RegExpMatch> sMatches =
+        pMatches.isEmpty && !RegExp(_mult).hasMatch(name)
+            ? []
+            : _separator
+                .allMatches(name)
+                .where((s) =>
+                    pMatches.every((p) => p.start > s.start || p.end < s.end))
+                .toList();
+    final List<String> series = List.generate(
+      sMatches.length + 1,
+      (i) => name.substring(i == 0 ? 0 : sMatches[i - 1].end,
+          i == sMatches.length ? null : sMatches[i].start),
+    );
+
+    final List<RegExpMatch?> matches = series.map(_serie.firstMatch).toList();
+
+    return matches.map<Serie>((final match) {
+      final int times = int.parse(match!.group(1) ?? match.group(3) ?? '1');
+      final String rip = match.group(2) ?? match.group(5)!;
+      final List<String> split = rip.split(_separator);
+      return Serie(
+        ripetizioni: times,
+        ripetute: split.map((s) {
+          s = s.trim();
+          final RegExpMatch genericMatch = _genericRipRegExp.firstMatch(s)!;
+          final String ripName = genericMatch.group(2)!.trim();
+          final RegExpMatch? match2 =
+              RegExp(r'^(\d+)\s*(.+)?$', dotAll: true).firstMatch(ripName);
+          final RegExp matcher = RegExp(
+            match2 == null
+                ? '^\\s*${RegExp.escape(ripName)}\\s*\$'
+                : '^\\s*${match2.group(1)}\\s*${RegExp.escape(match2.group(2) ?? 'M')}\\s*\$',
+            caseSensitive: false,
+          );
+          final String template = templates.keys.firstWhere(
+            matcher.hasMatch,
+            orElse: () {
+              final RegExpMatch match = _ripRegExp.firstMatch(s)!;
+              final String rip = match.group(2)!;
+              return rip;
+            },
+          );
+          final int times =
+              int.parse(match.group(4) ?? genericMatch.group(1) ?? '1');
+          return Ripetuta(template: template, ripetizioni: times);
+        }),
+      );
+    }).toList();
+  }
+  // TODO: reverse: training from name
 }

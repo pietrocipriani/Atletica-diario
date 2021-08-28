@@ -3,6 +3,7 @@ import 'package:atletica/results/result.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
+import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/training/variant.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +11,11 @@ import 'package:flutter/material.dart';
 class _RowRip extends _RowRipRes {
   _RowRip({
     required final Ripetuta rip,
-    required final Variant active,
+    final Variant? active,
     final bool disabled = false,
   }) : super(
           name: rip.template,
-          result: active[rip],
+          result: active?[rip],
           disabled: disabled,
           tipologia: templates[rip.template]?.tipologia ?? Tipologia.corsaDist,
         );
@@ -83,18 +84,13 @@ abstract class _RowRipRes extends StatelessWidget {
 
 class _RowRec extends StatelessWidget {
   final Recupero rec;
-  final bool isSerieRec;
   final bool disabled;
 
   /// returns [Widget] for `Recupero` rows
   /// * `rec` is the [Recupero] to show
   /// * if `isSerieRec`, the [Row] is highlighted
   /// * if `disabled`, the [Row] is greyed out
-  _RowRec({
-    required this.rec,
-    required this.isSerieRec,
-    this.disabled = false,
-  });
+  _RowRec({required this.rec, this.disabled = false});
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +102,7 @@ class _RowRec extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 8),
             height: 1,
-            color: (isSerieRec && !disabled)
+            color: (rec.isSerieRec && !disabled)
                 ? theme.primaryColor
                 : theme.disabledColor,
           ),
@@ -166,12 +162,30 @@ class TrainingDescription {
           active: active,
           disabled: disabled,
         );
-      if (i < recs.length)
-        yield _RowRec(
-          rec: recs[i],
-          isSerieRec: training.isSerieRec(i),
-          disabled: disabled,
-        );
+      if (i < recs.length) yield _RowRec(rec: recs[i], disabled: disabled);
+    }
+  }
+
+  static Iterable<Widget> fromSerie(
+    final List<Serie> serie, [
+    bool disabled = false,
+  ]) sync* {
+    final List<Ripetuta> rips = serie
+        .expand((s) => Iterable.generate(s.ripetizioni, (i) => s))
+        .expand((s) => s.ripetute)
+        .expand((r) => Iterable.generate(r.ripetizioni, (i) => r))
+        .toList();
+    final List<Recupero> recs = () sync* {
+      for (Serie s in serie) {
+        yield* s.recuperi;
+        if (s != serie.last) yield s.nextRecupero;
+      }
+    }()
+        .toList();
+
+    for (int i = 0; i < rips.length; i++) {
+      yield _RowRip(rip: rips[i], disabled: disabled);
+      if (i < recs.length) yield _RowRec(rec: recs[i], disabled: disabled);
     }
   }
 }
