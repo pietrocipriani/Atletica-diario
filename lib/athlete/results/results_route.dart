@@ -24,11 +24,9 @@ class _ResultsRouteListState extends State<ResultsRouteList>
       appBar: AppBar(
         title: Text('RISULTATI di ${widget.athlete.name}'),
         bottom: TabBar(
+          labelColor: Theme.of(context).colorScheme.onSurface,
           controller: _controller,
-          tabs: [
-            Tab(text: 'RISULTATI'),
-            Tab(text: 'PERSONALI'),
-          ],
+          tabs: [Tab(text: 'RISULTATI'), Tab(text: 'PERSONALI')],
         ),
       ),
       body: TabBarView(

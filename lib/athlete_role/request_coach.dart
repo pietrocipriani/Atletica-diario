@@ -16,8 +16,7 @@ class RequestCoachRoute extends StatefulWidget {
 
 class _RequestCoachRoute extends State<RequestCoachRoute> {
   late final Callback callback = Callback((_, c) => setState(() {}));
-  final TextEditingController controller = TextEditingController(),
-      _nameController = TextEditingController(text: userA.name);
+  final TextEditingController controller = TextEditingController(), _nameController = TextEditingController(text: userA.name);
 
   @override
   void initState() {
@@ -25,15 +24,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
     super.initState();
   }
 
-  String? _infoText,
-      _request,
-      _send,
-      _cancel,
-      _insertUid,
-      _loopback,
-      _insertUidPlaceholder,
-      _insertNamePlaceholder,
-      _waitingForResponse;
+  String? _infoText, _request, _send, _cancel, _insertUid, _loopback, _insertUidPlaceholder, _insertNamePlaceholder, _waitingForResponse;
 
   @override
   void didChangeDependencies() {
@@ -56,14 +47,11 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
     super.dispose();
   }
 
-  bool get _hasText =>
-      controller.text.isNotEmpty && _nameController.text.isNotEmpty;
+  bool get _hasText => controller.text.isNotEmpty && _nameController.text.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
-    if (userA.hasCoach)
-      WidgetsBinding.instance
-          ?.addPostFrameCallback((_) => widget.onCoachFound());
+    if (userA.hasCoach) WidgetsBinding.instance.addPostFrameCallback((_) => widget.onCoachFound());
 
     return WillPopScope(
       onWillPop: () => Future.value(false),
@@ -101,8 +89,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                   if (userA.needsRequest)
                     TextFormField(
                       controller: _nameController,
-                      decoration:
-                          InputDecoration(helperText: _insertNamePlaceholder),
+                      decoration: InputDecoration(helperText: _insertNamePlaceholder),
                       textCapitalization: TextCapitalization.words,
                     ),
                   if (userA.hasRequest)
@@ -111,11 +98,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                       children: <Widget>[
                         AnimatedText(
                           text: _waitingForResponse!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headline6!
-                              .copyWith(
-                                  color: Theme.of(context).primaryColorDark),
+                          style: Theme.of(context).textTheme.headline6!.copyWith(color: Theme.of(context).primaryColorDark),
                         ),
                         Icon(Icons.check_circle, color: Colors.green)
                       ],

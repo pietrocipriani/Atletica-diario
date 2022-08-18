@@ -6,7 +6,8 @@ import 'package:atletica/global_widgets/leading_info_widget.dart';
 import 'package:atletica/main.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
-import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/refactoring/utils/pair.dart';
+import 'package:atletica/results/pbs/tag.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_description.dart';
 import 'package:atletica/training/widgets/training_dialog.dart';
@@ -45,14 +46,13 @@ class _TrainingRouteState extends State<TrainingRoute> {
   Widget build(BuildContext context) {
     final Widget _fab = FloatingActionButton(
       onPressed: () async {
-        final Pair<String, String>? tags =
-            await showDialog<Pair<String, String>>(
+        final TagPair? tags = await showDialog<TagPair>(
           context: context,
           builder: (context) => TrainingDialog(tag1: tag1, tag2: tag2),
         );
         if (tags != null) {
-          tag1 = tags.v1;
-          tag2 = tags.v2;
+          tag1 = tags.value1;
+          tag2 = tags.value2;
           setState(() {});
           _controller.animateToPage(
             2,
@@ -69,14 +69,16 @@ class _TrainingRouteState extends State<TrainingRoute> {
       appBar: AppBar(title: Text('ALLENAMENTI')),
       body: PageView(
         children: [
-          TrainingRouteFolder(onSelected: (t) {
-            setState(() => tag1 = t);
-            _controller.animateToPage(
-              1,
-              curve: Curves.fastOutSlowIn,
-              duration: kAnimDuration,
-            );
-          }),
+          TrainingRouteFolder(
+            onSelected: (t) {
+              setState(() => tag1 = t);
+              _controller.animateToPage(
+                1,
+                curve: Curves.fastOutSlowIn,
+                duration: kAnimDuration,
+              );
+            },
+          ),
           if (tag1 != null)
             TrainingRouteFolder(
               tag1: tag1,
@@ -130,8 +132,7 @@ class TrainingRouteFolder extends StatefulWidget {
 
 /// [State] for [TrainingRoute]
 class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
-  static const Widget _emptyMessage =
-      Center(child: Text('non hai creato ancora nessun allenamento'));
+  static const Widget _emptyMessage = Center(child: Text('non hai creato ancora nessun allenamento'));
 
   bool get _hasItems => Training.hasItems(widget.tag1, widget.tag2);
 
@@ -140,6 +141,7 @@ class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
       return Training.fromPath().map(
         (e) => _PathWidget(
           tag: e,
+          selected: e == widget.selected,
           onTap: widget.onSelected == null ? null : () => widget.onSelected!(e),
         ),
       );
@@ -147,12 +149,12 @@ class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
       return Training.fromPath(widget.tag1).map(
         (e) => _PathWidget(
           tag: e,
+          selected: e == widget.selected,
           path: widget.tag1!,
           onTap: widget.onSelected == null ? null : () => widget.onSelected!(e),
         ),
       );
-    return Training.fromPath(widget.tag1, widget.tag2)
-        .map((e) => _TrainingWidget(e));
+    return Training.fromPath(widget.tag1, widget.tag2).map((e) => _TrainingWidget(e));
   }
 
   String get _path {
@@ -176,10 +178,7 @@ class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
             margin: const EdgeInsets.all(16),
             child: Text(
               _path,
-              style: Theme.of(context)
-                  .textTheme
-                  .overline!
-                  .copyWith(fontWeight: FontWeight.normal),
+              style: Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal),
               maxLines: 1,
               textAlign: TextAlign.end,
             ),
@@ -200,10 +199,15 @@ class _PathWidget extends StatelessWidget {
   final String tag1;
   final String? tag2;
   final int trainingsCount;
+  final bool selected;
   final void Function()? onTap;
 
-  _PathWidget({required final String tag, final String? path, this.onTap})
-      : tag1 = path ?? tag,
+  _PathWidget({
+    required final String tag,
+    final String? path,
+    this.onTap,
+    this.selected = false,
+  })  : tag1 = path ?? tag,
         tag2 = path == null ? null : tag,
         trainingsCount = Training.trainingsCount(
           path ?? tag,
@@ -213,6 +217,7 @@ class _PathWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomListTile(
+      tileColor: selected ? Theme.of(context).bottomAppBarColor : null,
       title: Text(
         tag2 ?? tag1,
         style: TextStyle(fontWeight: FontWeight.normal),
@@ -255,29 +260,21 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final String description = widget.training.descrizione.isEmpty
-        ? 'nessuna descrizione'
-        : widget.training.descrizione;
+    final String description = widget.training.descrizione.isEmpty ? 'nessuna descrizione' : widget.training.descrizione;
 
     final List<Widget> children = <Widget>[
       Align(
         alignment: Alignment.center,
         child: Text(
           description,
-          style: Theme.of(context)
-              .textTheme
-              .overline!
-              .copyWith(fontWeight: FontWeight.normal),
+          style: Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal),
           textAlign: TextAlign.justify,
         ),
       ),
       const SizedBox(height: 10),
     ];
 
-    children.addAll(TrainingDescription.fromTraining(
-      widget.training,
-      widget.training.variants[variant],
-    ));
+    children.addAll(TrainingDescription.fromTraining(widget.training));
 
     return CustomDismissible(
         key: widget._key,
@@ -291,8 +288,7 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  TrainingInfoRoute(allenamento: widget.training),
+              builder: (context) => TrainingInfoRoute(allenamento: widget.training),
             ),
           );
           widget.training.save();
@@ -300,13 +296,11 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
         },
         child: CustomExpansionTile(
           title: widget.training.name,
-          childrenPadding:
-              const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+          childrenPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
           children: children,
           leading: LeadingInfoWidget(
             info: widget.training.ripetuteCount.toString(),
-            bottom: singularPlural(
-                'ripetut', 'a', 'e', widget.training.ripetuteCount),
+            bottom: singularPlural('ripetut', 'a', 'e', widget.training.ripetuteCount),
           ),
           trailing: IconButton(
             icon: Icon(Icons.copy),

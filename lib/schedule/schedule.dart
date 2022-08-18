@@ -28,8 +28,7 @@ DateTime nextStartOfWeek([DateTime? dt]) {
 
 class ScheduledTraining with Notifier<ScheduledTraining> {
   static final Cache<DocumentReference, ScheduledTraining> _cache = Cache();
-  static final SplayTreeMap<Date, List<ScheduledTraining>> cachedByDate =
-      SplayTreeMap();
+  static final SplayTreeMap<Date, List<ScheduledTraining>> cachedByDate = SplayTreeMap();
 
   static void Function(Callback c) signInGlobal = _cache.signIn;
   static void Function(Callback c) signOutGlobal = _cache.signOut;
@@ -56,10 +55,7 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
 
   static Iterable<ScheduledTraining> get scheduledTrainings => _cache.values;
   static Iterable<ScheduledTraining> inRange(final Date start, final Date end) {
-    return cachedByDate.entries
-        .skipWhile((e) => e.key < start)
-        .takeWhile((e) => e.key <= end)
-        .expand((e) => e.value);
+    return cachedByDate.entries.skipWhile((e) => e.key < start).takeWhile((e) => e.key <= end).expand((e) => e.value);
   }
 
   static bool get isEmpty => _cache.isEmpty;
@@ -78,15 +74,13 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
     return cachedByDate[date] ?? List.empty();
   }
 
-  static ScheduledTraining? ofDateRef(
-      final Date date, final DocumentReference training) {
+  static ScheduledTraining? ofDateRef(final Date date, final DocumentReference training) {
     return ofDate(date).firstWhereNullable((s) => s.workRef == training);
   }
 
   factory ScheduledTraining.of(final DocumentReference ref) {
     final ScheduledTraining? a = _cache[ref];
-    if (a == null)
-      throw StateError('cannot find ScheduledTraining of ${ref.path}');
+    if (a == null) throw StateError('cannot find ScheduledTraining of ${ref.path}');
     return a;
   }
 
@@ -99,8 +93,7 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
   Set<DocumentReference> get athletesRefs => _athletes;
 
   factory ScheduledTraining.parse(final DocumentSnapshot raw) {
-    final ScheduledTraining a =
-        _cache[raw.reference] ??= ScheduledTraining._parse(raw);
+    final ScheduledTraining a = _cache[raw.reference] ??= ScheduledTraining._parse(raw);
     _cache.notifyAll(a, Change.ADDED);
     return a;
   }
@@ -109,17 +102,14 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
         workRef = snap['work'],
         date = Date.fromTimeStamp(snap['date']),
         plan = snap['plan'],
-        _athletes = Set.from(
-            snap.getNullable('athletes')?.cast<DocumentReference>() ??
-                Iterable.empty()) {
+        _athletes = Set.from((snap.getNullable('athletes') as List?)?.cast<DocumentReference>() ?? Iterable.empty()) {
     (cachedByDate[date] ??= []).add(this);
   }
 
   factory ScheduledTraining.update(final DocumentSnapshot raw) {
     final ScheduledTraining a = ScheduledTraining.of(raw.reference);
     a._athletes.clear();
-    a._athletes
-        .addAll(raw['athletes']?.cast<DocumentReference>() ?? Iterable.empty());
+    a._athletes.addAll(raw['athletes']?.cast<DocumentReference>() ?? Iterable.empty());
     _cache.notifyAll(a, Change.UPDATED);
     return a;
   }
@@ -135,16 +125,14 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
   }) async {
     if (batch == null) {
       final WriteBatch b = firestore.batch();
-      await create(
-          work: work, date: date, plan: plan, athletes: athletes, batch: b);
+      await create(work: work, date: date, plan: plan, athletes: athletes, batch: b);
       return await b.commit();
     }
     batch.set(userC.userReference.collection('schedules').doc(), {
       'work': work.reference,
       'date': date,
       'plan': plan?.reference,
-      'athletes':
-          (athletes ?? Athlete.athletes.map((e) => e.reference)).toList(),
+      'athletes': (athletes ?? Athlete.athletes.map((e) => e.reference)).toList(),
     });
   }
 
@@ -155,8 +143,7 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
   }) async {
     if (batch == null) {
       final WriteBatch b = firestore.batch();
-      await update(
-          athletes: athletes, removedAthletes: removedAthletes, batch: b);
+      await update(athletes: athletes, removedAthletes: removedAthletes, batch: b);
       return await b.commit();
     }
     final Set<DocumentReference> remainingAthletes = Set.from(_athletes);
@@ -173,12 +160,8 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
   /// do not call in athlete role: crash
   String get athletesAsList {
     final List<Athlete> athletes = Athlete.getAthletes(_athletes).toList();
-    final List<Group> gs =
-        Group.groups.where((group) => group.isContainedIn(athletes)).toList();
+    final List<Group> gs = Group.groups.where((group) => group.isContainedIn(athletes)).toList();
     gs.forEach((g) => g.athletes.forEach(athletes.remove));
-    return gs
-        .map((g) => g.name)
-        .followedBy(athletes.map((a) => a.name))
-        .join(', ');
+    return gs.map((g) => g.name).followedBy(athletes.map((a) => a.name)).join(', ');
   }
 }

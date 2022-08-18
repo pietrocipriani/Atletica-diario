@@ -105,7 +105,6 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
           PreferencesSwitch(
             icon: Icons.dark_mode,
             text: _darkMode!,
-            // TODO: update dialog skipped on brightness != themedata.system
             value: Theme.of(context).brightness == Brightness.dark,
             onSwitch: (v) {
               themeMode = v ? ThemeMode.dark : ThemeMode.light;
@@ -138,6 +137,19 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
               onSwitch: (s) async {
                 await auth.user.userReference.update({'fictionalAthletes': s});
                 setState(() => auth.userC.fictionalAthletes = s);
+              },
+            ),
+          if (auth.user.isCoach)
+            PreferencesSwitch(
+              icon: Icons.build_circle,
+              text: "MOSTRA VARIANTI",
+              description:
+                  "possibilità di inserire le varianti agli allenamenti per differenti target",
+              disabled: true,
+              value: auth.userC.showVariants,
+              onSwitch: (s) async {
+                await auth.user.userReference.update({'showVariants': s});
+                setState(() => auth.userC.showVariants = s);
               },
             ),
           PreferencesActionButton(

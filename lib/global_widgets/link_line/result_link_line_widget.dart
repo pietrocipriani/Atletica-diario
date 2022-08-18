@@ -1,4 +1,4 @@
-import 'package:atletica/global_widgets/link_line/link_line.dart';
+/* import 'package:atletica/global_widgets/link_line/link_line.dart';
 import 'package:flutter/material.dart';
 
 class ResultLinkLineWidget extends StatelessWidget {
@@ -60,3 +60,4 @@ class ResultLinkLineWidget extends StatelessWidget {
     );
   }
 }
+ */

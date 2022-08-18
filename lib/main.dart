@@ -1,32 +1,27 @@
-import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/mode_selector_route.dart';
 import 'package:atletica/global_widgets/splash_screen.dart';
 import 'package:atletica/home/home_page.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/themes/dark_theme.dart';
 import 'package:atletica/themes/light_theme.dart';
-import 'package:boot_completed/boot_completed.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+//import 'package:boot_completed/boot_completed.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:workmanager/workmanager.dart';
 
 const double kListTileHeight = 72.0;
 
-final FlutterLocalNotificationsPlugin notificationPlugin =
-    FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin notificationPlugin = FlutterLocalNotificationsPlugin();
 
 final BehaviorSubject<String?> notificationSelected = BehaviorSubject();
 
-Future<bool> _coachReminder(
+/* Future<bool> _coachReminder(
   final User user,
   final FirebaseFirestore firestore,
 ) async {
@@ -37,11 +32,7 @@ Future<bool> _coachReminder(
     DateTime.friday,
   ]; // TODO: choosen by user
   if (!workDays.contains(today)) return false;
-  final Query q = firestore
-      .collection('users')
-      .doc(user.uid)
-      .collection('schedules')
-      .where('date', isEqualTo: Timestamp.fromDate(Date.now()));
+  final Query q = firestore.collection('users').doc(user.uid).collection('schedules').where('date', isEqualTo: Timestamp.fromDate(Date.now()));
   final QuerySnapshot snap = await q.get();
   return snap.docs.isEmpty;
 }
@@ -53,31 +44,17 @@ Future<bool> _athleteReminder(
 ) async {
   final String? coachUid = snap.getNullable('coach');
   if (coachUid == null) return false;
-  final DocumentReference requestRef = firestore
-      .collection('users')
-      .doc(coachUid)
-      .collection('athletes')
-      .doc(user.uid);
+  final DocumentReference requestRef = firestore.collection('users').doc(coachUid).collection('athletes').doc(user.uid);
   final DocumentSnapshot requestSnap = await requestRef.get();
-  if (!requestSnap.exists ||
-      requestSnap.getNullable('nickname') == null ||
-      requestSnap.getNullable('group') == null) return false;
-  final Query schedulesQ = firestore
-      .collection('users')
-      .doc(coachUid)
-      .collection('schedules')
-      .where('date', isEqualTo: Timestamp.fromDate(Date.now()));
+  if (!requestSnap.exists || requestSnap.getNullable('nickname') == null || requestSnap.getNullable('group') == null) return false;
+  final Query schedulesQ = firestore.collection('users').doc(coachUid).collection('schedules').where('date', isEqualTo: Timestamp.fromDate(Date.now()));
   final bool hasSchedules = (await schedulesQ.get()).docs.isNotEmpty;
-  final Query resultsQ = firestore
-      .collection('users')
-      .doc(user.uid)
-      .collection('results')
-      .where('date', isEqualTo: Timestamp.fromDate(Date.now()));
+  final Query resultsQ = firestore.collection('users').doc(user.uid).collection('results').where('date', isEqualTo: Timestamp.fromDate(Date.now()));
   final bool hasResults = (await resultsQ.get()).docs.isNotEmpty;
   return !hasSchedules && !hasResults;
-}
+} */
 
-void _isolateCallback() {
+/*void _isolateCallback() {
   Workmanager().executeTask((taskName, inputData) async {
     await Firebase.initializeApp();
     final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -136,7 +113,8 @@ void _isolateCallback() {
         AndroidNotificationDetails(
       taskName,
       '$role reminder notification',
-      'shows notifications when you haven\'t scheduled a training in a work day',
+      channelDescription:
+          'shows notifications when you haven\'t scheduled a training in a work day',
       ticker: 'training not set yet',
       onlyAlertOnce: true,
     );
@@ -182,27 +160,24 @@ void _initWorkmanager() {
     frequency: const Duration(days: 1),
     existingWorkPolicy: ExistingWorkPolicy.replace,
   );
-}
+}*/
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  if (!kIsWeb)
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+  if (!kIsWeb) FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
 
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('ic_launcher');
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
 
-  final InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
+  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
   await notificationPlugin.initialize(
     initializationSettings,
     onSelectNotification: (payload) async => notificationSelected.add(payload),
   );
 
   if (!kIsWeb) {
-    setBootCompletedFunction(_initWorkmanager);
-    _initWorkmanager();
+    //setBootCompletedFunction(_initWorkmanager);
+    //_initWorkmanager();
   }
 
   runApp(MyApp());
@@ -230,7 +205,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Atletica',
       theme: lightTheme,
       darkTheme: darkTheme,
@@ -262,7 +237,7 @@ class MyHomePageState extends State<MyHomePage> {
     if (!hasRole)
 
       /// requests [role] selection (if not choosen)
-      WidgetsBinding.instance!.addPostFrameCallback(
+      WidgetsBinding.instance.addPostFrameCallback(
         (d) => showModeSelectorRoute(context: context),
       );
 
@@ -289,10 +264,7 @@ String singularPlural(String root, String singular, String plural, int count) {
 
 /// a conventional function for starting a `route` with given `context`
 /// and an optional `setState(() {})` if the ui can change after the pop
-void startRoute(
-    {required BuildContext context,
-    required Widget route,
-    void Function(void Function())? setState}) async {
+void startRoute({required BuildContext context, required Widget route, void Function(void Function())? setState}) async {
   await Navigator.push(context, MaterialPageRoute(builder: (context) => route));
   setState?.call(() {});
 }

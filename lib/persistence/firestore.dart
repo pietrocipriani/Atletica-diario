@@ -17,8 +17,7 @@ const String COACH_ROLE = 'coach', ATHLETE_ROLE = 'athlete';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-DocumentReference userFromUid(final String uid) =>
-    firestore.collection('users').doc(uid);
+DocumentReference userFromUid(final String uid) => firestore.collection('users').doc(uid);
 
 Future<void> initFirestore([
   final String? runas,
@@ -35,27 +34,24 @@ Future<void> initFirestore([
 
   if (!snapshot.exists)
     await userDoc.set({'name': rawUser.displayName});
-  else if (snapshot.getNullable('runas') != null &&
-      snapshot['runas'].isNotEmpty)
-    return await initFirestore(
-        snapshot['runas'], snapshot.getNullable('admin') ?? false);
+  else if (snapshot.getNullable('runas') != null && snapshot['runas'].isNotEmpty)
+    return await initFirestore(snapshot['runas'], snapshot.getNullable('admin') as bool? ?? false);
   else {
     if (snapshot.getNullable('role') != null) {
       if (snapshot['role'] == COACH_ROLE)
         user = CoachHelper(
-          user:
-              rawUser is User ? rawUser : (rawUser as FirebaseUserHelper).user,
+          user: rawUser is User ? rawUser : (rawUser as FirebaseUserHelper).user,
           userReference: userFromUid(runas ?? rawUser.uid),
-          admin: admin ?? snapshot.getNullable('admin') ?? false,
-          showAsAthlete: snapshot.getNullable('showAsAthlete') ?? false,
-          fictionalAthletes: snapshot.getNullable('fictionalAthletes') ?? true,
+          admin: admin ?? snapshot.getNullable('admin') as bool? ?? false,
+          showAsAthlete: snapshot.getNullable('showAsAthlete') as bool? ?? false,
+          showVariants: snapshot.getNullable('showVariants') as bool? ?? false,
+          fictionalAthletes: snapshot.getNullable('fictionalAthletes') as bool? ?? true,
         );
       else if (snapshot['role'] == ATHLETE_ROLE)
         user = AthleteHelper(
-          user:
-              rawUser is User ? rawUser : (rawUser as FirebaseUserHelper).user,
+          user: rawUser is User ? rawUser : (rawUser as FirebaseUserHelper).user,
           userReference: userFromUid(runas ?? rawUser.uid),
-          admin: admin ?? snapshot.getNullable('admin') ?? false,
+          admin: admin ?? snapshot.getNullable('admin') as bool? ?? false,
         );
     }
     if (snapshot.getNullable('themeMode') != null) {
@@ -72,17 +68,16 @@ Future<void> initFirestore([
 }
 
 Future<void> setRole(final String role) {
-  assert((rawUser == null || !(rawUser is FirebaseUserHelper)) &&
-      (role == COACH_ROLE || role == ATHLETE_ROLE));
+  assert((rawUser == null || !(rawUser is FirebaseUserHelper)) && (role == COACH_ROLE || role == ATHLETE_ROLE));
   final DocumentReference userReference = userFromUid(rawUser.uid);
   if (role == COACH_ROLE)
     user = CoachHelper(
       user: rawUser,
       userReference: userReference,
+      showVariants: false,
       fictionalAthletes: true,
       showAsAthlete: false,
     );
-  else if (role == ATHLETE_ROLE)
-    user = AthleteHelper(user: rawUser, userReference: userReference);
+  else if (role == ATHLETE_ROLE) user = AthleteHelper(user: rawUser, userReference: userReference);
   return userReference.update({'role': role});
 }

@@ -1,17 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class AlertPoint extends StatefulWidget {
   @override
   _AlertPointState createState() => _AlertPointState();
 }
 
-class _AlertPointState extends State<StatefulWidget>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(seconds: 1));
+class _AlertPointState extends State<StatefulWidget> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1));
 
   @override
   void initState() {
@@ -54,10 +51,8 @@ class TimerRunningIcon extends StatefulWidget {
   _TimerRunningIconState createState() => _TimerRunningIconState();
 }
 
-class _TimerRunningIconState extends State<TimerRunningIcon>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(seconds: 2));
+class _TimerRunningIconState extends State<TimerRunningIcon> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
   late final Animation<double> _angleAnim = Tween<double>(
     begin: 0,
     end: 4 * pi,
@@ -110,8 +105,7 @@ class _TimerPainter extends CustomPainter {
     p.style = PaintingStyle.stroke;
     canvas.drawCircle(center, radius, p);
     p.style = PaintingStyle.fill;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius - 4),
-        startAngle - pi / 2, sweepAngle, true, p);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius - 4), startAngle - pi / 2, sweepAngle, true, p);
   }
 
   @override

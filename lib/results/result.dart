@@ -27,8 +27,7 @@ class Result with Notifier<Result> {
   static bool get isEmpty => _cache.isEmpty;
   static bool get isNotEmpty => _cache.isNotEmpty;
 
-  static Iterable<Result> ofDate(final Date date) =>
-      cachedResults.where((r) => r.date == date);
+  static Iterable<Result> ofDate(final Date date) => cachedResults.where((r) => r.date == date);
   static Result? tryOf(final DocumentReference? ref) {
     if (ref == null) return null;
     try {
@@ -43,8 +42,7 @@ class Result with Notifier<Result> {
     if (t == null) return null;
     return ofDate(st.date).firstWhereNullable(
       (r) => r.isCompatible(t, true),
-      orElse: () =>
-          ofDate(st.date).firstWhereNullable((r) => r.isCompatible(t)),
+      orElse: () => ofDate(st.date).firstWhereNullable((r) => r.isCompatible(t)),
     );
   }
 
@@ -61,21 +59,15 @@ class Result with Notifier<Result> {
   }
   Result._parse(DocumentSnapshot raw)
       : reference = raw.reference,
-        date = raw.getNullable('date') == null
-            ? Date.parse(raw.id)
-            : Date.fromTimeStamp(raw['date']),
+        date = raw.getNullable('date') == null ? Date.parse(raw.id) : Date.fromTimeStamp(raw['date']),
         training = raw['training'],
         results = Map.fromEntries(
-          raw['results']
-              .map((r) => parseRawResult(r))
-              .where((e) => e != null)
-              .map<MapEntry<SimpleRipetuta, double?>>(
-                (e) => MapEntry<SimpleRipetuta, double?>(
-                    SimpleRipetuta(e.key), e.value),
+          raw['results'].map((r) => parseRawResult(r)).where((e) => e != null).map<MapEntry<SimpleRipetuta, double?>>(
+                (e) => MapEntry<SimpleRipetuta, double?>(SimpleRipetuta(e.key), e.value),
               ),
         ),
-        fatigue = raw.getNullable('fatigue'),
-        info = raw.getNullable('info') ?? '' {
+        fatigue = raw.getNullable('fatigue') as int?,
+        info = raw.getNullable('info') as String? ?? '' {
     //if (raw.getNullable('date') == null) userC.saveResult(this);
   }
 
@@ -93,8 +85,7 @@ class Result with Notifier<Result> {
     int count = 0;
     for (SimpleRipetuta rip in r.ripetute) {
       final MapEntry? e = parseRawResult(raw['results'][count++]);
-      if (e == null || e.key != rip.name)
-        return throw StateError('cannot update rip');
+      if (e == null || e.key != rip.name) return throw StateError('cannot update rip');
       r[rip] = e.value;
     }
     r.notifyAll(r, Change.UPDATED);
@@ -104,7 +95,7 @@ class Result with Notifier<Result> {
   final DocumentReference? reference;
   final Date date;
   final String training;
-  final Map<SimpleRipetuta, double?> results;
+  final Map<SimpleRipetuta, Object?> results;
   int? fatigue;
   String? info;
 
@@ -127,18 +118,14 @@ class Result with Notifier<Result> {
     );
   }
 
-  bool isNotCompatible(final Training? training,
-          [final bool sameName = false]) =>
-      !isCompatible(training, sameName);
+  bool isNotCompatible(final Training? training, [final bool sameName = false]) => !isCompatible(training, sameName);
 
   bool get isOrphan {
-    if (ScheduledTraining.ofDate(date).any((st) => isCompatible(st.work, true)))
-      return false;
-    return ScheduledTraining.ofDate(date)
-        .every((st) => isNotCompatible(st.work));
+    if (ScheduledTraining.ofDate(date).any((st) => isCompatible(st.work, true))) return false;
+    return ScheduledTraining.ofDate(date).every((st) => isNotCompatible(st.work));
   }
 
-  double? resultAt(int index) {
+  Object? resultAt(int index) {
     return results.values.elementAt(index);
   }
 
@@ -151,12 +138,11 @@ class Result with Notifier<Result> {
 
   bool get isBooking => results.values.every((r) => r == null);
 
-  void operator []=(final SimpleRipetuta rip, final double? value) =>
-      results[rip] = value;
-  double? operator [](final SimpleRipetuta rip) => results[rip];
+  void operator []=(final SimpleRipetuta rip, final Object? value) => results[rip] = value;
+  Object? operator [](final SimpleRipetuta rip) => results[rip];
 
   Iterable<SimpleRipetuta> get ripetute => results.keys;
-  Iterable<MapEntry<SimpleRipetuta, double?>> get asIterable => results.entries;
+  Iterable<MapEntry<SimpleRipetuta, Object?>> get asIterable => results.entries;
 
   String get uniqueIdentifier => ripetute.join(':');
 }

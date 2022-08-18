@@ -62,7 +62,7 @@ ThemeData darkTheme = ThemeData(
   primaryColor: _primarySwatch,
   primaryColorDark: _primarySwatch[700],
   primaryColorLight: _primarySwatch.withOpacity(0.2),
-  accentColor: _primarySwatch[500],
+  colorScheme: ColorScheme.dark(secondary: _primarySwatch[500]!),
   toggleableActiveColor: _primarySwatch[600],
   disabledColor: _disabledColor,
   dialogTheme: _dialogTheme,

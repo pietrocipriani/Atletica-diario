@@ -12,10 +12,10 @@ description: training manager.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 2.1.0+36
+version: 2.2.0+38
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.17.6 <3.0.0"
 
 dependencies:
   flutter:
@@ -23,38 +23,39 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: ^0.17.0
-  flutter_date_pickers: ^0.2.4
+  flutter_date_pickers: ^0.4.0
   flutter_duration_picker: ^1.0.0
   mdi: ^5.0.0-nullsafety.0
-  firebase_core: ^1.3.0
-  firebase_analytics: ^8.3.0
-  firebase_auth: ^3.0.2
-  firebase_crashlytics: ^2.2.0
-  cloud_firestore: ^2.5.0
-  google_sign_in: ^5.0.4
-  dotted_border: ^2.0.0
-  soundpool: ^2.1.0
+  firebase_core: ^1.20.1
+  firebase_analytics: ^9.3.1
+  firebase_auth: ^3.6.3
+  firebase_crashlytics: ^2.8.7
+  cloud_firestore: ^3.4.4
+  google_sign_in: ^5.4.1
+  dotted_border: ^2.0.0+2
+  soundpool: ^2.3.0
   # vibration: ^1.4.0
-  table_calendar: ^3.0.1
-  http: ^0.13.3
+  table_calendar: ^3.0.6
+  http: ^0.13.5
 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.3
-  firebase_storage: ^10.0.2
-  package_info_plus: ^1.0.6
+  cupertino_icons: ^1.0.5
+  firebase_storage: ^10.3.5
+  package_info_plus: ^1.4.3+1
   app_installer: ^1.1.0
-  path_provider: ^2.0.2
-  flutter_local_notifications: ^8.1.1+1
-  crypto: ^3.0.1
-  rxdart: ^0.27.1
-  firebase_messaging: ^10.0.5
-  workmanager: ^0.4.1
-  boot_completed: ^1.1.0
+  path_provider: ^2.0.11
+  flutter_local_notifications: ^9.8.0+1
+  crypto: ^3.0.2
+  rxdart: ^0.27.5
+  firebase_messaging: ^12.0.2
+  get: ^4.6.5
+  sealed_unions: ^3.0.3+1
+  #boot_completed: ^1.1.0
 
-dependency_overrides:
-  path_provider: ^2.0.2
+#dependency_overrides:
+#  path_provider: ^2.0.5
 
 dev_dependencies:
   flutter_test:

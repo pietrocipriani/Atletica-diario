@@ -36,8 +36,7 @@ class SplashScreen extends StatelessWidget {
                     content: Text(snapshot.stackTrace.toString()),
                     actions: [
                       TextButton(
-                        onPressed: () => Clipboard.setData(ClipboardData(
-                            text: '${snapshot.error}\n${snapshot.stackTrace}')),
+                        onPressed: () => Clipboard.setData(ClipboardData(text: '${snapshot.error}\n${snapshot.stackTrace}')),
                         child: Text('copia errore'),
                       )
                     ],
@@ -45,19 +44,16 @@ class SplashScreen extends StatelessWidget {
                 );
               }
               print('login progress: ${snapshot.data}');
-              if (!snapshot.hasError &&
-                  snapshot.connectionState == ConnectionState.done) {
+              if (!snapshot.hasError && snapshot.connectionState == ConnectionState.done) {
                 print('in');
-                WidgetsBinding.instance!.addPostFrameCallback(
+                WidgetsBinding.instance.addPostFrameCallback(
                   (d) {
                     print('called navigator!');
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          if (rawUser == null ||
-                              !(rawUser is FirebaseUserHelper))
-                            return ModeSelectorRoute();
+                          if (rawUser == null || !(rawUser is FirebaseUserHelper)) return ModeSelectorRoute();
                           if (rawUser is CoachHelper) return CoachMainPage();
                           return AthleteMainPage();
                         },

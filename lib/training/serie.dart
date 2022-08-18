@@ -42,19 +42,21 @@ class Serie {
     raw['ripetute']?.forEach((raw) => Ripetuta.parse(this, raw));
     t.serie.add(this);
   }
+  Serie.parseLegacy(final Training t, final Map<String, Object?> raw, final List<Object?> variants)
+      : recupero = Recupero(recupero: raw['recupero'] ?? 3 * 60, isSerieRec: true),
+        nextRecupero = Recupero(recupero: raw['recuperoNext'] ?? 3 * 60, isSerieRec: true),
+        ripetizioni = raw['times'] as int {
+    final List<Object?>? rawRipetute = raw['ripetute'] as List?;
+    rawRipetute?.forEach((element) => Ripetuta.parseLegacy(this, raw, variants));
+    t.serie.add(this);
+  }
 
   /// converts `this` into a map to save it into [firestore]
-  Map<String, dynamic> get asMap => {
-        'recuperoNext': nextRecupero.recupero,
-        'recupero': recupero.recupero,
-        'times': ripetizioni,
-        'ripetute': ripetute.map((rip) => rip.asMap).toList()
-      };
+  Map<String, dynamic> get asMap => {'recuperoNext': nextRecupero.recupero, 'recupero': recupero.recupero, 'times': ripetizioni, 'ripetute': ripetute.map((rip) => rip.asMap).toList()};
 
   /// returns the number of [Ripetuta] into `this` [Serie]
   int get ripetuteCount {
-    return ripetute.fold<int>(0, (sum, rip) => sum + rip.ripetizioni) *
-        ripetizioni;
+    return ripetute.fold<int>(0, (sum, rip) => sum + rip.ripetizioni) * ripetizioni;
   }
 
   Iterable<Recupero> get recuperi sync* {

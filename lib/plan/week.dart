@@ -19,25 +19,28 @@ class Week {
   Map<String, dynamic> get asMap =>
       trainings.map((key, value) => MapEntry(key.toString(), value));
 
-  static Future<Week?> fromDialog(BuildContext context) {
-    final Week week = Week();
+  static Future<Week?> fromDialog(BuildContext context, [Week? week]) {
+    week = week != null ? Week.copy(week) : Week();
     return showDialog<Week>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          scrollable: true,
-          title: Text('definisci settimana'),
-          content: WeekDialog(week),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, null),
-              child: const Text('Annulla'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, week),
-              child: const Text('Conferma'),
-            )
-          ],
+        builder: (context, setState) => GestureDetector(
+          onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
+          child: AlertDialog(
+            scrollable: true,
+            title: Text('definisci settimana'),
+            content: WeekDialog(week!),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: const Text('Annulla'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, week),
+                child: const Text('Conferma'),
+              )
+            ],
+          ),
         ),
       ),
     );

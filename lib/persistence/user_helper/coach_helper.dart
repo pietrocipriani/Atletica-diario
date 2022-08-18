@@ -25,12 +25,14 @@ class CoachHelper extends FirebaseUserHelper {
   }
 
   bool showAsAthlete;
+  bool showVariants;
   bool fictionalAthletes;
 
   CoachHelper({
     required User user,
     required DocumentReference userReference,
     required this.showAsAthlete,
+    required this.showVariants,
     required this.fictionalAthletes,
     bool admin = false,
   }) : super(user: user, userReference: userReference, admin: admin) {

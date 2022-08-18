@@ -36,6 +36,8 @@ class _TagsSelectorWidgetState extends State<TagsSelectorWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
+  final GlobalKey _tag2Key = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -54,7 +56,7 @@ class _TagsSelectorWidgetState extends State<TagsSelectorWidget> {
                 else
                   tag1 = tag;
                 widget.onChanged?.call(tag, widget.training?.tag2 ?? tag2);
-                setState(() {});
+                _tag2Key.currentState?.setState(() {});
               },
             ),
           ),
@@ -83,7 +85,7 @@ class _TagsSelectorWidgetState extends State<TagsSelectorWidget> {
   }
 }
 
-class _TagTextField extends StatelessWidget {
+class _TagTextField extends StatefulWidget {
   final String? initialText;
   final Training? training;
   final int index;
@@ -91,25 +93,31 @@ class _TagTextField extends StatelessWidget {
   final void Function(String tag) onChanged;
 
   _TagTextField({
+    final Key? key,
     this.initialText,
     this.training,
     required this.index,
     required this.onChanged,
     this.dense = false,
-  });
+  }) : super(key: key);
 
+  @override
+  _TagTextFieldState createState() => _TagTextFieldState();
+}
+
+class _TagTextFieldState extends State<_TagTextField> {
   @override
   Widget build(final BuildContext context) {
     return AutoCompleteTextView<String>(
-      initialText: initialText,
-      onSelected: onChanged,
-      onSubmitted: onChanged,
+      initialText: widget.initialText,
+      onSelected: widget.onChanged,
+      onSubmitted: widget.onChanged,
       submitOnChange: true,
-      dense: dense,
+      dense: widget.dense,
       optionsBuilder: (v) {
-        final List<String> ts = (index == 1
+        final List<String> ts = (widget.index == 1
                 ? Training.fromPath().cast<String>()
-                : Training.tag2s(training?.tag1))
+                : Training.tag2s(widget.training?.tag1))
             .where((t) => t.contains(v.text))
             .toList();
         ts.sort((a, b) {

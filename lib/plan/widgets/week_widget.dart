@@ -21,12 +21,23 @@ class _WeekWidgetState extends State<WeekWidget> {
     final ThemeData theme = Theme.of(context);
     return CustomDismissible(
       key: ValueKey(widget.week),
-      direction: DismissDirection.startToEnd,
+      direction: DismissDirection.horizontal,
       confirmDismiss: (direction) async {
-        return await showDeleteConfirmDialog(
-          context: context,
-          name: 'settimana #${widget.plan.weeks.indexOf(widget.week) + 1}',
-        );
+        if (direction == DismissDirection.startToEnd)
+          return await showDeleteConfirmDialog(
+            context: context,
+            name: 'settimana #${widget.plan.weeks.indexOf(widget.week) + 1}',
+          );
+        else {
+          final Week? week = await Week.fromDialog(context, widget.week);
+          if (week != null)
+            widget.plan.update(
+              weeks: widget.plan.weeks
+                  .map((w) => w == widget.week ? week : w)
+                  .toList(),
+            );
+          return false;
+        }
       },
       onDismissed: (direction) {
         widget.plan.update(

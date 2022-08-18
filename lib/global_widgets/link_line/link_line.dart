@@ -1,4 +1,4 @@
-import 'package:atletica/athlete/athlete.dart';
+/* import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/global_widgets/link_line/athlete_link_line_widget.dart';
 import 'package:atletica/global_widgets/link_line/result_link_line_widget.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
@@ -23,12 +23,8 @@ class LinkLine extends StatefulWidget {
   final Ripetuta rip;
   final Map<Athlete, Keys> links;
 
-  LinkLine(
-      {required List<double> results,
-      required this.rip,
-      required Iterable<Athlete> athletes})
-      : links =
-            Map.fromEntries(athletes.map((atleta) => MapEntry(atleta, Keys()))),
+  LinkLine({required List<double> results, required this.rip, required Iterable<Athlete> athletes})
+      : links = Map.fromEntries(athletes.map((atleta) => MapEntry(atleta, Keys()))),
         this.results = results.map((result) => Result(result)).toList();
 
   @override
@@ -40,8 +36,7 @@ class _LinkLineState extends State<LinkLine> {
 
   dynamic selected;
 
-  bool get fullLinked =>
-      widget.links.values.every((keys) => keys.result != null);
+  bool get fullLinked => widget.links.values.every((keys) => keys.result != null);
 
   @override
   Widget build(BuildContext context) {
@@ -107,15 +102,11 @@ class _LinkLineState extends State<LinkLine> {
                           if (keys.result == result.key) keys.result = null;
                         });
                       else
-                        widget.links
-                            .forEach((a, keys) => keys.result ??= result.key);
+                        widget.links.forEach((a, keys) => keys.result ??= result.key);
                       setState(() {});
                     },
-                    targetFormatter: templates[widget.rip.template]!
-                        .tipologia
-                        .targetFormatter,
-                    isSpecial: result.result.isNaN ||
-                        result == widget.results[widget.results.length - 2],
+                    targetFormatter: templates[widget.rip.template]!.tipologia.formatTarget,
+                    isSpecial: result.result.isNaN || result == widget.results[widget.results.length - 2],
                   ),
                 )
                 .toList(),
@@ -132,8 +123,7 @@ class LinksPainter extends CustomPainter {
   final List<Keys> keys;
   final Paint p = Paint();
 
-  LinksPainter(
-      {required this.paintRO, this.color = Colors.black, required this.keys}) {
+  LinksPainter({required this.paintRO, this.color = Colors.black, required this.keys}) {
     p.color = color;
     p.strokeWidth = 2;
     p.strokeCap = StrokeCap.round;
@@ -146,18 +136,10 @@ class LinksPainter extends CustomPainter {
     for (Keys key in keys) {
       if (key.result == null) continue;
 
-      dynamic atleta = key.atleta.currentContext!
-          .findRenderObject()!
-          .getTransformTo(paintRO)
-          .getTranslation();
-      atleta = Offset(atleta.x + key.atleta.currentContext!.size!.width + 4,
-          atleta.y + key.atleta.currentContext!.size!.height / 2);
-      dynamic result = key.result!.currentContext!
-          .findRenderObject()!
-          .getTransformTo(paintRO)
-          .getTranslation();
-      result = Offset(result.x - 4,
-          result.y + key.result!.currentContext!.size!.height / 2);
+      dynamic atleta = key.atleta.currentContext!.findRenderObject()!.getTransformTo(paintRO).getTranslation();
+      atleta = Offset(atleta.x + key.atleta.currentContext!.size!.width + 4, atleta.y + key.atleta.currentContext!.size!.height / 2);
+      dynamic result = key.result!.currentContext!.findRenderObject()!.getTransformTo(paintRO).getTranslation();
+      result = Offset(result.x - 4, result.y + key.result!.currentContext!.size!.height / 2);
       Offset q1 = Offset((atleta.dx + result.dx) / 2, atleta.dy);
       Offset q2 = Offset((atleta.dx + result.dx) / 2, result.dy);
 
@@ -171,3 +153,4 @@ class LinksPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
+ */

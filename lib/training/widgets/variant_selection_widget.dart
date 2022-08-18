@@ -1,8 +1,7 @@
-import 'dart:math';
+/* import 'dart:math';
 
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
-import 'package:atletica/training/variant.dart';
 import 'package:flutter/material.dart';
 
 class VariantSelectionWidget extends StatefulWidget {
@@ -93,3 +92,4 @@ class _VariantSelectionWidgetState extends State<VariantSelectionWidget> {
     );
   }
 }
+ */

@@ -22,23 +22,19 @@ class Athlete with auth.Notifier<Athlete> {
   });
 
   static Iterable<Athlete> get fullAthletes => sortedFullAthletes;
-  static Iterable<Athlete> getFullAthletes(
-      final Iterable<DocumentReference> refs) {
+  static Iterable<Athlete> getFullAthletes(final Iterable<DocumentReference> refs) {
     return refs.map<Athlete?>((r) => _cache[r]).whereType<Athlete>();
   }
 
-  static Iterable<Athlete> get requests =>
-      fullAthletes.where((a) => a.isRequest);
+  static Iterable<Athlete> get requests => fullAthletes.where((a) => a.isRequest);
   static bool get hasRequests => fullAthletes.any((a) => a.isRequest);
   static Iterable<Athlete> getRequests(final Iterable<DocumentReference> refs) {
     return getFullAthletes(refs).where((a) => a.isRequest);
   }
 
-  static Iterable<Athlete> get athletes =>
-      fullAthletes.where((a) => a.isAthlete);
+  static Iterable<Athlete> get athletes => fullAthletes.where((a) => a.isAthlete);
   static bool get hasAthletes => fullAthletes.any((a) => a.isAthlete);
-  static Iterable<Athlete> getAthletes(
-      final Iterable<DocumentReference>? refs) {
+  static Iterable<Athlete> getAthletes(final Iterable<DocumentReference>? refs) {
     if (refs == null) return Iterable.empty();
     return getFullAthletes(refs).where((a) => a.isAthlete);
   }
@@ -50,8 +46,7 @@ class Athlete with auth.Notifier<Athlete> {
 
   static bool exists(final DocumentReference ref) => _cache.contains(ref);
 
-  static bool isNameInUse(final String name) =>
-      athletes.any((t) => t.name == name);
+  static bool isNameInUse(final String name) => athletes.any((t) => t.name == name);
 
   /// `reference` is the reference for [coaches/$coachUid/athletes/$id]
   final String? uid;
@@ -68,8 +63,7 @@ class Athlete with auth.Notifier<Athlete> {
   late StreamSubscription _trainingsCountSubscription;
   final Map<DocumentReference, Result> _results = {};
   Iterable<Result> get results => _results.values;
-  Iterable<Result> resultsOf(final Date dt) =>
-      results.where((r) => r.date == dt);
+  Iterable<Result> resultsOf(final Date dt) => results.where((r) => r.date == dt);
 
   /// `tbs`: training bests
   ///
@@ -101,10 +95,7 @@ class Athlete with auth.Notifier<Athlete> {
   }
 
   bool get isRequest => group == null;
-  bool get isAthlete =>
-      group != null &&
-      (auth.userC.fictionalAthletes || athlete != null) &&
-      (auth.userC.showAsAthlete || athlete != auth.userC.userReference);
+  bool get isAthlete => group != null && (auth.userC.fictionalAthletes || athlete != null) && (auth.userC.showAsAthlete || athlete != auth.userC.userReference);
 
   bool dismissed = false;
 
@@ -135,7 +126,7 @@ class Athlete with auth.Notifier<Athlete> {
         uid = exists ? raw.id : null,
         name = raw['nickname'],
         athlete = exists ? firestore.collection('users').doc(raw.id) : null {
-    group = raw.getNullable('group');
+    group = raw.getNullable('group') as String; // TODO: check if the use of the setter is unwanted
     _createTrainingsCountSubscription();
     sortedFullAthletes.add(this);
   }
@@ -149,8 +140,7 @@ class Athlete with auth.Notifier<Athlete> {
     return p;
   }
 
-  final StreamController<Result> _streamController =
-      StreamController.broadcast();
+  final StreamController<Result> _streamController = StreamController.broadcast();
 
   Stream<Result> resultsStream({final Date? date}) {
     return _streamController.stream.where((r) => r.date == date);
@@ -158,10 +148,7 @@ class Athlete with auth.Notifier<Athlete> {
 
   Stream<QuerySnapshot> _resultSnapshots() {
     final DocumentReference ref = resultsDoc;
-    return ref
-        .collection('results')
-        .where('coach', isEqualTo: auth.userC.uid)
-        .snapshots();
+    return ref.collection('results').where('coach', isEqualTo: auth.userC.uid).snapshots();
   }
 
   void _createTrainingsCountSubscription() {
@@ -199,8 +186,7 @@ class Athlete with auth.Notifier<Athlete> {
     if (p != null) _cache.notifyAll(p, auth.Change.DELETED);
   }
 
-  static Future<bool?> fromDialog(
-      {required BuildContext context, Athlete? request}) {
+  static Future<bool?> fromDialog({required BuildContext context, Athlete? request}) {
     return showDialog<bool>(
       context: context,
       builder: (context) => dialog(context: context, atleta: request),
@@ -209,8 +195,7 @@ class Athlete with auth.Notifier<Athlete> {
 
   //static Future<void> create({})
 
-  Future<void> update({required String nickname, required String group}) =>
-      reference.update({'nickname': nickname, 'group': group});
+  Future<void> update({required String nickname, required String group}) => reference.update({'nickname': nickname, 'group': group});
 
   static Future<void> create({
     required String nickname,

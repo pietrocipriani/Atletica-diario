@@ -12,27 +12,38 @@ import 'package:intl/intl.dart';
 
 GoogleSignIn _googleSignIn = GoogleSignIn(
   signInOption: SignInOption.standard,
-  clientId:
-      '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com',
+  clientId: '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com',
 );
 FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 GoogleSignInAccount? _guser;
 GoogleSignInAuthentication? _auth;
 
 extension DocumentSnapshotExtension<T extends Object?> on DocumentSnapshot<T> {
-  T? getNullable<T>(final String field) {
+  T? getNullable(final String field) {
     try {
-      return this[field];
+      return get(field);
     } on StateError {
       return null;
     }
+  }
+
+  T getLegacyFallback<T>(final List<String> fields) {
+    assert(fields.isNotEmpty);
+    StateError? error;
+    for (final String field in fields) {
+      try {
+        return get(field);
+      } on StateError catch (e) {
+        error ??= e;
+      }
+    }
+    throw error!;
   }
 }
 
 Object? _user;
 set user(dynamic user) {
-  assert(user == null || user is FirebaseUserHelper || user is User,
-      'user is ${user.runtimeType}');
+  assert(user == null || user is FirebaseUserHelper || user is User, 'user is ${user.runtimeType}');
   _user = user;
 }
 
@@ -75,8 +86,7 @@ class BasicUser {
 
 class Request extends BasicUser {
   final DocumentReference reference;
-  Request({required this.reference, required String uid, String? name})
-      : super(uid: uid, name: name);
+  Request({required this.reference, required String uid, String? name}) : super(uid: uid, name: name);
 }
 
 Stream<double> login({required BuildContext context}) async* {
@@ -94,8 +104,7 @@ Stream<double> login({required BuildContext context}) async* {
   print('requesting google account');
 
   do {
-    _guser =
-        await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
+    _guser = await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
     if (_guser == null) await requestLoginDialog(context: context);
   } while (_guser == null);
 
@@ -137,8 +146,7 @@ Future<bool?> showNewReleaseDialog({
   required String changelog,
   required final DateTime updateTime,
 }) {
-  changelog =
-      changelog.replaceAll(RegExp(r'^\*', multiLine: true), ' \u{2022} ');
+  changelog = changelog.replaceAll(RegExp(r'^\*', multiLine: true), ' \u{2022} ');
   final String date = DateFormat.yMMMd('it_IT').format(updateTime);
   final String time = DateFormat.Hm('it_IT').format(updateTime);
   final TextStyle bold = const TextStyle(fontWeight: FontWeight.bold);
@@ -152,20 +160,7 @@ Future<bool?> showNewReleaseDialog({
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           RichText(
-            text: TextSpan(
-                text: 'la nuova versione ',
-                children: [
-                  TextSpan(text: version, style: bold),
-                  TextSpan(text: ' del '),
-                  TextSpan(text: date, style: bold),
-                  TextSpan(text: ' ore '),
-                  TextSpan(text: time, style: bold),
-                  TextSpan(text: ' è disponibile!')
-                ],
-                style: Theme.of(context)
-                    .textTheme
-                    .overline
-                    ?.copyWith(fontWeight: FontWeight.normal)),
+            text: TextSpan(text: 'la nuova versione ', children: [TextSpan(text: version, style: bold), TextSpan(text: ' del '), TextSpan(text: date, style: bold), TextSpan(text: ' ore '), TextSpan(text: time, style: bold), TextSpan(text: ' è disponibile!')], style: Theme.of(context).textTheme.overline?.copyWith(fontWeight: FontWeight.normal)),
           ),
           SizedBox(height: 4),
           Text('changelog:'),

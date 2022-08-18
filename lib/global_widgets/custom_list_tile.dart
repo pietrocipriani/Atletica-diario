@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomListTile extends StatelessWidget {
-  CustomListTile({
+  const CustomListTile({
     Key? key,
     this.leading,
     this.title,
@@ -9,6 +9,7 @@ class CustomListTile extends StatelessWidget {
     this.trailing,
     this.isThreeLine = false,
     this.dense,
+    this.enabled = true,
     this.onTap,
     this.onLongPress,
     this.tileColor,
@@ -19,6 +20,7 @@ class CustomListTile extends StatelessWidget {
   final Widget? subtitle;
   final Widget? trailing;
   final bool isThreeLine;
+  final bool enabled;
   final bool? dense;
   final GestureTapCallback? onTap;
   final GestureLongPressCallback? onLongPress;

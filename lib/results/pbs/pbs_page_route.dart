@@ -1,15 +1,14 @@
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
 import 'package:atletica/main.dart';
+import 'package:atletica/refactoring/model/tipologia.dart';
 import 'package:atletica/results/pbs/pb.dart';
 import 'package:atletica/results/pbs/simple_result_widget.dart';
 import 'package:atletica/results/pbs/tag.dart';
 import 'package:atletica/results/result.dart';
-import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 
-final Map<TagsEvaluator, String?> filters =
-    Map.fromIterable(tags, key: (tag) => tag, value: (_) => null);
+final Map<TagsEvaluator, String?> filters = Map.fromIterable(tags, key: (tag) => tag, value: (_) => null);
 
 class PbsPageRoute extends StatelessWidget {
   final Iterable<Result>? res;
@@ -32,8 +31,7 @@ class PbsWidget extends StatefulWidget {
     if (clear) filters.updateAll((key, value) => null);
     (res ??= Result.cachedResults).forEach((r) {
       int i = 0;
-      r.asIterable.forEach((sr) => (results[sr.key.name] ??= Pb())
-          .put(result: r, index: i++, value: sr.value));
+      r.asIterable.forEach((sr) => (results[sr.key.name] ??= Pb()).put(result: r, index: i++, value: sr.value));
     });
     results.removeWhere((key, value) => value.isEmpty);
     _sorted.addAll(results.keys);
@@ -73,8 +71,7 @@ class _PbWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
 
-    final List<SimpleResult> results =
-        pb.results.where((r) => r.acceptable).toList();
+    final List<SimpleResult> results = pb.results.where((r) => r.acceptable).toList();
 
     if (results.isEmpty) return Container();
 
@@ -100,7 +97,7 @@ class _PbWidget extends StatelessWidget {
         ),
       ),
       trailing: LeadingInfoWidget(
-        info: Tipologia.corsaDist.targetFormatter(results[0].r),
+        info: Tipologia.corsaDist.formatTarget(results[0].r),
       ),
     );
   }

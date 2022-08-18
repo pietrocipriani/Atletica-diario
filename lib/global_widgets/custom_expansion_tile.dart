@@ -66,8 +66,6 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     with SingleTickerProviderStateMixin {
   static final Animatable<double> _easeInTween =
       CurveTween(curve: Curves.easeIn);
-  static final Animatable<double> _halfTween =
-      Tween<double>(begin: 0.0, end: 0.5);
 
   final ColorTween _borderColorTween = ColorTween();
   final ColorTween _headerColorTween = ColorTween();
@@ -80,8 +78,6 @@ class _ExpansionTileState extends State<CustomExpansionTile>
 
   late final AnimationController _controller =
       AnimationController(duration: _kExpand, vsync: this);
-  late final Animation<double> _iconTurns =
-      _controller.drive(_halfTween.chain(_easeInTween));
   late final Animation<double> _heightFactor = _controller.drive(_easeInTween);
   late final Animation<double> _elevationFactor =
       _heightFactor.drive(_elevationTween);
@@ -93,13 +89,33 @@ class _ExpansionTileState extends State<CustomExpansionTile>
       _paddingTween.animate(_heightFactor);
 
   bool _isExpanded = false;
+  //List<PlaceholderListTile>? _placeholderWidgets;
 
   @override
   void initState() {
     super.initState();
+    /*if (widget.children.length > 10)
+      _placeholderWidgets = List.filled(
+        widget.children.length,
+        const PlaceholderListTile(),
+        growable: true,
+      );*/
     _isExpanded = PageStorage.of(context)?.readState(context) as bool? ??
         widget.initiallyExpanded;
     if (_isExpanded) _controller.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(final CustomExpansionTile oldWidget) {
+    /*if (widget.children.length < 10)
+      _placeholderWidgets = null;
+    else
+      _placeholderWidgets = List.filled(
+        widget.children.length,
+        const PlaceholderListTile(),
+        growable: true,
+      );*/
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -147,14 +163,11 @@ class _ExpansionTileState extends State<CustomExpansionTile>
           tileColor: widget.backgroundColor ??
               (closed ? null : Theme.of(context).canvasColor),
           subtitle: widget.subtitle,
-          trailing: widget.trailing ??
-              RotationTransition(
-                turns: _iconTurns,
-                child: const Icon(Icons.expand_more),
-              ),
+          trailing: widget.trailing,
         ),
         ClipRect(
           child: Align(
+            alignment: Alignment.bottomCenter,
             heightFactor: _heightFactor.value,
             child: Container(
               padding: widget.childrenPadding,
@@ -187,10 +200,10 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     _borderColorTween.end = theme.dividerColor;
     _headerColorTween
       ..begin = theme.textTheme.subtitle1!.color
-      ..end = theme.accentColor;
+      ..end = theme.colorScheme.secondary;
     _iconColorTween
       ..begin = theme.unselectedWidgetColor
-      ..end = theme.accentColor;
+      ..end = theme.colorScheme.secondary;
     _cardColorTween.end = widget.childrenBackgroundColor ??
         theme.cardTheme.color ??
         theme.cardColor;
@@ -208,7 +221,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     Widget? child = closed || widget.children.isEmpty
         ? null
         : Column(
-            children: widget.children,
+            children: /*_placeholderWidgets ??*/ widget.children,
             crossAxisAlignment: CrossAxisAlignment.stretch,
           );
     if (!closed &&
@@ -226,7 +239,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
             textAlign: TextAlign.justify,
           ),
         ),
-        child!
+        if (child != null) child,
       ]);
     return AnimatedBuilder(
       animation: _controller.view,
@@ -234,4 +247,31 @@ class _ExpansionTileState extends State<CustomExpansionTile>
       child: child,
     );
   }
+}
+
+class PlaceholderListTile extends CustomListTile {
+  const PlaceholderListTile()
+      : super(
+          dense: false,
+          isThreeLine: false,
+          leading: const CircleAvatar(backgroundColor: Colors.grey),
+          enabled: false,
+          subtitle: const Align(
+            alignment: Alignment.centerLeft,
+            child: const SizedBox(
+              height: 10,
+              width: 150,
+              child: const ColoredBox(color: Colors.grey),
+            ),
+          ),
+          title: const Align(
+            alignment: Alignment.centerLeft,
+            child: const SizedBox(
+              height: 15,
+              width: 100,
+              child: const ColoredBox(color: Colors.grey),
+            ),
+          ),
+          trailing: const CircleAvatar(backgroundColor: Colors.grey),
+        );
 }

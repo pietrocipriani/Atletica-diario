@@ -3,11 +3,9 @@ import 'package:atletica/coach_role/main.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-Future<void> showModeSelectorRoute({required BuildContext context}) =>
-    showDialog(
+Future<void> showModeSelectorRoute({required BuildContext context}) => showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(

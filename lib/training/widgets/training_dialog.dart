@@ -1,4 +1,4 @@
-import 'package:atletica/ripetuta/ripetuta.dart';
+import 'package:atletica/refactoring/utils/pair.dart';
 import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_description.dart';
@@ -19,7 +19,6 @@ class _TrainingDialogState extends State<TrainingDialog> {
     while (Training.isNameInUse('training #$index')) index++;
     return TextEditingController(text: 'training #$index');
   }();
-  final FocusNode _titleFocus = FocusNode();
   String? tag1, tag2;
   bool _parseName = true;
   List<Serie>? serie;
@@ -48,6 +47,7 @@ class _TrainingDialogState extends State<TrainingDialog> {
   Widget build(BuildContext context) {
     final bool parsableName = Training.isParsableName(_controller.text);
     if (parsableName) serie = Training.parseName(_controller.text);
+
     return AlertDialog(
       title: Text('CREA ALLENAMENTO'),
       scrollable: true,
@@ -61,8 +61,7 @@ class _TrainingDialogState extends State<TrainingDialog> {
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: _titleValidator,
             onChanged: (v) => setState(() {}),
-            onFieldSubmitted: (v) =>
-                FocusScope.of(context).requestFocus(FocusNode()),
+            onFieldSubmitted: (v) => FocusScope.of(context).requestFocus(FocusNode()),
           ),
           TagsSelectorWidget(
             onChanged: (tag1, tag2) {
@@ -78,8 +77,7 @@ class _TrainingDialogState extends State<TrainingDialog> {
               Expanded(child: Text('analizza titolo')),
               Switch(
                 value: _parseName && parsableName,
-                onChanged:
-                    parsableName ? (v) => setState(() => _parseName = v) : null,
+                onChanged: parsableName ? (v) => setState(() => _parseName = v) : null,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ],
@@ -101,7 +99,11 @@ class _TrainingDialogState extends State<TrainingDialog> {
           child: Text('Annulla'),
         ),
         TextButton(
-          onPressed: _titleValidator(_controller.text) != null
+          onPressed: Training.isNameInUseStrict(
+            _controller.text,
+            tag1 ?? Training.defaultTag,
+            tag2 ?? Training.defaultTag,
+          )
               ? null
               : () async {
                   await Training.create(
@@ -113,7 +115,7 @@ class _TrainingDialogState extends State<TrainingDialog> {
 
                   Navigator.pop(
                     context,
-                    Pair<String, String>(
+                    TagPair(
                       tag1 ?? Training.defaultTag,
                       tag2 ?? Training.defaultTag,
                     ),

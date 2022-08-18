@@ -71,8 +71,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             )),
         color: IconTheme.of(context).color,
       ),
-      children: TrainingDescription.fromTraining(a, a.variants.first)
-          .toList(), // TODO: select variant
+      children: TrainingDescription.fromTraining(a).toList(), // TODO: select variant
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
       /*trailing: IconButton(
         icon: Icon(Icons.play_arrow),
@@ -91,15 +90,12 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         setState(() => selectedDay = day);
       },
       selectedDay: selectedDay,
-      onCalendarCreated: (controller) =>
-          widget.onSelectedDayChanged?.call(selectedDay),
+      onCalendarCreated: (controller) => widget.onSelectedDayChanged?.call(selectedDay),
       events: (dt) => ScheduledTraining.ofDate(dt),
     );
     final Widget list = Expanded(
       child: ListView(
-        children: ScheduledTraining.ofDate(selectedDay)
-            .map((st) => _trainingWidget(st))
-            .toList(),
+        children: ScheduledTraining.ofDate(selectedDay).map((st) => _trainingWidget(st)).toList(),
       ),
     );
 

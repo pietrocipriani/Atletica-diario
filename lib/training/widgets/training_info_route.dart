@@ -5,14 +5,16 @@ import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:atletica/global_widgets/resizable_text_field.dart';
 import 'package:atletica/global_widgets/times_widget.dart';
 import 'package:atletica/main.dart';
+import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/recupero/recupero_dialog.dart';
 import 'package:atletica/recupero/recupero_widget.dart';
+import 'package:atletica/refactoring/control/ripetuta/ripetuta_dialog.dart';
+import 'package:atletica/refactoring/view/target/target_view.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/training/serie.dart';
-import 'package:atletica/training/variant.dart';
 import 'package:atletica/training/widgets/tags_selector_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -40,9 +42,7 @@ class _RecuperoWidgetFollower extends StatelessWidget {
 class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
   bool editTitle = false;
   bool collapsedDescription = true;
-  late TextEditingController _titleController =
-      TextEditingController(text: widget.allenamento.name);
-  late Variant active = widget.allenamento.variants.first;
+  late TextEditingController _titleController = TextEditingController(text: widget.allenamento.name);
 
   List<Serie> get serie => widget.allenamento.serie;
 
@@ -51,8 +51,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
     final ThemeData theme = Theme.of(context);
     final Widget title = editTitle
         ? TextFormField(
-            style: theme.textTheme.headline6!
-                .copyWith(color: theme.colorScheme.onPrimary),
+            style: theme.textTheme.headline6!.copyWith(color: theme.colorScheme.onPrimary),
             controller: _titleController,
           )
         : Text(widget.allenamento.name);
@@ -61,8 +60,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
       if (editTitle)
         IconButton(
           icon: Icon(Icons.lightbulb_outline),
-          onPressed: () =>
-              _titleController.text = widget.allenamento.suggestName,
+          onPressed: () => _titleController.text = widget.allenamento.suggestName,
         ),
       if (editTitle)
         IconButton(
@@ -100,7 +98,6 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                   this.serie.remove(serie);
                   setState(() {});
                 },
-                variant: active,
                 //follower: serie.link,
               ),
               CompositedTransformTarget(
@@ -122,11 +119,11 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
             initialText: widget.allenamento.descrizione,
             hint: 'inserisci la descrizione (opzionale)',
           ),
-          /*VariantSelectionWidget(
-            variants: widget.allenamento.variants,
-            active: active,
-            onVariantChanged: (v) => setState(() => active = v),
-          ),*/
+          /*if (userC.showVariants)
+            VariantSelectionWidget(
+              variants: widget.allenamento.variants,
+              onVariantChanged: (v) => setState(() => active = v),
+            ),*/
           Expanded(
             child: Stack(
               children: <Widget>[
@@ -139,8 +136,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                   }),
                   children: children,
                 ),
-                for (Serie s in this.serie.where((s) => s != this.serie.last))
-                  _RecuperoWidgetFollower(link: s.link, rec: s.nextRecupero)
+                for (Serie s in this.serie.where((s) => s != this.serie.last)) _RecuperoWidgetFollower(link: s.link, rec: s.nextRecupero)
               ],
             ),
           ),
@@ -157,13 +153,11 @@ class _SerieWidget extends StatefulWidget {
   final void Function()? onDismissed;
   final void Function()? onCallback;
   final String name;
-  final Variant variant;
   final LayerLink? follower;
 
   _SerieWidget({
     required this.training,
     required this.serie,
-    required this.variant,
     this.onDismissed,
     this.onCallback,
     this.follower,
@@ -216,7 +210,6 @@ class _SerieWidgetState extends State<_SerieWidget> {
                             _RipetutaWidget(
                               rip: rip,
                               serie: widget.serie,
-                              active: widget.variant,
                               onChanged: () => setState(() {}),
                               onDismissed: () => setState(() {}),
                             ),
@@ -231,8 +224,7 @@ class _SerieWidgetState extends State<_SerieWidget> {
                               ),
                           ])
                       .toList()),
-              for (Ripetuta rip in widget.serie.ripetute)
-                _RecuperoWidgetFollower(link: rip.link, rec: rip.nextRecupero),
+              for (Ripetuta rip in widget.serie.ripetute) _RecuperoWidgetFollower(link: rip.link, rec: rip.nextRecupero),
             ],
           )
         ],
@@ -250,14 +242,9 @@ class _SerieWidgetState extends State<_SerieWidget> {
             IconButton(
               icon: Icon(Icons.add_circle),
               onPressed: () async {
-                final Pair<Ripetuta, double?>? rip =
-                    await Ripetuta.fromDialog(context: context);
+                final Ripetuta? rip = await createRipetuta(context);
                 if (rip == null) return;
-                setState(() {
-                  widget.serie.ripetute.add(rip.v1);
-                  widget.training.variants
-                      .forEach((v) => v.targets[rip.v1] = rip.v2);
-                });
+                setState(() => widget.serie.ripetute.add(rip));
               },
               color: theme.iconTheme.color,
             ),
@@ -276,13 +263,12 @@ class _SerieWidgetState extends State<_SerieWidget> {
 class _RipetutaWidget extends StatefulWidget {
   final Ripetuta rip;
   final Serie serie;
-  final Variant active;
   final void Function()? onChanged;
   final void Function() onDismissed;
+
   _RipetutaWidget({
     required this.rip,
     required this.serie,
-    required this.active,
     this.onChanged,
     required this.onDismissed,
   }) : super(key: ValueKey(rip));
@@ -291,6 +277,7 @@ class _RipetutaWidget extends StatefulWidget {
   _RipetutaWidgetState createState() => _RipetutaWidgetState();
 }
 
+// TODO: use observables
 class _RipetutaWidgetState extends State<_RipetutaWidget> {
   @override
   Widget build(final BuildContext context) {
@@ -304,14 +291,9 @@ class _RipetutaWidgetState extends State<_RipetutaWidget> {
       },
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) return true;
-        final Pair<Ripetuta, double?>? rip = await Ripetuta.fromDialog(
-          context: context,
-          ripetuta: widget.rip,
-          target: widget.active.targets[widget.rip],
-        );
+        final Ripetuta? rip = await editRipetuta(context, widget.rip);
         if (rip == null) return false;
-        assert(rip.v1 == widget.rip);
-        setState(() => widget.active.targets[widget.rip] = rip.v2);
+        assert(rip == widget.rip);
         return false;
       },
       child: Container(
@@ -329,7 +311,7 @@ class _RipetutaWidgetState extends State<_RipetutaWidget> {
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              if (templates[widget.rip.template] != null)
+              if (widget.rip.hasConcreteTemplate)
                 Text(
                   templates[widget.rip.template]!.tipologia.name,
                   style: TextStyle(
@@ -337,10 +319,11 @@ class _RipetutaWidgetState extends State<_RipetutaWidget> {
                     color: theme.primaryColorDark,
                   ),
                 ),
-              if (templates[widget.rip.template] != null)
-                Text(templates[widget.rip.template]!
-                    .tipologia
-                    .targetFormatter(widget.active.targets[widget.rip]))
+              if (widget.rip.hasConcreteTemplate)
+                TargetView(
+                  target: widget.rip.target,
+                  tipologia: widget.rip.resolveTemplate.tipologia,
+                )
             ],
           ),
           trailing: _RecuperoButton(

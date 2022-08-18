@@ -112,7 +112,8 @@ Future<void> _showErrorNotification(final Release release) async {
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'new-release',
     'update notification',
-    'shows notifications when a new app version is avaiable',
+    channelDescription:
+        'shows notifications when a new app version is avaiable',
     ticker: 'update error',
     onlyAlertOnce: true,
     showWhen: true,
@@ -133,7 +134,8 @@ Future<void> _showNotification(final Release release) async {
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'new-release',
     'update notification',
-    'shows notifications when a new app version is avaiable',
+    channelDescription:
+        'shows notifications when a new app version is avaiable',
     ticker: 'new release avaiable',
     visibility: NotificationVisibility.public,
     styleInformation: BigTextStyleInformation(release.changelog),

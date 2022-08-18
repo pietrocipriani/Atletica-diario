@@ -4,7 +4,6 @@ import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/serie.dart';
-import 'package:atletica/training/variant.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -17,8 +16,7 @@ final List<String> shortWeekDays = dateTimeSymbolMap()['it'].SHORTWEEKDAYS;
 /// class for [trainings] representation
 class Training with Notifier<Training> {
   static final Cache<DocumentReference, Training> _cache = Cache();
-  static final Map<String, Map<String, Map<DocumentReference, Training>>>
-      _cacheTree = {};
+  static final Map<String, Map<String, Map<DocumentReference, Training>>> _cacheTree = {};
 
   static void Function(Callback c) signInGlobal = _cache.signIn;
   static void Function(Callback c) signOutGlobal = _cache.signOut;
@@ -36,11 +34,7 @@ class Training with Notifier<Training> {
 
   static Iterable<Training> get trainings => _cache.values;
   static int trainingsCount([final String? tag1, final String? tag2]) {
-    return trainings
-        .where((t) =>
-            (tag1 == null || tag1 == t.tag1) &&
-            (tag2 == null || tag2 == t.tag2))
-        .length;
+    return trainings.where((t) => (tag1 == null || tag1 == t.tag1) && (tag2 == null || tag2 == t.tag2)).length;
   }
 
   static Iterable fromPath([final String? tag1, final String? tag2]) {
@@ -50,15 +44,16 @@ class Training with Notifier<Training> {
   }
 
   static Set<String> tag2s([final String? tag1]) {
-    return (_cacheTree[tag1]?.keys ?? const Iterable<String>.empty())
-        .followedBy(_cacheTree.entries
-            .where((e) => e.key != tag1)
-            .expand((e) => e.value.keys))
-        .toSet();
+    return (_cacheTree[tag1]?.keys ?? const Iterable<String>.empty()).followedBy(_cacheTree.entries.where((e) => e.key != tag1).expand((e) => e.value.keys)).toSet();
   }
 
-  static bool isNameInUse(final String name) =>
-      trainings.any((t) => t.name == name);
+  static bool isNameInUse(final String name) => trainings.any((t) => t.name == name);
+  static bool isNameInUseStrict(
+    final String name,
+    final String tag1,
+    final String tag2,
+  ) =>
+      trainings.any((t) => t.name == name && t.tag1 == tag1 && t.tag2 == tag2);
 
   static bool get isEmpty => _cache.isEmpty;
   static bool get isNotEmpty => _cache.isNotEmpty;
@@ -98,7 +93,7 @@ class Training with Notifier<Training> {
   /// `serie` is a `List` containing all the `Serie`s composing the [training]
   final List<Serie> serie = <Serie>[];
 
-  final List<Variant> variants = [];
+  // final List<Variant> variants = [];
 
   /// creates an instance from [firestore] `DocumentSnapshot`
   ///
@@ -113,13 +108,21 @@ class Training with Notifier<Training> {
       : reference = raw.reference,
         name = raw['name'],
         descrizione = raw['description'] ?? '',
-        tag1 = raw.getNullable('tag1') ?? defaultTag,
-        tag2 = raw.getNullable('tag2') ?? defaultTag {
-    raw['serie']?.forEach((raw) => Serie.parse(this, raw));
-    if (raw.getNullable('variants') == null)
+        tag1 = (raw.getNullable('tag1') ?? defaultTag) as String,
+        tag2 = (raw.getNullable('tag2') ?? defaultTag) as String {
+    final List? variants = (raw.getNullable('variants') as Map<String, Object?>?)?['targets'] as List?;
+
+    if (variants == null) {
+      raw['serie'].forEach((raw) => Serie.parse(this, raw));
+    } else {
+      // TODO: mark this training as legacy
+      raw['serie'].forEach((raw) => Serie.parseLegacy(this, raw, List.from(variants)));
+    }
+
+    /* if (raw.getNullable('variants') == null)
       Variant.fromOldMode(this);
-    else
-      raw['variants'].forEach((raw) => Variant.parse(raw, this));
+    else 
+      raw['variants'].forEach((raw) => Variant.parse(raw, this)); */
   }
   factory Training.update(final DocumentSnapshot raw) {
     final Training a = Training.of(raw.reference);
@@ -127,13 +130,16 @@ class Training with Notifier<Training> {
     a.descrizione = raw['description'];
 
     a.serie.clear();
-    raw['serie']?.forEach((raw) => Serie.parse(a, raw));
+
+    final List? variants = (raw.getNullable('variants') as Map<String, Object?>?)?['targets'] as List?;
+    if (variants == null) {
+      raw['serie'].forEach((raw) => Serie.parse(a, raw));
+    } else {
+      raw['serie'].forEach((raw) => Serie.parseLegacy(a, raw, List.from(variants)));
+    }
 
     a.tag1 = raw['tag1'];
     a.tag2 = raw['tag2'];
-
-    a.variants.clear();
-    raw['variants']?.forEach((raw) => Variant.parse(raw, a));
 
     a.notifyAll(a, Change.UPDATED);
     return a;
@@ -155,9 +161,6 @@ class Training with Notifier<Training> {
       'name': name,
       'description': '',
       'serie': serie?.map((serie) => serie.asMap).toList() ?? [],
-      'variants': serie == null
-          ? const [Variant.emptyMap]
-          : [Variant.fromSerie(serie).asMap()],
       'tag1': tag1 ?? defaultTag,
       'tag2': tag2 ?? defaultTag,
     });
@@ -166,20 +169,14 @@ class Training with Notifier<Training> {
   /// returns `index`th `Ripetuta` for `this`
   Ripetuta ripetutaFromIndex(int index) {
     final int initialIndex = index;
-    for (Serie s in serie)
-      for (int i = 0; i < s.ripetizioni; i++)
-        for (Ripetuta r in s.ripetute)
-          for (int j = 0; j < r.ripetizioni; j++) if (--index < 0) return r;
+    for (Serie s in serie) for (int i = 0; i < s.ripetizioni; i++) for (Ripetuta r in s.ripetute) for (int j = 0; j < r.ripetizioni; j++) if (--index < 0) return r;
     throw IndexError(initialIndex, ripetute);
   }
 
   /// returns all the [ripetute] as an `Iterable`
   /// (not grouped in [Serie]s)
   Iterable<Ripetuta> get ripetute sync* {
-    for (Serie s in serie)
-      for (int i = 0; i < s.ripetizioni; i++)
-        for (Ripetuta r in s.ripetute)
-          for (int j = 0; j < r.ripetizioni; j++) yield r;
+    for (Serie s in serie) for (int i = 0; i < s.ripetizioni; i++) for (Ripetuta r in s.ripetute) for (int j = 0; j < r.ripetizioni; j++) yield r;
   }
 
   Iterable<Recupero> get recuperi sync* {
@@ -202,15 +199,12 @@ class Training with Notifier<Training> {
       while (isNameInUse('$name ($copyNum)')) copyNum++;
       name = '$name ($copyNum)';
     }
-    final DocumentReference reference = copy
-        ? user.userReference.collection('trainings').doc()
-        : this.reference;
+    final DocumentReference reference = copy ? user.userReference.collection('trainings').doc() : this.reference;
 
     return reference.set({
       'name': name,
       'description': descrizione,
       'serie': serie.map((serie) => serie.asMap).toList(),
-      'variants': variants.map((v) => v.asMap(this)).toList(),
       'tag1': tag1.trim(),
       'tag2': tag2.trim(),
     });
@@ -243,8 +237,7 @@ class Training with Notifier<Training> {
   }
 
   /// returns the number of [Ripetuta] in `this` training
-  int get ripetuteCount =>
-      serie.fold(0, (sum, serie) => sum + serie.ripetuteCount);
+  int get ripetuteCount => serie.fold(0, (sum, serie) => sum + serie.ripetuteCount);
 
   @override
   String toString() => name;
@@ -258,8 +251,7 @@ class Training with Notifier<Training> {
     '^(?:$_mult)?\\(([^\\)]*)\\)|(?:(?:$_mult)?$_mult)?(.+)\$',
     dotAll: true,
   );
-  static final RegExp _ripRegExp =
-      RegExp("^(?:$_mult)?(\\d+\\s*[(?:k?M|m)'\"(?:hs)(?:min)]?)\\s*\$");
+  static final RegExp _ripRegExp = RegExp("^(?:$_mult)?(\\d+\\s*[(?:k?M|m)'\"(?:hs)(?:min)]?)\\s*\$");
   static final RegExp _genericRipRegExp = RegExp(
     '^(?:$_mult)?(.+)\$',
     dotAll: true,
@@ -267,18 +259,8 @@ class Training with Notifier<Training> {
 
   static bool isParsableName(final String name) {
     final Iterable<RegExpMatch> pMatches = _parenthesis.allMatches(name);
-    final List<RegExpMatch> sMatches =
-        pMatches.isEmpty && !RegExp(_mult).hasMatch(name)
-            ? []
-            : _separator
-                .allMatches(name)
-                .where((s) =>
-                    pMatches.every((p) => p.start > s.start || p.end < s.end))
-                .toList();
-    final List<String> series = List.generate(
-        sMatches.length + 1,
-        (i) => name.substring(i == 0 ? 0 : sMatches[i - 1].end,
-            i == sMatches.length ? null : sMatches[i].start));
+    final List<RegExpMatch> sMatches = pMatches.isEmpty && !RegExp(_mult).hasMatch(name) ? [] : _separator.allMatches(name).where((s) => pMatches.every((p) => p.start > s.start || p.end < s.end)).toList();
+    final List<String> series = List.generate(sMatches.length + 1, (i) => name.substring(i == 0 ? 0 : sMatches[i - 1].end, i == sMatches.length ? null : sMatches[i].start));
 
     final List<RegExpMatch?> matches = series.map(_serie.firstMatch).toList();
     if (matches.any((s) => s == null)) return false;
@@ -291,12 +273,9 @@ class Training with Notifier<Training> {
         final RegExpMatch? match = _genericRipRegExp.firstMatch(s);
         if (match == null) return false;
         final String ripName = match.group(2)!.trim();
-        final RegExpMatch? match2 =
-            RegExp(r'(\d+)(.*)', dotAll: true).firstMatch(ripName);
+        final RegExpMatch? match2 = RegExp(r'(\d+)(.*)', dotAll: true).firstMatch(ripName);
         final RegExp matcher = RegExp(
-          match2 == null
-              ? '^\s*${RegExp.escape(ripName)}\s*\$'
-              : '^\s*${match2.group(1)}\s*${RegExp.escape(match2.group(2)!)}\s*\$',
+          match2 == null ? '^\s*${RegExp.escape(ripName)}\s*\$' : '^\s*${match2.group(1)}\s*${RegExp.escape(match2.group(2)!)}\s*\$',
           caseSensitive: false,
         );
         if (templates.keys.any(matcher.hasMatch)) return true;
@@ -307,18 +286,10 @@ class Training with Notifier<Training> {
 
   static List<Serie>? parseName(final String name) {
     final Iterable<RegExpMatch> pMatches = _parenthesis.allMatches(name);
-    final List<RegExpMatch> sMatches =
-        pMatches.isEmpty && !RegExp(_mult).hasMatch(name)
-            ? []
-            : _separator
-                .allMatches(name)
-                .where((s) =>
-                    pMatches.every((p) => p.start > s.start || p.end < s.end))
-                .toList();
+    final List<RegExpMatch> sMatches = pMatches.isEmpty && !RegExp(_mult).hasMatch(name) ? [] : _separator.allMatches(name).where((s) => pMatches.every((p) => p.start > s.start || p.end < s.end)).toList();
     final List<String> series = List.generate(
       sMatches.length + 1,
-      (i) => name.substring(i == 0 ? 0 : sMatches[i - 1].end,
-          i == sMatches.length ? null : sMatches[i].start),
+      (i) => name.substring(i == 0 ? 0 : sMatches[i - 1].end, i == sMatches.length ? null : sMatches[i].start),
     );
 
     final List<RegExpMatch?> matches = series.map(_serie.firstMatch).toList();
@@ -333,12 +304,9 @@ class Training with Notifier<Training> {
           s = s.trim();
           final RegExpMatch genericMatch = _genericRipRegExp.firstMatch(s)!;
           final String ripName = genericMatch.group(2)!.trim();
-          final RegExpMatch? match2 =
-              RegExp(r'^(\d+)\s*(.+)?$', dotAll: true).firstMatch(ripName);
+          final RegExpMatch? match2 = RegExp(r'^(\d+)\s*(.+)?$', dotAll: true).firstMatch(ripName);
           final RegExp matcher = RegExp(
-            match2 == null
-                ? '^\\s*${RegExp.escape(ripName)}\\s*\$'
-                : '^\\s*${match2.group(1)}\\s*${RegExp.escape(match2.group(2) ?? 'M')}\\s*\$',
+            match2 == null ? '^\\s*${RegExp.escape(ripName)}\\s*\$' : '^\\s*${match2.group(1)}\\s*${RegExp.escape(match2.group(2) ?? 'M')}\\s*\$',
             caseSensitive: false,
           );
           final String template = templates.keys.firstWhere(
@@ -349,8 +317,7 @@ class Training with Notifier<Training> {
               return rip;
             },
           );
-          final int times =
-              int.parse(match.group(4) ?? genericMatch.group(1) ?? '1');
+          final int times = int.parse(match.group(4) ?? genericMatch.group(1) ?? '1');
           return Ripetuta(template: template, ripetizioni: times);
         }),
       );

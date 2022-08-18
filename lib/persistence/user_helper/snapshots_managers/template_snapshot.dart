@@ -1,3 +1,5 @@
+import 'package:atletica/refactoring/model/target.dart';
+import 'package:atletica/refactoring/model/tipologia.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -19,5 +21,9 @@ Future<bool> templateSnapshot(
 
 void addGlobalTemplates(DocumentSnapshot snapshot) {
   for (String name in snapshot['templates'])
-    SimpleTemplate(name: name, tipologia: Tipologia.corsaDist, save: true);
+    SimpleTemplate(
+      name: name,
+      tipologia: Tipologia.corsaDist,
+      save: true,
+    );
 }

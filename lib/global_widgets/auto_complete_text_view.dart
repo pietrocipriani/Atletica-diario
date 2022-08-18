@@ -24,8 +24,7 @@ class AutoCompleteTextView<T extends Object> extends StatefulWidget {
   State<StatefulWidget> createState() => _AutoCompleteTextViewState<T>();
 }
 
-class _AutoCompleteTextViewState<T extends Object>
-    extends State<AutoCompleteTextView<T>> {
+class _AutoCompleteTextViewState<T extends Object> extends State<AutoCompleteTextView<T>> {
   TextEditingController? _controller;
   double? _width;
 
@@ -34,7 +33,7 @@ class _AutoCompleteTextViewState<T extends Object>
     if (_controller == null)
       c.text = _controller?.text ?? widget.initialText ?? '';
     else
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         c.text = _controller?.text ?? widget.initialText ?? '';
       });
     _controller = c;
@@ -55,13 +54,13 @@ class _AutoCompleteTextViewState<T extends Object>
 
   @override
   void initState() {
-    WidgetsBinding.instance?.addPostFrameCallback((_) => _width = _formWidth);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _width = _formWidth);
     super.initState();
   }
 
   @override
   void didUpdateWidget(AutoCompleteTextView<T> oldWidget) {
-    WidgetsBinding.instance?.addPostFrameCallback((_) => _width = _formWidth);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _width = _formWidth);
     super.didUpdateWidget(oldWidget);
   }
 
@@ -73,19 +72,13 @@ class _AutoCompleteTextViewState<T extends Object>
         return TextFormField(
           focusNode: focus,
           controller: this.controller = controller,
-          style: widget.dense
-              ? Theme.of(context)
-                  .textTheme
-                  .overline!
-                  .copyWith(fontWeight: FontWeight.normal)
-              : null,
+          style: widget.dense ? Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal) : null,
           decoration: InputDecoration(
             isDense: widget.dense,
             hintText: 'ricerca allenamento', // TODO
           ),
           onTap: () {
-            if (focus.hasFocus)
-              FocusScope.of(context).requestFocus(FocusNode());
+            if (focus.hasFocus) FocusScope.of(context).requestFocus(FocusNode());
           },
           onFieldSubmitted: (s) {
             widget.onSubmitted?.call(s);
@@ -107,32 +100,22 @@ class _AutoCompleteTextViewState<T extends Object>
               padding: const EdgeInsets.all(0),
               children: options.map(
                 (suggestion) {
-                  final String name =
-                      widget.displayStringForOption?.call(suggestion) ??
-                          suggestion.toString();
+                  final String name = widget.displayStringForOption?.call(suggestion) ?? suggestion.toString();
                   return InkWell(
                     onTap: () => onSelected(suggestion),
-                    child: Container(
+                    child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: RichText(
                         text: TextSpan(
-                          style: widget.dense
-                              ? Theme.of(context)
-                                  .textTheme
-                                  .overline!
-                                  .copyWith(fontWeight: FontWeight.normal)
-                              : null,
-                          text:
-                              name.substring(0, name.indexOf(controller.text)),
+                          style: widget.dense ? Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal) : TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                          text: name.substring(0, name.indexOf(controller.text)),
                           children: [
                             TextSpan(
                               text: controller.text,
                               style: TextStyle(fontWeight: FontWeight.w900),
                             ),
                             TextSpan(
-                              text: name.substring(
-                                  name.indexOf(controller.text) +
-                                      controller.text.length),
+                              text: name.substring(name.indexOf(controller.text) + controller.text.length),
                             ),
                           ],
                         ),
