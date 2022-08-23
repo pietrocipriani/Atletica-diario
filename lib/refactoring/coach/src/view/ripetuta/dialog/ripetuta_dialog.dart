@@ -1,21 +1,27 @@
+import 'package:atletica/refactoring/coach/src/view/target/target_picker.dart';
+import 'package:atletica/refactoring/coach/src/view/template/template_text_view.dart';
+import 'package:atletica/refactoring/coach/src/view/tipologia/tipologia_selector.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:flutter/material.dart';
-import 'package:atletica/refactoring/model/target.dart';
-import 'package:atletica/refactoring/view/target/target_picker.dart';
-import 'package:atletica/refactoring/view/template/template_text_view.dart';
-import 'package:atletica/refactoring/view/tipologia/tipologia_selector.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:get/get.dart';
 
 part 'ripetuta_dialog_body.dart';
 
+/// The widget for the creation dialog of [Ripetuta]
 class RipetutaDialog extends StatelessWidget {
   RipetutaDialog(this.ripetuta, {super.key})
       : template = (ripetuta?.resolveTemplate).obs,
         target = ripetuta == null ? Target.empty() : Target.from(ripetuta.target);
 
+  /// the ripetuta that should be modified, if `null` a new [Ripetuta] is created
   final Ripetuta? ripetuta;
+
+  /// the copy of the template of `ripetuta` or a new template if `ripetuta` is not provided (reversible)
   final Rx<SimpleTemplate?> template;
+
+  /// the copy of the target of `ripetuta` or a new target if `ripetuta` is not provided (reversible)
   final Target target;
 
   @override
@@ -36,6 +42,9 @@ class RipetutaDialog extends StatelessWidget {
     );
   }
 
+  /// Method to save the changes to `ripetuta` or to create a new [Ripetuta].
+  ///
+  /// This pops the dialog and returns the modified [Ripetuta] througt [Navigator]
   Future<void> save(final BuildContext context) async {
     final SimpleTemplate template = this.template.value!;
     template.lastTarget.copyWhereNonNull(target);

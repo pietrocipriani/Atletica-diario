@@ -164,7 +164,22 @@ void _initWorkmanager() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+        apiKey: "AIzaSyA7Ys59Rrbw9rpCUfBRvSRFXwk2Qzrf7Ko",
+        authDomain: "atletica-7f96b.firebaseapp.com",
+        databaseURL: "https://atletica-7f96b.firebaseio.com",
+        projectId: "atletica-7f96b",
+        storageBucket: "atletica-7f96b.appspot.com",
+        messagingSenderId: "263594363462",
+        appId: "1:263594363462:web:806d326a429f8047da5847",
+        measurementId: "G-3NBJY9N98W",
+      ),
+    );
+  } else {
+    await Firebase.initializeApp();
+  }
   if (!kIsWeb) FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
 
   const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');

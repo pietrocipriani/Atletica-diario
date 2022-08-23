@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CustomListTile extends StatelessWidget {
   const CustomListTile({
@@ -40,7 +41,7 @@ class CustomListTile extends StatelessWidget {
             ? null
             : DefaultTextStyle(
                 child: subtitle!,
-                style: Theme.of(context).textTheme.overline!,
+                style: Get.textTheme.overline!,
               ),
         trailing: trailing,
         isThreeLine: isThreeLine,

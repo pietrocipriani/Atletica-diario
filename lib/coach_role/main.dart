@@ -58,7 +58,7 @@ class _CoachMainPageState extends State<CoachMainPage> {
                       ) ??
                       false) setState(() {});
                 },
-                child: Icon(Icons.add),
+                child: Icon(Icons.edit_calendar),
                 mini: true,
               )
             : null,

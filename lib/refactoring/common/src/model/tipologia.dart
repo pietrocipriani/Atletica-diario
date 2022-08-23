@@ -1,21 +1,26 @@
-import 'package:atletica/refactoring/utils/distance.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/refactoring/utils/duration.dart';
+import 'package:atletica/results/result.dart';
 import 'package:atletica/ripetuta/time_pattern.dart';
 
-class _RegularExpressions {
+/* class _RegularExpressions {
   static final RegExp time = RegExp("^\\s*\\d+\\s*(('\\s*([0-5]?\\d\\s*)?)?(\"\\s*\\d?\\d?|\\.\\d\\d?\\s*\"?))?\\s*\$");
   static final RegExp integer = RegExp(r'^\d+$');
   static final RegExp real = RegExp(r'^\d+(.\d+)?$');
-}
+} */
 
 /*
 ^\s*\d+\s*('\s*([0-5]?\d\s*"\s*\d?\d?)$
 */
 
+/// [Tipologia] for [Target]s and [Result]s.
+///
+/// Manages how to display, parse and validate [Target]s and [Result]s
 enum Tipologia {
   corsaDist,
   corsaTime;
 
+  // TODO: migrate method in the control section as extension?
   String get name {
     switch (this) {
       case Tipologia.corsaDist:
@@ -25,18 +30,20 @@ enum Tipologia {
     }
   }
 
-  String formatTarget(final Object? target) {
+  String formatTarget(final ResultValue? target) {
     if (target == null) return '';
     switch (this) {
       case Tipologia.corsaDist:
-        if (target is Duration) return target.formatted;
-        break;
+        return target.join(
+          (duration) => duration.formatted,
+          (distance) => throw ArgumentError.value(target.runtimeType, 'target', 'Unexpected target for this Tipologia'),
+        );
       case Tipologia.corsaTime:
-        if (target is Duration) return '${target.formatted}/km';
-        if (target is Distance) return target.toString();
-        break;
+        return target.join(
+          (duration) => '${duration.formatted}/km',
+          (distance) => distance.toString(),
+        );
     }
-    throw ArgumentError.value(target.runtimeType, 'target', 'Unexpected type for target of ${toString()}');
   }
 
   bool validateTarget(final String? s) {
@@ -65,8 +72,8 @@ enum Tipologia {
     }
   }
 
-  Object? parseTarget(String target) {
-    return parseTimePattern(target); // TODO: parse distance
+  ResultValue? parseTarget(String target) {
+    return ResultValue.durationNullable(parseTimePattern(target)); // TODO: parse distance
   }
 
   static Tipologia parse(final String? raw) {

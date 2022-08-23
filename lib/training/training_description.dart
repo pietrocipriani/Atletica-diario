@@ -1,14 +1,12 @@
+import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/recupero/recupero.dart';
-import 'package:atletica/refactoring/model/target.dart';
-import 'package:atletica/refactoring/model/tipologia.dart';
-import 'package:atletica/refactoring/utils/distance.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/training.dart';
-import 'package:atletica/training/variant.dart';
 import 'package:flutter/material.dart';
 
 class _RowRip extends _RowRipRes {
@@ -17,7 +15,7 @@ class _RowRip extends _RowRipRes {
     final bool disabled = false,
   }) : super(
           name: rip.template,
-          result: rip.target,
+          result: user.isAthlete ? ResultValueOrTarget.resultValueNullable(rip.target[user.category]) : ResultValueOrTarget.target(rip.target),
           disabled: disabled,
           tipologia: templates[rip.template]?.tipologia ?? Tipologia.corsaDist,
         );
@@ -25,12 +23,12 @@ class _RowRip extends _RowRipRes {
 
 class _RowRes extends _RowRipRes {
   _RowRes({
-    required final MapEntry<SimpleRipetuta, Object?> res,
+    required final MapEntry<SimpleRipetuta, ResultValue?> res,
     final bool disabled = false,
     required final Tipologia tipologia,
   }) : super(
           name: res.key.name,
-          result: res.value,
+          result: ResultValueOrTarget.resultValueNullable(res.value),
           disabled: disabled,
           tipologia: tipologia,
         );
@@ -38,7 +36,7 @@ class _RowRes extends _RowRipRes {
 
 abstract class _RowRipRes extends StatelessWidget {
   final String name;
-  final Object? result;
+  final ResultValueOrTarget? result;
   final bool disabled;
   final Tipologia tipologia;
 
@@ -51,7 +49,7 @@ abstract class _RowRipRes extends StatelessWidget {
     required this.result,
     this.disabled = false,
     required this.tipologia,
-  }) : assert(result == null || result is Target || result is Duration || result is Distance);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +69,12 @@ abstract class _RowRipRes extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.normal),
               ),
             if (result != null)
-              TextSpan(
-                text: tipologia.formatTarget(result is Target ? (result as Target)[TargetCategory.values.first] : result), // TODO
-              )
+              result!.join(
+                // TODO: semplify
+                (duration) => TextSpan(text: tipologia.formatTarget(ResultValue.duration(duration))),
+                (distance) => TextSpan(text: tipologia.formatTarget(ResultValue.distance(distance))),
+                (target) => TargetViewSpan(target: target, tipologia: tipologia),
+              ),
           ],
           style: disabled ? theme.textTheme.overline!.copyWith(color: theme.disabledColor) : theme.textTheme.overline!, // TODO: [DefaultTextTheme]
         ),
@@ -142,7 +143,7 @@ class TrainingDescription {
     final bool useResult = result != null && result.isCompatible(training);
 
     final List<Ripetuta> rips = training.ripetute.toList();
-    final List<MapEntry<SimpleRipetuta, Object?>>? ress = useResult ? result.results.entries.toList() : null;
+    final List<MapEntry<SimpleRipetuta, ResultValue?>>? ress = useResult ? result.results.entries.toList() : null;
     final List<Recupero> recs = training.recuperi.toList();
 
     for (int i = 0; i < rips.length; i++) {

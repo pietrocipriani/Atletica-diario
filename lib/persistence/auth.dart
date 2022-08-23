@@ -3,17 +3,24 @@ import 'dart:async';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/persistence/user_helper/athlete_helper.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
 
-GoogleSignIn _googleSignIn = GoogleSignIn(
-  signInOption: SignInOption.standard,
-  clientId: '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com',
-);
+final GoogleSignIn _googleSignIn = kIsWeb
+    ? GoogleSignIn(
+        signInOption: SignInOption.standard,
+        clientId: '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com',
+      )
+    : GoogleSignIn(
+        signInOption: SignInOption.standard,
+        serverClientId: '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com',
+      );
 FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 GoogleSignInAccount? _guser;
 GoogleSignInAuthentication? _auth;
@@ -59,6 +66,7 @@ abstract class FirebaseUserHelper {
   String get uid => userReference.id;
   String? get name => user.displayName;
   String? get email => user.email;
+  TargetCategory category;
   final DocumentReference userReference;
   final DocumentReference realUser;
 
@@ -68,6 +76,7 @@ abstract class FirebaseUserHelper {
   FirebaseUserHelper({
     required this.user,
     required this.userReference,
+    this.category = TargetCategory.males,
     this.admin = false,
   }) : this.realUser = userFromUid(user.uid);
 }
@@ -104,7 +113,7 @@ Stream<double> login({required BuildContext context}) async* {
   print('requesting google account');
 
   do {
-    _guser = await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
+    _guser = _googleSignIn.currentUser ?? await _googleSignIn.signInSilently(suppressErrors: false) ?? await _googleSignIn.signIn();
     if (_guser == null) await requestLoginDialog(context: context);
   } while (_guser == null);
 

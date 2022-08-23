@@ -47,7 +47,7 @@ class Serie {
         nextRecupero = Recupero(recupero: raw['recuperoNext'] ?? 3 * 60, isSerieRec: true),
         ripetizioni = raw['times'] as int {
     final List<Object?>? rawRipetute = raw['ripetute'] as List?;
-    rawRipetute?.forEach((element) => Ripetuta.parseLegacy(this, raw, variants));
+    rawRipetute?.forEach((element) => Ripetuta.parseLegacy(this, element as Map<String, Object?>, variants));
     t.serie.add(this);
   }
 

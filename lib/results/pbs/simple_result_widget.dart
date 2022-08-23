@@ -1,6 +1,6 @@
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
-import 'package:atletica/refactoring/model/tipologia.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/results/pbs/pb.dart';
 import 'package:atletica/results/pbs/tag.dart';
 import 'package:flutter/material.dart';

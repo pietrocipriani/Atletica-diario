@@ -10,17 +10,14 @@ import 'package:atletica/persistence/user_helper/snapshots_managers/template_sna
 import 'package:atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
 import 'package:atletica/results/result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class CoachHelper extends FirebaseUserHelper {
   Future<bool> listener(
     QuerySnapshot snap,
-    Future<bool> Function(DocumentSnapshot docSnap, DocumentChangeType type)
-        parse,
+    Future<bool> Function(DocumentSnapshot docSnap, DocumentChangeType type) parse,
   ) async {
     bool modified = false;
-    for (DocumentChange doc in snap.docChanges)
-      if (await parse(doc.doc, doc.type)) modified = true;
+    for (DocumentChange doc in snap.docChanges) if (await parse(doc.doc, doc.type)) modified = true;
     return modified;
   }
 
@@ -29,38 +26,20 @@ class CoachHelper extends FirebaseUserHelper {
   bool fictionalAthletes;
 
   CoachHelper({
-    required User user,
-    required DocumentReference userReference,
+    required super.user,
+    required super.userReference,
     required this.showAsAthlete,
     required this.showVariants,
     required this.fictionalAthletes,
-    bool admin = false,
-  }) : super(user: user, userReference: userReference, admin: admin) {
-    firestore
-        .collection('global')
-        .doc('templates')
-        .get()
-        .then((snapshot) => addGlobalTemplates(snapshot));
-    userReference
-        .collection('templates')
-        .snapshots()
-        .listen((snap) => listener(snap, templateSnapshot));
-    userReference
-        .collection('athletes')
-        .snapshots()
-        .listen((snap) => listener(snap, athleteSnapshot));
-    userReference
-        .collection('trainings')
-        .snapshots()
-        .listen((snap) => listener(snap, trainingSnapshot));
-    userReference
-        .collection('plans')
-        .snapshots()
-        .listen((snap) => listener(snap, planSnapshot));
-    userReference
-        .collection('schedules')
-        .snapshots()
-        .listen((snap) => listener(snap, scheduleSnapshot));
+    super.admin,
+    super.category,
+  }) {
+    firestore.collection('global').doc('templates').get().then((snapshot) => addGlobalTemplates(snapshot));
+    userReference.collection('templates').snapshots().listen((snap) => listener(snap, templateSnapshot));
+    userReference.collection('athletes').snapshots().listen((snap) => listener(snap, athleteSnapshot));
+    userReference.collection('trainings').snapshots().listen((snap) => listener(snap, trainingSnapshot));
+    userReference.collection('plans').snapshots().listen((snap) => listener(snap, planSnapshot));
+    userReference.collection('schedules').snapshots().listen((snap) => listener(snap, scheduleSnapshot));
   }
 
   /// `athleteUser` is the reference to [users/uid]
@@ -70,10 +49,7 @@ class CoachHelper extends FirebaseUserHelper {
     String nickname,
     String group,
   ) {
-    return userReference
-        .collection('athletes')
-        .doc(athlete?.id)
-        .set({'nickname': nickname, 'group': group});
+    return userReference.collection('athletes').doc(athlete?.id).set({'nickname': nickname, 'group': group});
   }
 
   Future<void> acceptRequest(
@@ -92,17 +68,14 @@ class CoachHelper extends FirebaseUserHelper {
     required Athlete athlete,
     required Result results,
   }) {
-    return athlete.resultsDoc
-        .collection('results')
-        .doc(results.reference?.id)
-        .set({
+    return athlete.resultsDoc.collection('results').doc(results.reference?.id).set({
       'date': Timestamp.fromDate(results.date),
       'coach': uid,
       'training': results.training,
-      'results':
-          results.asIterable.map((e) => '${e.key.name}:${e.value}').toList(),
+      'results': results.asIterable.map((e) => '${e.key.name}:${e.value?.asLegacy}').toList(),
       'fatigue': results.fatigue,
       'info': results.info,
+      // TODO: select target category
     }, SetOptions(merge: true));
   }
 

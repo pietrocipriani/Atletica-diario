@@ -6,7 +6,7 @@ import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
 import 'package:atletica/main.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/refactoring/model/tipologia.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/results/results.dart';
 import 'package:atletica/results/results_edit_dialog.dart';

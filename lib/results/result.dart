@@ -2,6 +2,7 @@ import 'package:atletica/athlete/results/result_widget.dart';
 import 'package:atletica/cache.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/training.dart';
@@ -61,14 +62,16 @@ class Result with Notifier<Result> {
       : reference = raw.reference,
         date = raw.getNullable('date') == null ? Date.parse(raw.id) : Date.fromTimeStamp(raw['date']),
         training = raw['training'],
-        results = Map.fromEntries(
-          raw['results'].map((r) => parseRawResult(r)).where((e) => e != null).map<MapEntry<SimpleRipetuta, double?>>(
-                (e) => MapEntry<SimpleRipetuta, double?>(SimpleRipetuta(e.key), e.value),
-              ),
-        ),
+        results = Map.fromEntries(_generateEntries(raw)),
         fatigue = raw.getNullable('fatigue') as int?,
         info = raw.getNullable('info') as String? ?? '' {
     //if (raw.getNullable('date') == null) userC.saveResult(this);
+  }
+
+  static Iterable<MapEntry<SimpleRipetuta, ResultValue?>> _generateEntries(final DocumentSnapshot raw) {
+    final List<String> rawResults = (raw['results'] as List).cast();
+    final Iterable<MapEntry<String, ResultValue?>> results = rawResults.map<MapEntry<String, ResultValue?>?>(parseRawResult).whereType();
+    return results.map((e) => MapEntry(SimpleRipetuta(e.key), e.value));
   }
 
   factory Result.updateOrParse(final DocumentSnapshot raw) {
@@ -95,7 +98,7 @@ class Result with Notifier<Result> {
   final DocumentReference? reference;
   final Date date;
   final String training;
-  final Map<SimpleRipetuta, Object?> results;
+  final Map<SimpleRipetuta, ResultValue?> results;
   int? fatigue;
   String? info;
 
@@ -125,7 +128,7 @@ class Result with Notifier<Result> {
     return ScheduledTraining.ofDate(date).every((st) => isNotCompatible(st.work));
   }
 
-  Object? resultAt(int index) {
+  ResultValue? resultAt(int index) {
     return results.values.elementAt(index);
   }
 
@@ -138,11 +141,11 @@ class Result with Notifier<Result> {
 
   bool get isBooking => results.values.every((r) => r == null);
 
-  void operator []=(final SimpleRipetuta rip, final Object? value) => results[rip] = value;
-  Object? operator [](final SimpleRipetuta rip) => results[rip];
+  void operator []=(final SimpleRipetuta rip, final ResultValue? value) => results[rip] = value;
+  ResultValue? operator [](final SimpleRipetuta rip) => results[rip];
 
   Iterable<SimpleRipetuta> get ripetute => results.keys;
-  Iterable<MapEntry<SimpleRipetuta, Object?>> get asIterable => results.entries;
+  Iterable<MapEntry<SimpleRipetuta, ResultValue?>> get asIterable => results.entries;
 
   String get uniqueIdentifier => ripetute.join(':');
 }

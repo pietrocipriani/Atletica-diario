@@ -1,8 +1,7 @@
 import 'dart:collection';
 
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/refactoring/model/target.dart';
-import 'package:atletica/refactoring/model/tipologia.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 final SplayTreeMap<String, SimpleTemplate> templates = SplayTreeMap<String, SimpleTemplate>();
@@ -45,7 +44,7 @@ class Template extends SimpleTemplate {
       : this(
           name: raw.id,
           lastTarget: Target.parse(raw['lastTarget']),
-          tipologia: Tipologia.parse(raw.getNullable('tipologia') as String),
+          tipologia: Tipologia.parse(raw.getNullable('tipologia') as String?),
         );
 
   Template({required super.name, required super.lastTarget, required super.tipologia}) : super(save: true);

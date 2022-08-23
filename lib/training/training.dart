@@ -110,7 +110,7 @@ class Training with Notifier<Training> {
         descrizione = raw['description'] ?? '',
         tag1 = (raw.getNullable('tag1') ?? defaultTag) as String,
         tag2 = (raw.getNullable('tag2') ?? defaultTag) as String {
-    final List? variants = (raw.getNullable('variants') as Map<String, Object?>?)?['targets'] as List?;
+    final List? variants = ((raw.getNullable('variants') as List?)?[0] as Map<String, Object?>?)?['targets'] as List?;
 
     if (variants == null) {
       raw['serie'].forEach((raw) => Serie.parse(this, raw));

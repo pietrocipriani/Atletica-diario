@@ -1,8 +1,7 @@
 import 'package:atletica/global_widgets/resizable_text_field.dart';
-import 'package:atletica/refactoring/model/tipologia.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/results/simple_training.dart';
-import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 import 'package:atletica/main.dart' show IterableExtension;

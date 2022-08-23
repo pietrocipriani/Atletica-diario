@@ -1,4 +1,5 @@
 import 'package:atletica/date.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/results/pbs/pbs_page_route.dart';
 import 'package:atletica/results/result.dart';
 
@@ -6,21 +7,24 @@ class Pb {
   final List<SimpleResult> results = [];
 
   int get count => results.length;
-  Object? get best => results.first.r;
+  ResultValue? get best => results.first.r;
   bool get isEmpty => results.isEmpty;
   int realCount = 0;
 
-  void put({required final Result result, required final int index, required final double? value}) {
+  void put({required final Result result, required final int index, required final ResultValue? value}) {
     realCount++;
     if (value == null) return;
+
     final int i = results.lastIndexWhere((r) => r.r! < value) + 1;
+    // TODO: per Tipologia.corsaTime che accetta sia Duration che Distance è necessario
+    // fare la comparazione attraverso il tempo della ripetuta (convertire passo in distanza o viceversa)
     results.insert(i, SimpleResult(result: result, index: index));
   }
 }
 
 class SimpleResult {
   final Result _result;
-  final Object? r;
+  final ResultValue? r;
 
   SimpleResult({required final Result result, required final int index})
       : _result = result,

@@ -1,6 +1,8 @@
-class Distance {
+class Distance implements Comparable<Distance> {
   static const int _milliInKilo = 1000 * 1000;
   static const int _milliInBase = 1000;
+
+  /// a zero distance
   static const Distance zero = Distance();
 
   /// the total millimeters of this [Distance]
@@ -14,8 +16,13 @@ class Distance {
     final int millimeters = 0,
   }) : _distance = kilometers * _milliInKilo + meters * _milliInBase + millimeters;
 
+  /// the distance in kilometers
   int get inKilometers => _distance ~/ _milliInKilo;
+
+  /// the distance in meters
   int get inMeters => _distance ~/ _milliInBase;
+
+  /// the distance in millimeters
   int get inMillimeters => _distance;
 
   @override
@@ -37,4 +44,14 @@ class Distance {
 
   @override
   int get hashCode => _distance.hashCode;
+
+  @override
+  int compareTo(final Distance other) {
+    return _distance.compareTo(other._distance);
+  }
+
+  bool operator <(final Distance other) => compareTo(other) < 0;
+  bool operator <=(final Distance other) => compareTo(other) <= 0;
+  bool operator >(final Distance other) => compareTo(other) > 0;
+  bool operator >=(final Distance other) => compareTo(other) >= 0;
 }

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:math';
 
 import 'package:atletica/athlete/athlete_dialog.dart';
 import 'package:atletica/athlete/group.dart';
@@ -8,6 +7,8 @@ import 'package:atletica/cache.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart' as auth;
 import 'package:atletica/persistence/firestore.dart';
+import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/utils/math.dart';
 import 'package:atletica/results/result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -71,15 +72,15 @@ class Athlete with auth.Notifier<Athlete> {
   ///
   /// the key of the inner Map is `SimpleRipetuta.name`
   /// and the value is the corrispective double value to format
-  final Map<String, Map<String, double>> tbs = {};
-  final Map<String, double> pbs = {};
+  final Map<String, Map<String, ResultValue>> tbs = {};
+  final Map<String, ResultValue> pbs = {};
 
-  double? tb(String identifier, String rip) {
-    final Map<String, double> a = tbs[identifier] ?? {};
+  ResultValue? tb(String identifier, String rip) {
+    final Map<String, ResultValue> a = tbs[identifier] ?? {};
     return a[rip];
   }
 
-  double? pb(String rip) => pbs[rip];
+  ResultValue? pb(String rip) => pbs[rip];
 
   void _reloadPbsTbs() {
     results.forEach(_updatePbsTbs);
@@ -88,9 +89,9 @@ class Athlete with auth.Notifier<Athlete> {
   void _updatePbsTbs(final Result result) {
     final String identifier = result.uniqueIdentifier;
     result.asIterable.where((e) => e.value != null).forEach((e) {
-      pbs[e.key.name] = min(e.value!, pbs[e.key.name] ?? double.infinity);
-      final Map<String, double> map = tbs[identifier] ??= {};
-      map[e.key.name] = min(e.value!, map[e.key.name] ?? double.infinity);
+      pbs[e.key.name] = min(e.value!, pbs[e.key.name]);
+      final Map<String, ResultValue?> map = tbs[identifier] ??= {};
+      map[e.key.name] = min(e.value!, map[e.key.name]);
     });
   }
 

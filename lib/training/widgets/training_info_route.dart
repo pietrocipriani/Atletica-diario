@@ -5,12 +5,11 @@ import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:atletica/global_widgets/resizable_text_field.dart';
 import 'package:atletica/global_widgets/times_widget.dart';
 import 'package:atletica/main.dart';
-import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/recupero/recupero_dialog.dart';
 import 'package:atletica/recupero/recupero_widget.dart';
-import 'package:atletica/refactoring/control/ripetuta/ripetuta_dialog.dart';
-import 'package:atletica/refactoring/view/target/target_view.dart';
+import 'package:atletica/refactoring/coach/src/control/ripetuta/ripetuta_dialog.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/training.dart';
@@ -315,6 +314,7 @@ class _RipetutaWidgetState extends State<_RipetutaWidget> {
                 Text(
                   templates[widget.rip.template]!.tipologia.name,
                   style: TextStyle(
+                    inherit: true,
                     fontWeight: FontWeight.bold,
                     color: theme.primaryColorDark,
                   ),

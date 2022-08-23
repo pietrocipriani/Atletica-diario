@@ -7,7 +7,6 @@ import 'package:atletica/main.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:atletica/refactoring/utils/pair.dart';
-import 'package:atletica/results/pbs/tag.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_description.dart';
 import 'package:atletica/training/widgets/training_dialog.dart';

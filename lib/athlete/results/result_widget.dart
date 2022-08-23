@@ -1,21 +1,23 @@
 import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
-import 'package:atletica/refactoring/model/tipologia.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/results/results_edit_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mdi/mdi.dart';
 
-MapEntry<String, double?>? parseRawResult(String? rawResult) {
+// TODO: replicate series
+MapEntry<String, ResultValue?>? parseRawResult(String? rawResult) {
   if (rawResult == null) return null;
+
   final List<String> splitted = rawResult.split(':');
   if (splitted.length != 2) return null;
   if (splitted[0].isEmpty || splitted[1].isEmpty) return null;
   final double? value = splitted[1] == 'null' ? null : double.tryParse(splitted[1]) ?? -1;
   if ((value ?? 1) < 0) return null;
-  return MapEntry<String, double?>(splitted[0], value);
+  return MapEntry<String, ResultValue?>(splitted[0], ResultValue.parseLegacy(value));
 }
 
 class ResultWidget extends StatelessWidget {
@@ -58,7 +60,7 @@ class ResultWidget extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.normal),
                       ),
                       TextSpan(
-                        text: Tipologia.corsaDist.formatTarget(athlete.pb(e.key.name)),
+                        text: Tipologia.corsaDist.formatTarget(athlete.pb(e.key.name)), // TODO: Tipologia dalla ripetuta
                         style: TextStyle(color: Theme.of(context).primaryColorDark),
                       ),
                       if (athlete.tb(res.uniqueIdentifier, e.key.name) != null)

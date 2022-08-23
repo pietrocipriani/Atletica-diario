@@ -1,5 +1,4 @@
-import 'package:atletica/refactoring/model/target.dart';
-import 'package:atletica/refactoring/model/tipologia.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

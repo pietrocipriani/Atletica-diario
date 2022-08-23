@@ -1,4 +1,4 @@
-/* import 'package:atletica/refactoring/model/target.dart';
+/* import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/training.dart';
