@@ -40,21 +40,26 @@ final DialogTheme _dialogTheme = DialogTheme(
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(20),
   ),
-  contentTextStyle:
-      _textTheme.overline?.copyWith(fontWeight: FontWeight.normal),
+  contentTextStyle: _textTheme.overline?.copyWith(fontWeight: FontWeight.normal),
 );
 
 final ElevatedButtonThemeData _elevatedButtonTheme = ElevatedButtonThemeData(
   style: ButtonStyle(
-    backgroundColor: MaterialStateColor.resolveWith((states) =>
-        states.contains(MaterialState.disabled)
-            ? _disabledColor
-            : _primarySwatch),
+    backgroundColor: MaterialStateColor.resolveWith((states) => states.contains(MaterialState.disabled) ? _disabledColor : _primarySwatch),
     shape: MaterialStateProperty.all(StadiumBorder()),
   ),
 );
 
 final IconThemeData _iconTheme = IconThemeData(color: Colors.black, opacity: 1);
+
+final InputDecorationTheme _inputDecorationTheme = InputDecorationTheme(
+  border: OutlineInputBorder(
+    gapPadding: 0,
+    borderRadius: BorderRadius.circular(20),
+  ),
+  contentPadding: EdgeInsets.all(10),
+  isDense: true,
+);
 
 ThemeData lightTheme = ThemeData(
   brightness: _brightness,
@@ -71,4 +76,5 @@ ThemeData lightTheme = ThemeData(
   elevatedButtonTheme: _elevatedButtonTheme,
   chipTheme: _chipTheme,
   textTheme: _textTheme,
+  inputDecorationTheme: _inputDecorationTheme,
 );

@@ -1,6 +1,6 @@
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/global_widgets/splash_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class LogoutButton extends IconButton {
   LogoutButton({required final BuildContext context})
@@ -9,11 +9,7 @@ class LogoutButton extends IconButton {
           tooltip: 'LOGOUT',
           onPressed: () async {
             await logout();
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => SplashScreen()),
-              (_) => false,
-            );
+            Get.offAllNamed('/login');
           },
         );
 }

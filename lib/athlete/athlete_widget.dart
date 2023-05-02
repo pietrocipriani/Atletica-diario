@@ -4,7 +4,7 @@ import 'package:atletica/global_widgets/custom_dismissible.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
-import 'package:atletica/main.dart';
+import 'package:atletica/refactoring/utils/singular_plural.dart';
 import 'package:flutter/material.dart';
 
 class AthleteWidget extends StatelessWidget {
@@ -34,7 +34,7 @@ class AthleteWidget extends StatelessWidget {
       subtitle: Text(atleta.group!, style: overlineBoldPrimaryDark),
       trailing: LeadingInfoWidget(
         info: '${atleta.trainingsCount}',
-        bottom: singularPlural('allenament', 'o', 'i', atleta.trainingsCount),
+        bottom: singPlurIT('allenamento', atleta.trainingsCount),
       ),
     );
 

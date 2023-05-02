@@ -1,6 +1,7 @@
 import 'package:atletica/global_widgets/custom_calendar.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/preferences_button.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/results/pbs/pbs_page_route.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/date.dart';
@@ -64,7 +65,7 @@ class _CustomMainPageState<T extends CustomMainPage> extends State<T> {
     );
     final Widget eventsWidgets = Expanded(child: ListView(children: children));
 
-    final List<IconButton> actions = [
+    final List<Widget> actions = [
       IconButton(
         icon: Icon(Mdi.podium),
         tooltip: 'RISULTATI',
@@ -104,8 +105,8 @@ class _CustomMainPageState<T extends CustomMainPage> extends State<T> {
                   children: actions
                       .map((a) => CustomListTile(
                             leading: a,
-                            title: Text(a.tooltip ?? ''),
-                            onTap: a.onPressed,
+                            title: Text(''), // TODO
+                            // onTap: a.onPressed,
                           ))
                       .toList(),
                 ),
@@ -161,7 +162,7 @@ class _TrainingWidgetState extends State<TrainingWidget> {
             ? () => showResultsEditDialog(
                   context,
                   widget.result ?? Result.temp(a, widget.scheduledTraining.date),
-                  userA.saveResult,
+                  Globals.athlete.saveResult,
                 )
             : null,
         color: theme.iconTheme.color,
@@ -172,7 +173,7 @@ class _TrainingWidgetState extends State<TrainingWidget> {
               fillColor: MaterialStateProperty.all(theme.toggleableActiveColor),
               checkColor: theme.colorScheme.onPrimary,
               onChanged: widget.result == null
-                  ? (value) => userA.saveResult(Result.temp(
+                  ? (value) => Globals.athlete.saveResult(Result.temp(
                         widget.scheduledTraining.work!,
                         widget.scheduledTraining.date,
                       ))

@@ -3,10 +3,9 @@ import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
-import 'package:atletica/main.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:atletica/refactoring/utils/pair.dart';
+import 'package:atletica/refactoring/utils/singular_plural.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/training/training_description.dart';
 import 'package:atletica/training/widgets/training_dialog.dart';
@@ -223,7 +222,7 @@ class _PathWidget extends StatelessWidget {
       ),
       leading: LeadingInfoWidget(
         info: '$trainingsCount',
-        bottom: singularPlural('allenament', 'o', 'i', trainingsCount),
+        bottom: singPlurIT('allenamento', trainingsCount),
       ),
       onTap: onTap,
     );
@@ -299,7 +298,7 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
           children: children,
           leading: LeadingInfoWidget(
             info: widget.training.ripetuteCount.toString(),
-            bottom: singularPlural('ripetut', 'a', 'e', widget.training.ripetuteCount),
+            bottom: singPlurIT('ripetuta', widget.training.ripetuteCount),
           ),
           trailing: IconButton(
             icon: Icon(Icons.copy),

@@ -2,16 +2,12 @@ import 'dart:async';
 
 import 'package:atletica/athlete/athlete.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/persistence/firestore.dart';
-import 'package:atletica/persistence/user_helper/snapshots_managers/athlete_snapshot.dart';
-import 'package:atletica/persistence/user_helper/snapshots_managers/plan_snapshot.dart';
-import 'package:atletica/persistence/user_helper/snapshots_managers/schedule_snapshot.dart';
-import 'package:atletica/persistence/user_helper/snapshots_managers/template_snapshot.dart';
-import 'package:atletica/persistence/user_helper/snapshots_managers/training_snapshot.dart';
+import 'package:atletica/refactoring/common/src/control/firebase/user_helper/user_helper.dart';
+import 'package:atletica/refactoring/common/src/model/role.dart';
 import 'package:atletica/results/result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class CoachHelper extends FirebaseUserHelper {
+class CoachHelper extends UserHelper {
   Future<bool> listener(
     QuerySnapshot snap,
     Future<bool> Function(DocumentSnapshot docSnap, DocumentChangeType type) parse,
@@ -25,21 +21,28 @@ class CoachHelper extends FirebaseUserHelper {
   bool showVariants;
   bool fictionalAthletes;
 
+  CoachHelper.parse(final DocumentSnapshot<Map<String, Object?>> raw)
+      : showAsAthlete = raw.getNullable('showAsAthlete') as bool? ?? false,
+        showVariants = false,
+        fictionalAthletes = raw.getNullable('fictionalAthletes') as bool? ?? true,
+        super.parseGenerative(raw);
+
   CoachHelper({
     required super.user,
     required super.userReference,
     required this.showAsAthlete,
     required this.showVariants,
     required this.fictionalAthletes,
+    required super.initialThemeMode,
     super.admin,
     super.category,
   }) {
-    firestore.collection('global').doc('templates').get().then((snapshot) => addGlobalTemplates(snapshot));
+    /* firestore.collection('global').doc('templates').get().then((snapshot) => addGlobalTemplates(snapshot));
     userReference.collection('templates').snapshots().listen((snap) => listener(snap, templateSnapshot));
     userReference.collection('athletes').snapshots().listen((snap) => listener(snap, athleteSnapshot));
     userReference.collection('trainings').snapshots().listen((snap) => listener(snap, trainingSnapshot));
     userReference.collection('plans').snapshots().listen((snap) => listener(snap, planSnapshot));
-    userReference.collection('schedules').snapshots().listen((snap) => listener(snap, scheduleSnapshot));
+    userReference.collection('schedules').snapshots().listen((snap) => listener(snap, scheduleSnapshot)); */
   }
 
   /// `athleteUser` is the reference to [users/uid]
@@ -84,4 +87,19 @@ class CoachHelper extends FirebaseUserHelper {
 
   @override
   bool get isCoach => true;
+
+  @override
+  Future<H> setRole<H extends UserHelper>(final Role<H> role) async {
+    if (role == Role.coach) return this as H;
+    return super.setRole(role);
+  }
+
+  @override
+  Map<String, Object?> get toMap => {
+        ...super.toMap,
+        ...{
+          'showAsAthlete': showAsAthlete,
+          'fictionalsAthlete': fictionalAthletes,
+        },
+      };
 }

@@ -1,6 +1,7 @@
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
@@ -15,7 +16,7 @@ class _RowRip extends _RowRipRes {
     final bool disabled = false,
   }) : super(
           name: rip.template,
-          result: user.isAthlete ? ResultValueOrTarget.resultValueNullable(rip.target[user.category]) : ResultValueOrTarget.target(rip.target),
+          result: Globals.userHelper.isAthlete ? ResultValueOrTarget.resultValueNullable(rip.target[Globals.userHelper.category]) : ResultValueOrTarget.target(rip.target),
           disabled: disabled,
           tipologia: templates[rip.template]?.tipologia ?? Tipologia.corsaDist,
         );

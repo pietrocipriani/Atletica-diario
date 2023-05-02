@@ -1,6 +1,7 @@
 import 'package:atletica/cache.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/recupero/recupero.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/serie.dart';
@@ -157,7 +158,7 @@ class Training with Notifier<Training> {
     final String? tag2,
     final List<Serie>? serie,
   }) {
-    return user.userReference.collection('trainings').add({
+    return Globals.coach.userReference.collection('trainings').add({
       'name': name,
       'description': '',
       'serie': serie?.map((serie) => serie.asMap).toList() ?? [],
@@ -199,7 +200,7 @@ class Training with Notifier<Training> {
       while (isNameInUse('$name ($copyNum)')) copyNum++;
       name = '$name ($copyNum)';
     }
-    final DocumentReference reference = copy ? user.userReference.collection('trainings').doc() : this.reference;
+    final DocumentReference reference = copy ? Globals.coach.userReference.collection('trainings').doc() : this.reference;
 
     return reference.set({
       'name': name,

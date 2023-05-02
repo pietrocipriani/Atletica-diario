@@ -1,25 +1,131 @@
-import 'package:atletica/global_widgets/mode_selector_route.dart';
-import 'package:atletica/global_widgets/splash_screen.dart';
-import 'package:atletica/home/home_page.dart';
+import 'dart:io';
+
+import 'package:atletica/athlete_role/athlete_main_page.dart';
+import 'package:atletica/athlete_role/request_coach.dart';
+import 'package:atletica/coach_role/main.dart';
+import 'package:atletica/firebase_options.dart';
 import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/preferences.dart';
+import 'package:atletica/refactoring/common/src/view/auth_gate.dart';
+import 'package:atletica/refactoring/common/src/view/get_platform_app.dart';
+import 'package:atletica/refactoring/common/src/view/role_gate.dart';
 import 'package:atletica/themes/dark_theme.dart';
 import 'package:atletica/themes/light_theme.dart';
-//import 'package:boot_completed/boot_completed.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:rxdart/subjects.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 
 const double kListTileHeight = 72.0;
 
-final FlutterLocalNotificationsPlugin notificationPlugin = FlutterLocalNotificationsPlugin();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-final BehaviorSubject<String?> notificationSelected = BehaviorSubject();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  FirebaseUIAuth.configureProviders([
+    if (!Platform.isAndroid) GoogleProvider(clientId: '263594363462-k8t7l78a8cksdj1v9ckhq4cvtl9hd1q4.apps.googleusercontent.com'),
+    if (Platform.isAndroid) GoogleProvider(clientId: '263594363462-k13bignr5fp7mt7l3cmsa54bup01mvbp.apps.googleusercontent.com'), 
+  ]);
+
+  if (!kIsWeb) FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return PlatformProvider(
+      initialPlatform: kDebugMode ? TargetPlatform.iOS : defaultTargetPlatform,
+      settings: PlatformSettingsData(platformStyle: PlatformStyleData(web: PlatformStyle.Cupertino)),
+      builder: (context) {
+        //return Obx(() {
+        return GetPlatformApp(
+          title: 'Atletica',
+          initialRoute: FirebaseAuth.instance.currentUser == null ? '/login' : '/role-picker',
+          routes: {
+            '/login': (context) => AuthGate(),
+            '/role-picker': (context) => RoleGate(),
+            '/coach': (context) => CoachMainPage(),
+            '/athlete': (context) => AthleteMainPage(),
+            RequestCoachRoute.routeName: (context) => RequestCoachRoute(),
+            '/preferences': (context) => PreferencesRoute(),
+            //'/': (context) =>
+          },
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          material: (context, platform) => MaterialAppData(
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: /* hasRole ? user.themeMode : */ ThemeMode.system, // TODO: obx doesn't works because the first time ThemeMode.system is not an observable
+          ),
+          cupertino: (context, platform) => CupertinoAppData(
+            theme: CupertinoThemeData(
+              brightness: Brightness.light,
+              primaryColor: CupertinoColors.systemOrange,
+            ),
+          ),
+        );
+        //});
+      },
+    );
+  }
+}
+
+/* class MyHomePage extends StatefulWidget {
+  MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  MyHomePageState createState() => MyHomePageState();
+}
+
+class MyHomePageState extends State<MyHomePage> {
+  /// initialize locale for `DateFormat` from `package:intl`
+  @override
+  void initState() {
+    initializeDateFormatting('it');
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasRole)
+
+      /// requests [role] selection (if not choosen)
+      WidgetsBinding.instance.addPostFrameCallback(
+        (d) => showModeSelectorRoute(context: context),
+      );
+
+    /// `Scaffold` requested for snackbars
+    return Scaffold(body: HomePageWidget());
+  }
+} */
+
+/// a conventional function for starting a `route` with given `context`
+/// and an optional `setState(() {})` if the ui can change after the pop
+void startRoute({required BuildContext context, required Widget route, void Function(void Function())? setState}) async {
+  await Navigator.push(context, MaterialPageRoute(builder: (context) => route));
+  setState?.call(() {});
+}
+
+extension IterableExtension<T> on Iterable<T> {
+  T? firstWhereNullable(final bool Function(T) f, {T? Function()? orElse}) {
+    try {
+      return firstWhere(f);
+    } on StateError {
+      return orElse?.call();
+    }
+  }
+}
 
 /* Future<bool> _coachReminder(
   final User user,
@@ -161,135 +267,3 @@ void _initWorkmanager() {
     existingWorkPolicy: ExistingWorkPolicy.replace,
   );
 }*/
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-      options: FirebaseOptions(
-        apiKey: "AIzaSyA7Ys59Rrbw9rpCUfBRvSRFXwk2Qzrf7Ko",
-        authDomain: "atletica-7f96b.firebaseapp.com",
-        databaseURL: "https://atletica-7f96b.firebaseio.com",
-        projectId: "atletica-7f96b",
-        storageBucket: "atletica-7f96b.appspot.com",
-        messagingSenderId: "263594363462",
-        appId: "1:263594363462:web:806d326a429f8047da5847",
-        measurementId: "G-3NBJY9N98W",
-      ),
-    );
-  } else {
-    await Firebase.initializeApp();
-  }
-  if (!kIsWeb) FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
-
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
-
-  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
-  await notificationPlugin.initialize(
-    initializationSettings,
-    onSelectNotification: (payload) async => notificationSelected.add(payload),
-  );
-
-  if (!kIsWeb) {
-    //setBootCompletedFunction(_initWorkmanager);
-    //_initWorkmanager();
-  }
-
-  runApp(MyApp());
-}
-
-final GlobalKey<_MyAppState> _myAppKey = GlobalKey();
-ThemeMode _themeMode = ThemeMode.system;
-ThemeMode get themeMode => _themeMode;
-set themeMode(final ThemeMode themeMode) {
-  _themeMode = themeMode;
-  _myAppKey.currentState?.themeModeChanged();
-}
-
-class MyApp extends StatefulWidget {
-  MyApp() : super(key: _myAppKey);
-
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  void themeModeChanged() => setState(() {});
-
-  final SplashScreen _splash = SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'Atletica',
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: themeMode,
-      home: _splash,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key}) : super(key: key);
-
-  @override
-  MyHomePageState createState() => MyHomePageState();
-}
-
-class MyHomePageState extends State<MyHomePage> {
-  /// initialize locale for `DateFormat` from `package:intl`
-  @override
-  void initState() {
-    initializeDateFormatting('it');
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!hasRole)
-
-      /// requests [role] selection (if not choosen)
-      WidgetsBinding.instance.addPostFrameCallback(
-        (d) => showModeSelectorRoute(context: context),
-      );
-
-    /// `Scaffold` requested for snackbars
-    return Scaffold(body: HomePageWidget());
-  }
-}
-
-/// conventional (useless) function for italian words
-/// ``` dart
-/// // this returns 'allenamento'
-/// singularPlural('allenament', 'o', 'i', 1);
-/// // this returns 'allenamenti'
-/// singularPlural('allenament', 'o', 'i', 2);
-///
-/// // this...:
-/// singularPlural('allenament', 'o', 'i', count);
-/// // ...is equal to:
-/// 'allenament${count == 1 ? 'o', 'i'}'
-/// ```
-String singularPlural(String root, String singular, String plural, int count) {
-  return '$root${count == 1 ? singular : plural}';
-}
-
-/// a conventional function for starting a `route` with given `context`
-/// and an optional `setState(() {})` if the ui can change after the pop
-void startRoute({required BuildContext context, required Widget route, void Function(void Function())? setState}) async {
-  await Navigator.push(context, MaterialPageRoute(builder: (context) => route));
-  setState?.call(() {});
-}
-
-extension IterableExtension<T> on Iterable<T> {
-  T? firstWhereNullable(final bool Function(T) f, {T? Function()? orElse}) {
-    try {
-      return firstWhere(f);
-    } on StateError {
-      return orElse?.call();
-    }
-  }
-}

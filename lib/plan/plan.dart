@@ -6,6 +6,7 @@ import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/plan/week.dart';
 import 'package:atletica/plan/widgets/plan_dialog.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/training.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -92,7 +93,7 @@ class Plan with Notifier<Plan> {
     Date? start,
     Date? stop,
   }) {
-    return userC.userReference.collection('plans').add({
+    return Globals.coach.userReference.collection('plans').add({
       'name': name,
       'weeks': [],
       'athletes': athletes?.map((a) => a.reference).toList(),

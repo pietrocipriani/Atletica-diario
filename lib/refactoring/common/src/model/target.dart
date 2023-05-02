@@ -88,6 +88,15 @@ enum TargetCategory {
   males,
   females;
 
+  String get code {
+    switch (this) {
+      case males:
+        return 'M';
+      case females:
+        return 'F';
+    }
+  }
+
   // TODO: migrate in "view" section
   Color get color {
     switch (this) {

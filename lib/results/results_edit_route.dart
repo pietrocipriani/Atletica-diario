@@ -7,6 +7,8 @@ import 'package:atletica/global_widgets/leading_info_widget.dart';
 import 'package:atletica/main.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
+import 'package:atletica/refactoring/utils/singular_plural.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/results/results.dart';
 import 'package:atletica/results/results_edit_dialog.dart';
@@ -45,7 +47,7 @@ class ResultsEditRoute extends StatelessWidget {
                       showResultsEditDialog(
                         context,
                         results.results[a]!,
-                        (r) => userC.saveResult(athlete: a, results: r),
+                        (r) => Globals.coach.saveResult(athlete: a, results: r),
                       );
                       return Future.value(false);
                     },
@@ -69,7 +71,7 @@ class ResultsEditRoute extends StatelessWidget {
                           ),
                           LeadingInfoWidget(
                             info: '$count/${results.ripetuteCount}',
-                            bottom: singularPlural('risultat', 'o', 'i', count),
+                            bottom: singPlurIT('risultato', count),
                           ),
                         ],
                       ),

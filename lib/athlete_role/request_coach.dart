@@ -1,14 +1,21 @@
 import 'package:atletica/global_widgets/animated_text.dart';
 import 'package:atletica/global_widgets/preferences_button.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/persistence/user_helper/athlete_helper.dart';
+import 'package:atletica/refactoring/coach/src/view/target/target_category_icon.dart';
+import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
+import 'package:atletica/refactoring/common/src/view/enum_selector.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:get/get.dart';
 
 class RequestCoachRoute extends StatefulWidget {
-  final void Function() onCoachFound;
+  static const String routeName = '/athlete/request-coach';
 
-  RequestCoachRoute({required this.onCoachFound});
+  RequestCoachRoute();
 
   @override
   _RequestCoachRoute createState() => _RequestCoachRoute();
@@ -16,7 +23,8 @@ class RequestCoachRoute extends StatefulWidget {
 
 class _RequestCoachRoute extends State<RequestCoachRoute> {
   late final Callback callback = Callback((_, c) => setState(() {}));
-  final TextEditingController controller = TextEditingController(), _nameController = TextEditingController(text: userA.name);
+  final TextEditingController controller = TextEditingController();
+  final RxString _uid = ''.obs;
 
   @override
   void initState() {
@@ -47,80 +55,93 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
     super.dispose();
   }
 
-  bool get _hasText => controller.text.isNotEmpty && _nameController.text.isNotEmpty;
+  bool get _isValid {
+    return _uid.isNotEmpty && Globals.athlete.name != null && Globals.athlete.name!.isNotEmpty;
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (userA.hasCoach) WidgetsBinding.instance.addPostFrameCallback((_) => widget.onCoachFound());
-
-    return WillPopScope(
-      onWillPop: () => Future.value(false),
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(_request!),
-          actions: [PreferencesButton(context: context)],
-        ),
-        body: Padding(
-          padding: MediaQuery.of(context).padding,
-          child: Material(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  Text(_infoText!, textAlign: TextAlign.center),
-                  const SizedBox(height: 10),
-                  if (userA.needsRequest)
-                    TextFormField(
-                      controller: controller,
-                      autofocus: false,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: (str) => str == null || str.isEmpty
-                          ? _insertUid
-                          : str == userA.uid
-                              ? _loopback
-                              : null,
-                      decoration: InputDecoration(
-                        helperText: _insertUidPlaceholder,
-                      ),
-                      onChanged: (value) => setState(() {}),
-                    ),
-                  if (userA.needsRequest)
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(helperText: _insertNamePlaceholder),
-                      textCapitalization: TextCapitalization.words,
-                    ),
-                  if (userA.hasRequest)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        AnimatedText(
-                          text: _waitingForResponse!,
-                          style: Theme.of(context).textTheme.headline6!.copyWith(color: Theme.of(context).primaryColorDark),
-                        ),
-                        Icon(Icons.check_circle, color: Colors.green)
-                      ],
-                    ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: userA.needsRequest
-                        ? _hasText
-                            ? () => userA.requestCoach(
-                                  uid: controller.text,
-                                  nickname: _nameController.text,
-                                )
-                            : null
-                        : userA.hasRequest
-                            ? () => userA.deleteCoachSubscription()
-                            : null,
-                    label: Text(userA.coach == null ? _send! : _cancel!),
-                    icon: Icon(userA.coach == null ? Icons.send : Icons.clear),
-                  )
-                ],
+    // TODO: Get off of this route
+    // if (Globals.athlete.hasCoach) WidgetsBinding.instance.addPostFrameCallback((_) => widget.onCoachFound());
+    return PlatformScaffold(
+      appBar: PlatformAppBar(
+        automaticallyImplyLeading: false,
+        title: Text(_request!),
+        trailingActions: [PreferencesButton(context: context)],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              if (_infoText != null) Text(_infoText!, textAlign: TextAlign.justify),
+              const SizedBox(height: 10),
+              // if (Globals.athlete.needsRequest)
+              PlatformTextField(
+                controller: controller,
+                autofocus: true,
+                onChanged: (v) => _uid.value = v,
+                /* 
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (str) => str == null || str.isEmpty
+                    ? _insertUid
+                    : str == Globals.athlete.uid
+                        ? _loopback
+                        : null, */
+                hintText: _insertUidPlaceholder,
+                // onChanged: (value) => setState(() {}),
               ),
-            ),
+              const SizedBox(height: 8),
+              const EditableUserDisplayName(),
+              /* PlatformTextField(
+                autofocus: false,
+                hintText: _insertNamePlaceholder,
+                controller: _nameController,
+                material: (context, platform) => MaterialTextFieldData(
+                  decoration: InputDecoration(labelText: _insertNamePlaceholder),
+                ),
+                textCapitalization: TextCapitalization.words,
+              ), */
+              EnumSelector<TargetCategory>(
+                values: TargetCategory.values,
+                iconBuilder: (_, c) => TargetCategoryIcon(c),
+                backgroundColor: (c) => c.color,
+                leading: Text('Categoria:'),
+              ),
+
+              if (Globals.athlete.hasRequest)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    AnimatedText(
+                      text: _waitingForResponse!,
+                      // style: Theme.of(context).textTheme.headline6!.copyWith(color: Theme.of(context).primaryColorDark),
+                    ),
+                    Icon(Icons.check_circle, color: Colors.green)
+                  ],
+                ),
+              const SizedBox(height: 10),
+              Obx(
+                () => PlatformElevatedButton(
+                  onPressed: Globals.athlete.needsRequest
+                      ? _isValid
+                          ? () => Globals.athlete.requestCoach(
+                                uid: controller.text,
+                                nickname: Globals.athlete.name!,
+                              )
+                          : null
+                      : Globals.athlete.hasRequest
+                          ? () => Globals.athlete.deleteCoachSubscription()
+                          : null,
+                  child: Text(Globals.athlete.coach == null ? _send! : _cancel!),
+
+                  // label: Text(Globals.athlete.coach == null ? _send! : _cancel!),
+                  /* materialIcon: Icon(Globals.athlete.coach == null ? Icons.send : Icons.clear),
+                  cupertinoIcon: Icon(Globals.athlete.coach == null ? CupertinoIcons.paperplane_fill : CupertinoIcons.clear), */
+                ),
+              )
+            ],
           ),
         ),
       ),

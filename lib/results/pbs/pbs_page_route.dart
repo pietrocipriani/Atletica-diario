@@ -1,7 +1,7 @@
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
 import 'package:atletica/global_widgets/leading_info_widget.dart';
-import 'package:atletica/main.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/utils/singular_plural.dart';
 import 'package:atletica/results/pbs/pb.dart';
 import 'package:atletica/results/pbs/simple_result_widget.dart';
 import 'package:atletica/results/pbs/tag.dart';
@@ -93,7 +93,7 @@ class _PbWidget extends StatelessWidget {
         width: 80,
         child: LeadingInfoWidget(
           info: count,
-          bottom: singularPlural('ripetut', 'a', 'e', pb.count),
+          bottom: singPlurIT('ripetuta', pb.count),
         ),
       ),
       trailing: LeadingInfoWidget(

@@ -1,8 +1,7 @@
-import 'package:atletica/athlete_role/athlete_main_page.dart';
+/* import 'package:atletica/athlete_role/athlete_main_page.dart';
 import 'package:atletica/coach_role/main.dart';
 import 'package:atletica/global_widgets/mode_selector_route.dart';
 import 'package:atletica/persistence/auth.dart';
-import 'package:atletica/persistence/user_helper/coach_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -77,3 +76,4 @@ class SplashScreen extends StatelessWidget {
     );
   }
 }
+ */

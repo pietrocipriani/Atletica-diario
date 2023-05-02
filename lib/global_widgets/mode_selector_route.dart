@@ -1,20 +1,27 @@
-import 'package:atletica/athlete_role/athlete_main_page.dart';
 import 'package:atletica/coach_role/main.dart';
-import 'package:atletica/persistence/firestore.dart';
+import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/common/src/model/role.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:get/get.dart';
 
-Future<void> showModeSelectorRoute({required BuildContext context}) => showDialog(
+/* Future<void> showModeSelectorRoute({required BuildContext context}) => showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: Text('Ruolo'),
         content: ModeSelectorRoute(),
       ),
-    );
+    ); */
 
 class ModeSelectorRoute extends StatelessWidget {
+  final UserHelper userHelper;
+
+  ModeSelectorRoute({required this.userHelper});
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations loc = AppLocalizations.of(context)!;
@@ -25,7 +32,7 @@ class ModeSelectorRoute extends StatelessWidget {
 
     return Padding(
       padding: MediaQuery.of(context).padding,
-      child: Scaffold(
+      child: PlatformScaffold(
         body: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
@@ -39,17 +46,12 @@ class ModeSelectorRoute extends StatelessWidget {
                       Text(
                         coachInfo,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.overline,
+                        // style: Theme.of(context).textTheme.overline,
                       ),
-                      ElevatedButton(
+                      PlatformElevatedButton(
                         onPressed: () async {
-                          await setRole(COACH_ROLE);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CoachMainPage(),
-                            ),
-                          );
+                          Get.put<CoachHelper>(await userHelper.setRole(Role.coach), tag: 'coachHelper', permanent: true);
+                          Get.offNamed('/coach');
                         },
                         child: Text(coach.toUpperCase()),
                       ),
@@ -73,17 +75,12 @@ class ModeSelectorRoute extends StatelessWidget {
                       Text(
                         athleteInfo,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.overline,
+                        // style: Theme.of(context).textTheme.overline,
                       ),
-                      ElevatedButton(
+                      PlatformElevatedButton(
                         onPressed: () async {
-                          await setRole(ATHLETE_ROLE);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AthleteMainPage(),
-                            ),
-                          );
+                          Get.put<AthleteHelper>(await userHelper.setRole(Role.athlete), tag: 'athleteHelper', permanent: true);
+                          Get.offNamed('/athlete');
                         },
                         child: Text(athlete.toUpperCase()),
                       ),

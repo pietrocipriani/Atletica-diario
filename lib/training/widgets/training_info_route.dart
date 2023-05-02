@@ -10,6 +10,7 @@ import 'package:atletica/recupero/recupero_dialog.dart';
 import 'package:atletica/recupero/recupero_widget.dart';
 import 'package:atletica/refactoring/coach/src/control/ripetuta/ripetuta_dialog.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/utils/singular_plural.dart';
 import 'package:atletica/ripetuta/ripetuta.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/training/training.dart';
@@ -175,10 +176,8 @@ class _SerieWidgetState extends State<_SerieWidget> {
     final ThemeData theme = Theme.of(context);
 
     final Widget subtitle = Text(
-      singularPlural(
-        '${widget.serie.ripetuteCount} ripetut',
-        'a',
-        'e',
+      singPlurIT(
+        '${widget.serie.ripetuteCount} ripetuta',
         widget.serie.ripetuteCount,
       ),
       style: TextStyle(color: theme.primaryColorDark),

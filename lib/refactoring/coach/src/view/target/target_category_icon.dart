@@ -1,5 +1,6 @@
 import 'package:atletica/refactoring/common/common.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// The icon [Widget] representing a target category
 class TargetCategoryIcon extends StatelessWidget {
@@ -20,6 +21,10 @@ class TargetCategoryIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Icon(_icon, color: category.color, size: mini ? 16 : null);
+    Color? color = IconTheme.of(context).color;
+    if (color == Get.theme.iconTheme.color) {
+      color = category.color;
+    }
+    return Icon(_icon, color: color, size: mini ? 16 : null);
   }
 }

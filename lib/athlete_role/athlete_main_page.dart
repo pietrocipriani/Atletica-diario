@@ -1,9 +1,9 @@
 import 'package:atletica/athlete_role/request_coach.dart';
 import 'package:atletica/global_widgets/custom_main_page.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/results/result.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/global_widgets/custom_expansion_tile.dart';
-import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/results/results_edit_dialog.dart';
 import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/training_description.dart';
@@ -27,18 +27,9 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
 
   @override
   Widget build(final BuildContext context) {
-    if (!userA.hasCoach)
-      return RequestCoachRoute(onCoachFound: () => setState(() {}));
-
     return CustomMainPage(
       section: section!,
-      events: (dt) => Result.ofDate(dt)
-          .where((r) => r.isOrphan)
-          .cast<Object>()
-          .followedBy(ScheduledTraining.ofDate(dt).where((st) =>
-              st.athletesRefs.isEmpty ||
-              st.athletesRefs.any((r) => r == userA.athleteCoachReference)))
-          .toList(),
+      events: (dt) => Result.ofDate(dt).where((r) => r.isOrphan).cast<Object>().followedBy(ScheduledTraining.ofDate(dt).where((st) => st.athletesRefs.isEmpty || st.athletesRefs.any((r) => r == Globals.athlete.athleteCoachReference))).toList(),
       eventBuilder: (e) {
         if (e is ScheduledTraining)
           return TrainingWidget(
@@ -65,9 +56,7 @@ class _ResultWidget extends StatelessWidget {
       titleDecoration: TextDecoration.lineThrough,
       trailing: IconButton(
         icon: Icon(Mdi.poll),
-        onPressed: Date.now() >= _result.date
-            ? () => showResultsEditDialog(context, _result, userA.saveResult)
-            : null,
+        onPressed: Date.now() >= _result.date ? () => showResultsEditDialog(context, _result, Globals.athlete.saveResult) : null,
         color: theme.iconTheme.color,
       ),
       leading: Checkbox(

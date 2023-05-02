@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 final SplayTreeMap<String, SimpleTemplate> templates = SplayTreeMap<String, SimpleTemplate>();
@@ -17,7 +18,7 @@ class SimpleTemplate {
   } */
 
   Future<void> create() {
-    return user.userReference.collection('templates').doc(name).set({
+    return Globals.coach.userReference.collection('templates').doc(name).set({
       'lastTarget': lastTarget.asMap,
       'tipologia': tipologia.name,
     });
@@ -50,7 +51,7 @@ class Template extends SimpleTemplate {
   Template({required super.name, required super.lastTarget, required super.tipologia}) : super(save: true);
 
   Future<void> update() {
-    return user.userReference.collection('templates').doc(name).update({
+    return Globals.coach.userReference.collection('templates').doc(name).update({
       'lastTarget': lastTarget.asMap,
       'tipologia': tipologia.name,
     });

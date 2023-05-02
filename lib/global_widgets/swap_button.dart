@@ -1,8 +1,9 @@
-import 'package:atletica/persistence/firestore.dart';
-import 'package:atletica/persistence/user_helper/athlete_helper.dart';
-import 'package:atletica/global_widgets/splash_screen.dart';
 import 'package:atletica/persistence/auth.dart';
+import 'package:atletica/refactoring/common/src/control/firebase/user_helper/athlete_helper.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
+import 'package:atletica/refactoring/common/src/model/role.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SwapButton extends IconButton {
   SwapButton({required final BuildContext context})
@@ -10,14 +11,10 @@ class SwapButton extends IconButton {
           icon: Icon(Icons.swap_vert),
           tooltip: 'CAMBIA RUOLO',
           onPressed: () async {
-            await user.userReference.update(
-                {'role': user is AthleteHelper ? COACH_ROLE : ATHLETE_ROLE});
-            user = user.user;
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => SplashScreen()),
-              (_) => false,
-            );
+            // TODO: better switching
+            await Globals.userHelper.userReference.update({'role': Globals.userHelper is AthleteHelper ? Role.coach.name : Role.athlete.name});
+            // TODO: nullify coach and athlete
+            Get.offAllNamed('/role-picker');
           },
         );
 }

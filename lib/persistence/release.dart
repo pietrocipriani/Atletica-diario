@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:app_installer/app_installer.dart';
 import 'package:atletica/main.dart';
+import 'package:atletica/refactoring/common/src/control/notifications/notifications.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -27,8 +28,7 @@ class Release {
     required final String changelog,
     required this.uploadTime,
     final String? md5,
-  })  : changelog = changelog.replaceAll(
-            RegExp(r'^\*\s*', multiLine: true), ' \u{2022} '),
+  })  : changelog = changelog.replaceAll(RegExp(r'^\*\s*', multiLine: true), ' \u{2022} '),
         md5 = md5 == null ? null : base64.decode(md5);
 }
 
@@ -41,8 +41,7 @@ Future<void> checkAndInstallNewRelease() async {
   if (release == null) return;
   _subscription ??= notificationSelected.listen((payload) async {
     if (payload != 'install-release') return;
-    if (release != null) if (!(await installRelease(release!)))
-      _showErrorNotification(release!);
+    if (release != null) if (!(await installRelease(release!))) _showErrorNotification(release!);
   });
   await _showNotification(release!);
 }
@@ -50,8 +49,7 @@ Future<void> checkAndInstallNewRelease() async {
 Future<Release?> checkNewRelease() async {
   if (kIsWeb || !Platform.isAndroid) return null;
   try {
-    final Reference release =
-        FirebaseStorage.instance.ref('release/release.apk');
+    final Reference release = FirebaseStorage.instance.ref('release/release.apk');
     final FullMetadata meta = await release.getMetadata();
 
     final PackageInfo package = await PackageInfo.fromPlatform();
@@ -112,15 +110,13 @@ Future<void> _showErrorNotification(final Release release) async {
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'new-release',
     'update notification',
-    channelDescription:
-        'shows notifications when a new app version is avaiable',
+    channelDescription: 'shows notifications when a new app version is avaiable',
     ticker: 'update error',
     onlyAlertOnce: true,
     showWhen: true,
     when: release.uploadTime.millisecondsSinceEpoch,
   );
-  final NotificationDetails details =
-      NotificationDetails(android: androidDetails);
+  final NotificationDetails details = NotificationDetails(android: androidDetails);
   await notificationPlugin.show(
     1,
     'ERROR',
@@ -134,8 +130,7 @@ Future<void> _showNotification(final Release release) async {
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'new-release',
     'update notification',
-    channelDescription:
-        'shows notifications when a new app version is avaiable',
+    channelDescription: 'shows notifications when a new app version is avaiable',
     ticker: 'new release avaiable',
     visibility: NotificationVisibility.public,
     styleInformation: BigTextStyleInformation(release.changelog),
@@ -143,8 +138,7 @@ Future<void> _showNotification(final Release release) async {
     showWhen: true,
     when: release.uploadTime.millisecondsSinceEpoch,
   );
-  final NotificationDetails details =
-      NotificationDetails(android: androidDetails);
+  final NotificationDetails details = NotificationDetails(android: androidDetails);
   await notificationPlugin.show(
     0,
     'NEW RELEASE ${release.versionName}',

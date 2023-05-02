@@ -7,6 +7,7 @@ import 'package:atletica/cache.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/persistence/firestore.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/training/training.dart';
 import 'package:atletica/plan/plan.dart';
 import 'package:atletica/main.dart' show IterableExtension;
@@ -128,7 +129,7 @@ class ScheduledTraining with Notifier<ScheduledTraining> {
       await create(work: work, date: date, plan: plan, athletes: athletes, batch: b);
       return await b.commit();
     }
-    batch.set(userC.userReference.collection('schedules').doc(), {
+    batch.set(Globals.coach.userReference.collection('schedules').doc(), {
       'work': work.reference,
       'date': date,
       'plan': plan?.reference,

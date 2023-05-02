@@ -8,6 +8,7 @@ import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart' as auth;
 import 'package:atletica/persistence/firestore.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/refactoring/utils/math.dart';
 import 'package:atletica/results/result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -96,7 +97,7 @@ class Athlete with auth.Notifier<Athlete> {
   }
 
   bool get isRequest => group == null;
-  bool get isAthlete => group != null && (auth.userC.fictionalAthletes || athlete != null) && (auth.userC.showAsAthlete || athlete != auth.userC.userReference);
+  bool get isAthlete => group != null && (Globals.coach.fictionalAthletes || athlete != null) && (Globals.coach.showAsAthlete || athlete != Globals.coach.userReference);
 
   bool dismissed = false;
 
@@ -149,7 +150,7 @@ class Athlete with auth.Notifier<Athlete> {
 
   Stream<QuerySnapshot> _resultSnapshots() {
     final DocumentReference ref = resultsDoc;
-    return ref.collection('results').where('coach', isEqualTo: auth.userC.uid).snapshots();
+    return ref.collection('results').where('coach', isEqualTo: Globals.coach.uid).snapshots();
   }
 
   void _createTrainingsCountSubscription() {
@@ -202,7 +203,7 @@ class Athlete with auth.Notifier<Athlete> {
     required String nickname,
     required String group,
   }) =>
-      auth.userC.addAthlete(null, nickname, group);
+      Globals.coach.addAthlete(null, nickname, group);
 
   /// deleted `this` Athlete from `firestore`.
   Future<void> delete() {
@@ -210,9 +211,9 @@ class Athlete with auth.Notifier<Athlete> {
     _trainingsCountSubscription.cancel();
     final WriteBatch batch = firestore.batch();
     batch.delete(reference);
-    if (athlete == auth.userC.userReference)
-      batch.update(auth.userC.userReference, {
-        'showAsAthlete': auth.userC.showAsAthlete = false,
+    if (athlete == Globals.coach.userReference)
+      batch.update(Globals.coach.userReference, {
+        'showAsAthlete': Globals.coach.showAsAthlete = false,
       });
     return batch.commit();
   }

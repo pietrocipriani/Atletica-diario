@@ -1,28 +1,24 @@
 import 'package:atletica/refactoring/coach/src/view/tipologia/tipologia_icon.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/common/src/view/enum_selector.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// Form wrapper to select a [Tipologia] with [TipologiaIcon]Buttons
-class TipologiaSelector extends StatefulWidget {
+class TipologiaSelector extends StatelessWidget {
   /// the [SimpleTemplate] where to store the [Tipologia]
   final SimpleTemplate template;
 
   TipologiaSelector({required this.template});
 
   @override
-  State<StatefulWidget> createState() => _TipologiaSelectorState();
-}
-
-/// [State] for [TipologiaSelector]
-class _TipologiaSelectorState extends State<TipologiaSelector> {
-  Tipologia get _tipologia => widget.template.tipologia;
-  set _tipologia(final Tipologia tipologia) => widget.template.tipologia;
-
-  @override
   Widget build(BuildContext context) {
-    return Row(
+    return EnumSelector<Tipologia>(
+      values: Tipologia.values,
+      iconBuilder: (_, t) => TipologiaIcon.from(tipologia: t),
+    );
+    /* return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: Tipologia.values
           .map((t) => IconButton(
@@ -37,6 +33,6 @@ class _TipologiaSelectorState extends State<TipologiaSelector> {
                 ),
               ))
           .toList(),
-    );
+    ); */
   }
 }
