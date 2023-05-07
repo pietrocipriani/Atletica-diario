@@ -30,7 +30,7 @@ AlertDialog _deleteConfirmDialog({
       ],
       style: Theme.of(context)
           .textTheme
-          .overline!
+          .labelSmall!
           .copyWith(fontWeight: FontWeight.normal),
     ),
     textAlign: TextAlign.justify,

@@ -26,7 +26,7 @@ class PlanScheduleWidget extends ScheduleWidget<PlanSchedule> {
               text: DateFormat.MMMMd('it').format(schedule.to),
             )
         ],
-        style: Theme.of(context).textTheme.overline!.copyWith(
+        style: Theme.of(context).textTheme.labelSmall!.copyWith(
               color: Theme.of(context).primaryColorDark,
               fontWeight: FontWeight.bold,
             ),

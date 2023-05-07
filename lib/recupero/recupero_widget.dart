@@ -31,10 +31,14 @@ class _RecuperoWidgetExtendedState extends State<RecuperoWidget> {
             ),
             child: Row(
               children: <Widget>[
-                Icon(Icons.timer, color: theme.colorScheme.onPrimary),
+                Icon(
+                  Icons.timer,
+                  color: theme.colorScheme.onPrimary,
+                  size: 14,
+                ),
                 Text(
                   widget.recupero.toString(),
-                  style: theme.textTheme.overline!
+                  style: theme.textTheme.labelSmall!
                       .copyWith(color: theme.colorScheme.onPrimary),
                 )
               ],

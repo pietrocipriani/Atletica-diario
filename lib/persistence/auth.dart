@@ -45,7 +45,8 @@ class BasicUser {
 
 class Request extends BasicUser {
   final DocumentReference reference;
-  Request({required this.reference, required String uid, String? name}) : super(uid: uid, name: name);
+  Request({required this.reference, required String uid, String? name})
+      : super(uid: uid, name: name);
 }
 
 Future<void> logout() async {
@@ -58,7 +59,8 @@ Future<bool?> showNewReleaseDialog({
   required String changelog,
   required final DateTime updateTime,
 }) {
-  changelog = changelog.replaceAll(RegExp(r'^\*', multiLine: true), ' \u{2022} ');
+  changelog =
+      changelog.replaceAll(RegExp(r'^\*', multiLine: true), ' \u{2022} ');
   final String date = DateFormat.yMMMd('it_IT').format(updateTime);
   final String time = DateFormat.Hm('it_IT').format(updateTime);
   final TextStyle bold = const TextStyle(fontWeight: FontWeight.bold);
@@ -72,7 +74,20 @@ Future<bool?> showNewReleaseDialog({
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           RichText(
-            text: TextSpan(text: 'la nuova versione ', children: [TextSpan(text: version, style: bold), TextSpan(text: ' del '), TextSpan(text: date, style: bold), TextSpan(text: ' ore '), TextSpan(text: time, style: bold), TextSpan(text: ' è disponibile!')], style: Theme.of(context).textTheme.overline?.copyWith(fontWeight: FontWeight.normal)),
+            text: TextSpan(
+                text: 'la nuova versione ',
+                children: [
+                  TextSpan(text: version, style: bold),
+                  TextSpan(text: ' del '),
+                  TextSpan(text: date, style: bold),
+                  TextSpan(text: ' ore '),
+                  TextSpan(text: time, style: bold),
+                  TextSpan(text: ' è disponibile!')
+                ],
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(fontWeight: FontWeight.normal)),
           ),
           SizedBox(height: 4),
           Text('changelog:'),

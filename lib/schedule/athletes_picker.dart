@@ -95,7 +95,7 @@ class _LabeledCheckBox extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: Theme.of(context).textTheme.overline,
+              style: Theme.of(context).textTheme.labelSmall,
               maxLines: 2,
               overflow: TextOverflow.clip,
             ),

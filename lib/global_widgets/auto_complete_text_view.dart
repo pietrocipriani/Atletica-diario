@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+///Conventional widget for fast AutoComplete creation
 class AutoCompleteTextView<T extends Object> extends StatefulWidget {
   final void Function(T)? onSelected;
   final void Function(String)? onSubmitted;
@@ -17,14 +18,15 @@ class AutoCompleteTextView<T extends Object> extends StatefulWidget {
     this.submitOnChange = false,
     this.displayStringForOption,
     this.initialText,
-    this.dense = false,
+    this.dense = true,
   }) : super(key: key ?? GlobalKey());
 
   @override
   State<StatefulWidget> createState() => _AutoCompleteTextViewState<T>();
 }
 
-class _AutoCompleteTextViewState<T extends Object> extends State<AutoCompleteTextView<T>> {
+class _AutoCompleteTextViewState<T extends Object>
+    extends State<AutoCompleteTextView<T>> {
   TextEditingController? _controller;
   double? _width;
 
@@ -72,13 +74,12 @@ class _AutoCompleteTextViewState<T extends Object> extends State<AutoCompleteTex
         return TextFormField(
           focusNode: focus,
           controller: this.controller = controller,
-          style: widget.dense ? Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal) : null,
           decoration: InputDecoration(
-            isDense: widget.dense,
             hintText: 'ricerca allenamento', // TODO
           ),
           onTap: () {
-            if (focus.hasFocus) FocusScope.of(context).requestFocus(FocusNode());
+            if (focus.hasFocus)
+              FocusScope.of(context).requestFocus(FocusNode());
           },
           onFieldSubmitted: (s) {
             widget.onSubmitted?.call(s);
@@ -100,22 +101,34 @@ class _AutoCompleteTextViewState<T extends Object> extends State<AutoCompleteTex
               padding: const EdgeInsets.all(0),
               children: options.map(
                 (suggestion) {
-                  final String name = widget.displayStringForOption?.call(suggestion) ?? suggestion.toString();
+                  final String name =
+                      widget.displayStringForOption?.call(suggestion) ??
+                          suggestion.toString();
                   return InkWell(
                     onTap: () => onSelected(suggestion),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: RichText(
                         text: TextSpan(
-                          style: widget.dense ? Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal) : TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                          text: name.substring(0, name.indexOf(controller.text)),
+                          style: widget.dense
+                              ? Theme.of(context)
+                                  .textTheme
+                                  .labelSmall!
+                                  .copyWith(fontWeight: FontWeight.normal)
+                              : TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface),
+                          text:
+                              name.substring(0, name.indexOf(controller.text)),
                           children: [
                             TextSpan(
                               text: controller.text,
                               style: TextStyle(fontWeight: FontWeight.w900),
                             ),
                             TextSpan(
-                              text: name.substring(name.indexOf(controller.text) + controller.text.length),
+                              text: name.substring(
+                                  name.indexOf(controller.text) +
+                                      controller.text.length),
                             ),
                           ],
                         ),

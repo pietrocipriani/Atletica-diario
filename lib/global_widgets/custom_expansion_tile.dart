@@ -100,8 +100,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
         const PlaceholderListTile(),
         growable: true,
       );*/
-    _isExpanded = PageStorage.of(context)?.readState(context) as bool? ??
-        widget.initiallyExpanded;
+    _isExpanded = PageStorage.of(context).readState(context) ?? false;
     if (_isExpanded) _controller.value = 1.0;
   }
 
@@ -137,7 +136,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
           });
         });
       }
-      PageStorage.of(context)?.writeState(context, _isExpanded);
+      PageStorage.of(context).writeState(context, _isExpanded);
     });
     if (widget.onExpansionChanged != null)
       widget.onExpansionChanged!(_isExpanded);
@@ -211,7 +210,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
     _shapeTween.end = theme.cardTheme.shape ??
         const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(4)));
-    _paddingTween.end = theme.cardTheme.margin as EdgeInsets?;
+    _paddingTween.end = cast<EdgeInsets?>(theme.cardTheme.margin, null);
     super.didChangeDependencies();
   }
 
@@ -234,7 +233,7 @@ class _ExpansionTileState extends State<CustomExpansionTile>
             widget.hiddenSubtitle!,
             style: Theme.of(context)
                 .textTheme
-                .overline!
+                .labelSmall!
                 .copyWith(fontWeight: FontWeight.normal),
             textAlign: TextAlign.justify,
           ),

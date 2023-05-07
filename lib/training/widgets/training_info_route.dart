@@ -4,7 +4,6 @@ import 'package:atletica/global_widgets/custom_list_tile.dart';
 import 'package:atletica/global_widgets/delete_confirm_dialog.dart';
 import 'package:atletica/global_widgets/resizable_text_field.dart';
 import 'package:atletica/global_widgets/times_widget.dart';
-import 'package:atletica/main.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/recupero/recupero_dialog.dart';
 import 'package:atletica/recupero/recupero_widget.dart';
@@ -18,15 +17,21 @@ import 'package:atletica/training/serie.dart';
 import 'package:atletica/training/widgets/tags_selector_widget.dart';
 import 'package:flutter/material.dart';
 
+/// Route for a single training configuration
 class TrainingInfoRoute extends StatefulWidget {
+  /// The `Training` to display
   final Training allenamento;
   TrainingInfoRoute({required this.allenamento});
   @override
   _TrainingInfoRouteState createState() => _TrainingInfoRouteState();
 }
 
+/// Class for putting the overlay RecuperoWidget in the correct position
 class _RecuperoWidgetFollower extends StatelessWidget {
+  /// The `Recupero` to display
   final Recupero rec;
+
+  /// The `LayerLink` for position
   final LayerLink link;
   _RecuperoWidgetFollower({required this.rec, required this.link});
 
@@ -42,16 +47,18 @@ class _RecuperoWidgetFollower extends StatelessWidget {
 class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
   bool editTitle = false;
   bool collapsedDescription = true;
-  late TextEditingController _titleController = TextEditingController(text: widget.allenamento.name);
+  late TextEditingController _titleController =
+      TextEditingController(text: widget.allenamento.name);
 
   List<Serie> get serie => widget.allenamento.serie;
 
+  // TODO: riorganizzare i widget
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Widget title = editTitle
         ? TextFormField(
-            style: theme.textTheme.headline6!.copyWith(color: theme.colorScheme.onPrimary),
+            style: theme.textTheme.titleLarge,
             controller: _titleController,
           )
         : Text(widget.allenamento.name);
@@ -60,7 +67,9 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
       if (editTitle)
         IconButton(
           icon: Icon(Icons.lightbulb_outline),
-          onPressed: () => _titleController.text = widget.allenamento.suggestName,
+          onPressed: () =>
+              _titleController.text = widget.allenamento.suggestName,
+          tooltip: "Suggerisci il nome in base agli esercizi.",
         ),
       if (editTitle)
         IconButton(
@@ -69,14 +78,15 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
             editTitle = !editTitle;
             _titleController.text = widget.allenamento.name;
           }),
+          tooltip: "Annulla le modifiche.",
         ),
       IconButton(
-        icon: Icon(editTitle ? Icons.check : Icons.edit),
-        onPressed: () => setState(() {
-          editTitle = !editTitle;
-          widget.allenamento.name = _titleController.text;
-        }),
-      ),
+          icon: Icon(editTitle ? Icons.check : Icons.edit),
+          onPressed: () => setState(() {
+                editTitle = !editTitle;
+                widget.allenamento.name = _titleController.text;
+              }),
+          tooltip: "Salva le modifiche."),
     ];
 
     final FloatingActionButton fab = FloatingActionButton(
@@ -86,6 +96,7 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
       },
       child: Icon(Icons.add),
       mini: true,
+      tooltip: "Aggiungi una serie.",
     );
 
     final List<Widget> children = serie
@@ -136,7 +147,8 @@ class _TrainingInfoRouteState extends State<TrainingInfoRoute> {
                   }),
                   children: children,
                 ),
-                for (Serie s in this.serie.where((s) => s != this.serie.last)) _RecuperoWidgetFollower(link: s.link, rec: s.nextRecupero)
+                for (Serie s in this.serie.where((s) => s != this.serie.last))
+                  _RecuperoWidgetFollower(link: s.link, rec: s.nextRecupero)
               ],
             ),
           ),
@@ -222,7 +234,8 @@ class _SerieWidgetState extends State<_SerieWidget> {
                               ),
                           ])
                       .toList()),
-              for (Ripetuta rip in widget.serie.ripetute) _RecuperoWidgetFollower(link: rip.link, rec: rip.nextRecupero),
+              for (Ripetuta rip in widget.serie.ripetute)
+                _RecuperoWidgetFollower(link: rip.link, rec: rip.nextRecupero),
             ],
           )
         ],
@@ -362,7 +375,7 @@ class _RecuperoButton extends StatelessWidget {
         btn,
         Text(
           rec.toString(),
-          style: Theme.of(context).textTheme.overline,
+          style: Theme.of(context).textTheme.labelSmall,
         )
       ],
     );

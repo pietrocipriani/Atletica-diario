@@ -3,6 +3,7 @@ import 'package:atletica/cache.dart';
 import 'package:atletica/date.dart';
 import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/utils/cast.dart';
 import 'package:atletica/results/simple_training.dart';
 import 'package:atletica/schedule/schedule.dart';
 import 'package:atletica/training/training.dart';
@@ -18,9 +19,8 @@ class Result with Notifier<Result> {
 
   static void Function() cacheReset = _cache.reset;
 
-  static void remove(final DocumentReference ref) {
-    final Result? r = _cache.remove(ref);
-    if (r != null) _cache.notifyAll(r, Change.DELETED);
+  static void remove(final Result res) {
+    _cache.notifyAll(res, Change.DELETED);
   }
 
   static Iterable<Result> get cachedResults => _cache.values;
@@ -28,7 +28,8 @@ class Result with Notifier<Result> {
   static bool get isEmpty => _cache.isEmpty;
   static bool get isNotEmpty => _cache.isNotEmpty;
 
-  static Iterable<Result> ofDate(final Date date) => cachedResults.where((r) => r.date == date);
+  static Iterable<Result> ofDate(final Date date) =>
+      cachedResults.where((r) => r.date == date);
   static Result? tryOf(final DocumentReference? ref) {
     if (ref == null) return null;
     try {
@@ -43,7 +44,8 @@ class Result with Notifier<Result> {
     if (t == null) return null;
     return ofDate(st.date).firstWhereNullable(
       (r) => r.isCompatible(t, true),
-      orElse: () => ofDate(st.date).firstWhereNullable((r) => r.isCompatible(t)),
+      orElse: () =>
+          ofDate(st.date).firstWhereNullable((r) => r.isCompatible(t)),
     );
   }
 
@@ -53,42 +55,50 @@ class Result with Notifier<Result> {
     return a;
   }
 
-  factory Result.parse(final DocumentSnapshot raw) {
+  factory Result.parse(final DocumentSnapshot<Map<String, Object?>> raw) {
     final Result a = _cache[raw.reference] ??= Result._parse(raw);
     _cache.notifyAll(a, Change.ADDED);
     return a;
   }
-  Result._parse(DocumentSnapshot raw)
+  Result._parse(final DocumentSnapshot<Map<String, Object?>> raw)
       : reference = raw.reference,
-        date = raw.getNullable('date') == null ? Date.parse(raw.id) : Date.fromTimeStamp(raw['date']),
-        training = raw['training'],
+        date = raw.getNullable('date') == null
+            // TODO: remove this legacy notation
+            ? Date.parse(raw.id)
+            // TODO: should the date be now? Or should an exception be thrown
+            : Date.fromTimeStamp(raw['date'] as Timestamp),
+        // TODO: should an exception be thrown?
+        training = raw['training'] as String,
         results = Map.fromEntries(_generateEntries(raw)),
-        fatigue = raw.getNullable('fatigue') as int?,
-        info = raw.getNullable('info') as String? ?? '' {
+        fatigue = cast(raw.getNullable('fatigue'), null),
+        info = cast(raw.getNullable('info'), '') {
     //if (raw.getNullable('date') == null) userC.saveResult(this);
   }
 
-  static Iterable<MapEntry<SimpleRipetuta, ResultValue?>> _generateEntries(final DocumentSnapshot raw) {
+  static Iterable<MapEntry<SimpleRipetuta, ResultValue?>> _generateEntries(
+      final DocumentSnapshot raw) {
     final List<String> rawResults = (raw['results'] as List).cast();
-    final Iterable<MapEntry<String, ResultValue?>> results = rawResults.map<MapEntry<String, ResultValue?>?>(parseRawResult).whereType();
+    final Iterable<MapEntry<String, ResultValue?>> results = rawResults
+        .map<MapEntry<String, ResultValue?>?>(parseRawResult)
+        .whereType();
     return results.map((e) => MapEntry(SimpleRipetuta(e.key), e.value));
   }
 
-  factory Result.updateOrParse(final DocumentSnapshot raw) {
+  /*factory Result.updateOrParse(final DocumentSnapshot raw) {
     try {
       return Result.update(raw);
     } on StateError {
       return Result.parse(raw);
     }
-  }
-  factory Result.update(final DocumentSnapshot raw) {
-    final Result r = Result.of(raw.reference);
+  }*/
+  factory Result.update(final Result r, final DocumentSnapshot raw) {
     r.fatigue = raw['fatigue'];
     r.info = raw['info'];
     int count = 0;
     for (SimpleRipetuta rip in r.ripetute) {
       final MapEntry? e = parseRawResult(raw['results'][count++]);
-      if (e == null || e.key != rip.name) return throw StateError('cannot update rip');
+      if (e == null || e.key != rip.name)
+        return throw StateError('cannot update rip');
       r[rip] = e.value;
     }
     r.notifyAll(r, Change.UPDATED);
@@ -121,11 +131,15 @@ class Result with Notifier<Result> {
     );
   }
 
-  bool isNotCompatible(final Training? training, [final bool sameName = false]) => !isCompatible(training, sameName);
+  bool isNotCompatible(final Training? training,
+          [final bool sameName = false]) =>
+      !isCompatible(training, sameName);
 
   bool get isOrphan {
-    if (ScheduledTraining.ofDate(date).any((st) => isCompatible(st.work, true))) return false;
-    return ScheduledTraining.ofDate(date).every((st) => isNotCompatible(st.work));
+    if (ScheduledTraining.ofDate(date).any((st) => isCompatible(st.work, true)))
+      return false;
+    return ScheduledTraining.ofDate(date)
+        .every((st) => isNotCompatible(st.work));
   }
 
   ResultValue? resultAt(int index) {
@@ -141,11 +155,13 @@ class Result with Notifier<Result> {
 
   bool get isBooking => results.values.every((r) => r == null);
 
-  void operator []=(final SimpleRipetuta rip, final ResultValue? value) => results[rip] = value;
+  void operator []=(final SimpleRipetuta rip, final ResultValue? value) =>
+      results[rip] = value;
   ResultValue? operator [](final SimpleRipetuta rip) => results[rip];
 
   Iterable<SimpleRipetuta> get ripetute => results.keys;
-  Iterable<MapEntry<SimpleRipetuta, ResultValue?>> get asIterable => results.entries;
+  Iterable<MapEntry<SimpleRipetuta, ResultValue?>> get asIterable =>
+      results.entries;
 
   String get uniqueIdentifier => ripetute.join(':');
 }

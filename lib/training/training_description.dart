@@ -1,4 +1,3 @@
-import 'package:atletica/persistence/auth.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/refactoring/common/src/control/globals.dart';
@@ -16,7 +15,10 @@ class _RowRip extends _RowRipRes {
     final bool disabled = false,
   }) : super(
           name: rip.template,
-          result: Globals.userHelper.isAthlete ? ResultValueOrTarget.resultValueNullable(rip.target[Globals.userHelper.category]) : ResultValueOrTarget.target(rip.target),
+          result: Globals.role == Role.athlete
+              ? ResultValueOrTarget.resultValueNullable(
+                  rip.target[Globals.helper.category])
+              : ResultValueOrTarget.target(rip.target),
           disabled: disabled,
           tipologia: templates[rip.template]?.tipologia ?? Tipologia.corsaDist,
         );
@@ -72,12 +74,19 @@ abstract class _RowRipRes extends StatelessWidget {
             if (result != null)
               result!.join(
                 // TODO: semplify
-                (duration) => TextSpan(text: tipologia.formatTarget(ResultValue.duration(duration))),
-                (distance) => TextSpan(text: tipologia.formatTarget(ResultValue.distance(distance))),
-                (target) => TargetViewSpan(target: target, tipologia: tipologia),
+                (duration) => TextSpan(
+                    text:
+                        tipologia.formatTarget(ResultValue.duration(duration))),
+                (distance) => TextSpan(
+                    text:
+                        tipologia.formatTarget(ResultValue.distance(distance))),
+                (target) =>
+                    TargetViewSpan(target: target, tipologia: tipologia),
               ),
           ],
-          style: disabled ? theme.textTheme.overline!.copyWith(color: theme.disabledColor) : theme.textTheme.overline!, // TODO: [DefaultTextTheme]
+          style: disabled
+              ? theme.textTheme.labelSmall!.copyWith(color: theme.disabledColor)
+              : theme.textTheme.labelSmall!, // TODO: [DefaultTextTheme]
         ),
       ),
     );
@@ -104,13 +113,18 @@ class _RowRec extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 8),
             height: 1,
-            color: (rec.isSerieRec && !disabled) ? theme.primaryColor : theme.disabledColor,
+            color: (rec.isSerieRec && !disabled)
+                ? theme.primaryColor
+                : theme.disabledColor,
           ),
         ),
         RichText(
           text: TextSpan(
             text: rec.toString(),
-            style: disabled ? theme.textTheme.overline!.copyWith(color: theme.disabledColor) : theme.textTheme.overline,
+            style: disabled
+                ? theme.textTheme.labelSmall!
+                    .copyWith(color: theme.disabledColor)
+                : theme.textTheme.labelSmall,
             children: [
               TextSpan(
                 text: ' recupero',
@@ -128,10 +142,11 @@ class _RowRec extends StatelessWidget {
 /// utility class that builds training description
 class TrainingDescription {
   /// creates the description from `result`
-  static Iterable<Widget> fromResults(final Result result) => result.asIterable.map((e) => _RowRes(
-        res: e,
-        tipologia: Tipologia.corsaDist,
-      ));
+  static Iterable<Widget> fromResults(final Result result) =>
+      result.asIterable.map((e) => _RowRes(
+            res: e,
+            tipologia: Tipologia.corsaDist,
+          ));
 
   /// creates the description from `training` with optional `result`
   /// * `result` can be incompatible, if so it's ignored
@@ -144,14 +159,16 @@ class TrainingDescription {
     final bool useResult = result != null && result.isCompatible(training);
 
     final List<Ripetuta> rips = training.ripetute.toList();
-    final List<MapEntry<SimpleRipetuta, ResultValue?>>? ress = useResult ? result.results.entries.toList() : null;
+    final List<MapEntry<SimpleRipetuta, ResultValue?>>? ress =
+        useResult ? result.results.entries.toList() : null;
     final List<Recupero> recs = training.recuperi.toList();
 
     for (int i = 0; i < rips.length; i++) {
       if (ress != null && ress[i].value != null)
         yield _RowRes(
           res: ress[i],
-          tipologia: templates[rips[i].template]?.tipologia ?? Tipologia.corsaDist,
+          tipologia:
+              templates[rips[i].template]?.tipologia ?? Tipologia.corsaDist,
           disabled: disabled,
         );
       else
@@ -167,7 +184,11 @@ class TrainingDescription {
     final List<Serie> serie, [
     final bool disabled = false,
   ]) sync* {
-    final List<Ripetuta> rips = serie.expand((s) => Iterable.generate(s.ripetizioni, (i) => s)).expand((s) => s.ripetute).expand((r) => Iterable.generate(r.ripetizioni, (i) => r)).toList();
+    final List<Ripetuta> rips = serie
+        .expand((s) => Iterable.generate(s.ripetizioni, (i) => s))
+        .expand((s) => s.ripetute)
+        .expand((r) => Iterable.generate(r.ripetizioni, (i) => r))
+        .toList();
     final List<Recupero> recs = () sync* {
       for (Serie s in serie) {
         yield* s.recuperi;

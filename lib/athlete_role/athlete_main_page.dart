@@ -1,4 +1,3 @@
-import 'package:atletica/athlete_role/request_coach.dart';
 import 'package:atletica/global_widgets/custom_main_page.dart';
 import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/results/result.dart';
@@ -12,6 +11,8 @@ import 'package:mdi/mdi.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AthleteMainPage extends StatefulWidget {
+  static const String routeName = '/athlete';
+
   @override
   _AthleteMainPageState createState() => _AthleteMainPageState();
 }
@@ -29,7 +30,19 @@ class _AthleteMainPageState extends State<AthleteMainPage> {
   Widget build(final BuildContext context) {
     return CustomMainPage(
       section: section!,
-      events: (dt) => Result.ofDate(dt).where((r) => r.isOrphan).cast<Object>().followedBy(ScheduledTraining.ofDate(dt).where((st) => st.athletesRefs.isEmpty || st.athletesRefs.any((r) => r == Globals.athlete.athleteCoachReference))).toList(),
+      events: (dt) => Result.ofDate(dt)
+          .where((r) => r.isOrphan)
+          .cast<Object>()
+          .followedBy(
+            ScheduledTraining.ofDate(dt).where(
+              (st) =>
+                  st.athletesRefs.isEmpty ||
+                  st.athletesRefs.any(
+                    (r) => r == Globals.athlete.athleteCoachReference,
+                  ),
+            ),
+          )
+          .toList(),
       eventBuilder: (e) {
         if (e is ScheduledTraining)
           return TrainingWidget(
@@ -56,13 +69,16 @@ class _ResultWidget extends StatelessWidget {
       titleDecoration: TextDecoration.lineThrough,
       trailing: IconButton(
         icon: Icon(Mdi.poll),
-        onPressed: Date.now() >= _result.date ? () => showResultsEditDialog(context, _result, Globals.athlete.saveResult) : null,
+        onPressed: Date.now() >= _result.date
+            ? () => showResultsEditDialog(
+                context, _result, Globals.athlete.saveResult)
+            : null,
         color: theme.iconTheme.color,
       ),
       leading: Checkbox(
         value: true,
         onChanged: null,
-        fillColor: MaterialStateProperty.all(theme.toggleableActiveColor),
+        fillColor: MaterialStateProperty.all(theme.colorScheme.secondary),
         checkColor: theme.colorScheme.onPrimary,
       ),
       children: TrainingDescription.fromResults(_result).toList(),

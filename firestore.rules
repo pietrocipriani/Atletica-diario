@@ -1,106 +1,163 @@
 rules_version = '2';
+
 service cloud.firestore {
-  match /databases/{database}/documents {
-  
-  	function isNotEmpty(str) {
-    	return str != null && !str.matches('^\\s*$');
-    }
-  
-  	function auth () {
-    	return request.auth != null;
-    }
-  	function userIs (uid) {
-    	return auth() && (request.auth.uid == uid || request.auth.uid == 'IWIzMYypH6TjluGqdoQyM9lOSl02');
-    }
-    
-    function keys(required, optional) {
-    	let ks = request.resource.data.keys().toSet();
-      return ks.hasAll(required) && ks.hasOnly(required.concat(optional));
-    }
-    function changed(required, optional) {
-    	let ks = request.resource.data.diff(resource.data).changedKeys();
-      return ks.hasAll(required) && ks.hasOnly(required.concat(optional));
-    }
+  /// Checks if the user is authenticated
+  function isLogged() {
+    return request.auth != null;
+  }
+  /// Checks if the user is an admin
+  function isAdmin() {
+    return isLogged() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == true; 
+  }
+  /// Checks if the user has the right `uid`.
+  /// Admins bypass this check
+  function userIs(uid) {
+    return isLogged() && (isAdmin() || request.auth.uid == uid);
+  }
+  /// Checks if the request has the mandatory `keys`
+  function hasAll(keys) {
+    let ks = request.resource.data.keys;
+    return ks.hasAll(keys);
+  }
+  /// Checks if the request has only these `keys`
+  function hasOnly(keys) {
+    let ks = request.resource.data.keys;
+    return ks.hasOnly(keys);
+  }
+  /// Checks if a string is not empty
+  function isNotEmpty(str) {
+  	return str != null && !str.matches('^\\s*$');
+  }
+  /// Checks if the request has the required keys and some optional keys
+  function keys(required, optional) {
+  	let ks = request.resource.data.keys().toSet();
+    return ks.hasAll(required) && ks.hasOnly(required.concat(optional));
+  }
+  /// Checks if the request doesn't change keys outside required and otional keys. All the required keys must have been changed
+  function changed(required, optional) {
+  	let ks = request.resource.data.diff(resource.data).affectedKeys();
+    return ks.hasAll(required) && ks.hasOnly(required.concat(optional));
+  }
+
+  match /databases/{database}/documents { 
     
     match /users/{user} {
+
+      /// Checks if the coach to which sending the request exists.
+      // TODO: check if the user is logged as coach
     	function acceptableCoach() {
       	let coach = 'coach' in request.resource.data ? request.resource.data.coach : null;
         let ref = /databases/$(database)/documents/users/$(coach);
-        return coach != user && (coach == null || exists(ref));
+        return coach == null || exists(ref);
       }
+
+      /// Checks if the requested role can is acceptable
+      // TODO: deprecated once the role has been removed.
       function acceptableRole() {
       	let prevRole = 'role' in resource.data ? resource.data.role : null;
       	let role = 'role' in request.resource.data ? request.resource.data.role : null;
-        return !('role' in request.resource.data) || (role == 'athlete' || role == 'coach');
+        return (role == null && prevRole == null) || role == 'athlete' || role == 'coach';
       }
+      /// Checks if the athlete can change the coach. Cannot switch prior to setting the previous coach to null
+      // TODO: changes incoming... what happens?
       function canChangeCoach() {
       	let prevCoach = 'coach' in resource.data ? resource.data.coach : null;
         let coach = 'coach' in request.resource.data ? request.resource.data.coach : null;
         return prevCoach == coach || (prevCoach == null) != (coach == null);
       }
-      
-      function isUserOrCoach (data) {
+      /// Checks if the user is the owner or the coach of the owner of this document
+      function isUserOrCoach(data) {
       	return userIs(user)
         	|| ('coach' in data && data.coach != null && userIs(data.coach));
       }
+      /// Checks if this document owner has as athlete the user
       function hasAthlete() {
       	let uid = request.auth.uid;
       	let doc = /databases/$(database)/documents/users/$(user)/athletes/$(uid);
         let ath = get(doc).data;
         return exists(doc) && ath.group != null;
       }
-    
-      allow get, list: if isUserOrCoach(resource.data) || hasAthlete() || (auth() && resource == null);
-      
+
+      /// Allows read if the user is the owner, the coach, an athlete or if there is no document.
+      // TODO: check why we cannot return an error if the resource is missing
+      allow read: if isLogged() && (isUserOrCoach(resource.data) || hasAthlete() || resource == null);
+
+      /// Allows creation if the user is the owner,
       allow create: if userIs(user)
+        /// there is a "valid" name
+        // TODO: if a non-string name is passed...
       	&& isNotEmpty(request.resource.data.name)
+        // TODO: themeMode, showAsAthlete is deprecated
         && keys(['name'], ['coach', 'atletica_me_id', 'last_update', 'themeMode',
-        			'fictionalAthletes', 'showAsAthlete'])
+        			'fictionalAthletes', 'showAsAthlete', 'sesso', 'role'])
+        // TODO: check if this function can be called on create.
+        && acceptableRole()
         && acceptableCoach();
+      /// Allows update if the user is the owner
       allow update: if userIs(user)
       	&& changed([], ['coach', 'role', 'atletica_me_id', 'last_update', 'runas', 'themeMode',
-        			'fictionalAthletes', 'showAsAthlete'])
+        			'fictionalAthletes', 'showAsAthlete', 'sesso'])
       	&& canChangeCoach()
         && acceptableCoach()
         && acceptableRole();
       allow delete: if false;
       
       match /results/{result} {      
-        allow read: if userIs(user) || userIs(resource.data.coach) || (auth() && resource == null);
-        allow create: if (userIs(user) || userIs(request.resource.data.coach))
+        // TODO: what to do if the resource is missing?
+        allow read: if isLogged() && (isUserOrCoach(resource) || resource == null);
+        // TODO: check if the training is a valid document reference pointing to this athlete trainings immutable cache
+        allow create: if isLogged() && isUserOrCoach(resource)
           && keys(['coach', 'training', 'results'], ['fatigue', 'info', 'date'])
           && request.resource.data.coach == get(/databases/$(database)/documents/users/$(user)).data.coach
           && request.resource.data.results is list
       		&& (request.resource.data.date == null || request.resource.data.date is timestamp)
           && (request.resource.data.fatigue == null || request.resource.data.fatigue is int)
           && (request.resource.data.info == null || request.resource.data.info is string);
-        allow update: if (userIs(user) || userIs(resource.data.coach))
+        allow update: if isLogged() && isUserOrCoach(reference)
           && changed([], ['results', 'training', 'fatigue', 'info', 'date'])
           && request.resource.data.results is list
-          && (request.resource.data.date == null || !('date' in resource.data) || request.resource.data.date == resource.data.date);
-        allow delete: if userIs(user); // check for result to be empty
+          && (request.resource.data.date == null || !('date' in resource.data) || request.resource.data.date == resource.data.date)
+          && (request.resource.data.fatigue == null || request.resource.data.fatigue is int)
+          && (request.resource.data.info == null || request.resource.data.info is string);
+        allow delete: if userIs(user); // TODO: check for result to be empty
       }
       match /templates/{template} {
       	allow read: if userIs(user);
         allow create, update: if userIs(user) && keys(['lastTarget'], ['tipologia']);
         allow delete: if false;
       }
+      match /requests/{athlete} {
+        /// both coach and athlete can read and delete requests
+        allow get, delete: if userIs(user) || userIs(athlete);
+        /// only the coach can list requests
+        allow list: if userIs(user);
+        /// only the athlete can send a request. He can suggest a nickname.
+        allow create: if userIs(athlete)
+          && keys(['nickname', 'accepted'])
+          && isNotEmpty(request.resource.data.nickname)
+          && request.resource.data.accepted is bool
+          && request.resource.data.accepted == false;
+        /// only the coach can change the status of a request
+        allow update: if userIs(user)
+          && changed([], ['accepted'])
+          && request.resource.data.accepted is bool;
+      }
       match /athletes/{athlete} {
-      	function infoNotNull () {
+      	function infoNotNull() {
         	let nick = request.resource.data.nickname;
           let group = request.resource.data.group;
         	return isNotEmpty(nick) && isNotEmpty(group);
         }
-      
+        /// both coach and athlete can read and delete the association
       	allow get, delete: if userIs(user) || userIs(athlete);
+        /// only the coach can list his athletes
         allow list: if userIs(user);
-        allow create: if keys(['nickname'], ['group'])
-        	&& ((userIs(user) && infoNotNull())
-            || (userIs(athlete)
-            	&& isNotEmpty(request.resource.data.nickname)
-              && (!('group' in request.resource.data) || request.resource.data.group == null)));
-        allow update: if changed([], ['nickname', 'group']) && userIs(user) && infoNotNull();
+        /// only the coach can create an athlete
+        allow create: if userIs(user) && keys(['nickname', 'group']) && infoNotNull();
+        /// only the coach can modify his view of an athlete
+        allow update: if userIs(user) && changed([], ['nickname', 'group']) && infoNotNull();
         
+        // TODO: deprecated legacy fictional athletes results
         match /results/{result} {
         	allow read: if userIs(user);
           allow create: if userIs(user)
@@ -117,8 +174,10 @@ service cloud.firestore {
         }
       }
       match /plans/{plan} {
+        // TODO: why the athlete needs to read this?
       	allow get: if userIs(user) || hasAthlete();
         allow list: if userIs(user);
+        // TODO: enforce data types
         allow create, update: if userIs(user)
         	&& keys(['name'], ['weeks', 'start', 'stop', 'athletes'])
         	&& isNotEmpty(request.resource.data.name);

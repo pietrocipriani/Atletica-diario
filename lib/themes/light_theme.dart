@@ -5,7 +5,7 @@ final MaterialColor _primarySwatch = Colors.amber;
 final Color _disabledColor = Colors.grey[300]!;
 
 final TextTheme _textTheme = TextTheme(
-  overline: TextStyle(
+  labelSmall: TextStyle(
     fontWeight: FontWeight.bold,
     color: Colors.black,
     fontSize: 10,
@@ -19,8 +19,8 @@ final ChipThemeData _chipTheme = ChipThemeData(
   selectedColor: Colors.transparent,
   secondarySelectedColor: Colors.transparent,
   padding: const EdgeInsets.all(4),
-  labelStyle: _textTheme.overline!,
-  secondaryLabelStyle: _textTheme.overline!,
+  labelStyle: _textTheme.labelSmall!,
+  secondaryLabelStyle: _textTheme.labelSmall!,
   brightness: _brightness,
   side: BorderSide(color: _primarySwatch),
   checkmarkColor: _primarySwatch,
@@ -40,12 +40,16 @@ final DialogTheme _dialogTheme = DialogTheme(
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(20),
   ),
-  contentTextStyle: _textTheme.overline?.copyWith(fontWeight: FontWeight.normal),
+  contentTextStyle:
+      _textTheme.labelSmall?.copyWith(fontWeight: FontWeight.normal),
 );
 
 final ElevatedButtonThemeData _elevatedButtonTheme = ElevatedButtonThemeData(
   style: ButtonStyle(
-    backgroundColor: MaterialStateColor.resolveWith((states) => states.contains(MaterialState.disabled) ? _disabledColor : _primarySwatch),
+    backgroundColor: MaterialStateColor.resolveWith((states) =>
+        states.contains(MaterialState.disabled)
+            ? _disabledColor
+            : _primarySwatch),
     shape: MaterialStateProperty.all(StadiumBorder()),
   ),
 );

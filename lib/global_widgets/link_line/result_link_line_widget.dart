@@ -42,7 +42,7 @@ class ResultLinkLineWidget extends StatelessWidget {
         child: Chip(
           label: Text(
             result.result.isNaN ? 'N.P.' : targetFormatter(result.result),
-            style: Theme.of(context).textTheme.overline!.copyWith(
+            style: Theme.of(context).textTheme.labelSmall!.copyWith(
                   fontWeight: FontWeight.bold,
                   color: isSpecial ? Colors.red : null,
                 ),

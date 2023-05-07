@@ -2,6 +2,7 @@ import 'package:atletica/global_widgets/auto_complete_text_view.dart';
 import 'package:atletica/training/training.dart';
 import 'package:flutter/material.dart';
 
+// TODO: chiedere se è preferibile un path più flessibile
 class TagsSelectorWidget extends StatefulWidget {
   final Training? training;
   final String? tag1, tag2;
@@ -12,7 +13,7 @@ class TagsSelectorWidget extends StatefulWidget {
     this.onChanged,
     this.tag1,
     this.tag2,
-    this.dense = false,
+    this.dense = true,
   });
 
   @override

@@ -1,13 +1,17 @@
-import 'package:atletica/persistence/auth.dart' as auth;
 import 'package:atletica/persistence/firestore.dart';
+import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:get/get.dart';
 
+/// Screen for preferences, view user profile and logout
 class PreferencesRoute extends StatefulWidget {
+  static const String routeName = '/settings';
+
   // TODO: route popped on setState
   @override
   State<StatefulWidget> createState() => _PreferencesRouteState();
@@ -16,7 +20,18 @@ class PreferencesRoute extends StatefulWidget {
 class _PreferencesRouteState extends State<PreferencesRoute> {
   String writeToDeveloper = '';
 
-  String? _title, _logout, _changeRole, _runas, _darkMode, _showAsAthlete, _showAsAthleteDescription, _fictionalAthletes, _changeLang, _complains, _sent, _emptyMessage;
+  String? _title,
+      _logout,
+      _changeRole,
+      _runas,
+      _darkMode,
+      _showAsAthlete,
+      _showAsAthleteDescription,
+      _fictionalAthletes,
+      _changeLang,
+      _complains,
+      _sent,
+      _emptyMessage;
 
   @override
   void didChangeDependencies() {
@@ -39,59 +54,36 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
   @override
   Widget build(BuildContext context) {
     return ProfileScreen(
-      actions: [SignedOutAction((context) => Get.offAllNamed('/login'))],
-      /*children: [
-        PreferencesActionButton(
-          icon: Icons.logout,
-          text: _logout!,
-          action: () async {
-            await auth.logout();
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => SplashScreen()),
-              (_) => false,
-            );
-          },
-        ),
+      actions: [
+        SignedOutAction((context) => Get.offAllNamed(AuthGate.routeName)),
+      ],
+      //showMFATile: true,
+      children: [
         PreferencesActionButton(
           icon: Icons.swap_vert,
           text: _changeRole!,
           action: () async {
-            await auth.user.userReference.update({'role': auth.user is AthleteHelper ? COACH_ROLE : ATHLETE_ROLE});
-            auth.user = auth.user.user;
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => SplashScreen()),
-              (_) => false,
-            );
+            // Check how if changing Globals.helper breaks something and if
+            // the RoleGate can withstand an already initialized userHelper
+            await Globals.switchRole();
+            Get.offAllNamed(RoleGate.routeName);
           },
         ),
-        if (auth.user.admin)
+        if (Globals.helper.admin)
           PreferencesActionButton(
-            icon: Mdi.console,
+            icon: MdiIcons.console,
             text: _runas!,
             action: () async {
               String? runas = await _showRunasDialog(context: context);
               if (runas == null) return;
-              if (runas == auth.user.user.uid) runas = null;
+              if (runas == Globals.helper.user.uid) runas = null;
 
-              await auth.user.realUser.update({'runas': runas});
-              auth.user = auth.user.user;
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => SplashScreen()),
-                (_) => false,
-              );
+              await Globals.helper.realUser.update({'runas': runas});
+              Globals.user = Globals.helper.user;
+              Get.offAllNamed(RoleGate.routeName);
             },
           ),
-        PreferencesSwitch(
-          icon: Icons.dark_mode,
-          text: _darkMode!,
-          value: Theme.of(context).brightness == Brightness.dark,
-          onSwitch: (v) => auth.user.switchThemeMode(),
-          description: 'alpha: known bugs',
-        ),
-        if (auth.user.isCoach)
+        /*if (Globals.helper.isCoach)
           PreferencesSwitch(
             icon: Icons.build_circle,
             text: _showAsAthlete!,
@@ -100,10 +92,14 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
             onSwitch: (s) async {
               await auth.user.userReference.update({'showAsAthlete': s});
               setState(() => auth.userC.showAsAthlete = s);
-              if (s && !Athlete.exists(auth.user.userReference)) auth.user.userReference.collection('athletes').doc(auth.user.userReference.id).set({'nickname': 'Tu'});
+              if (s && !Athlete.exists(auth.user.userReference))
+                auth.user.userReference
+                    .collection('athletes')
+                    .doc(auth.user.userReference.id)
+                    .set({'nickname': 'Tu'});
             },
           ),
-        if (auth.user.isCoach)
+        if (Globals.helper.isCoach)
           PreferencesSwitch(
             icon: Icons.build_circle,
             text: _fictionalAthletes!,
@@ -117,7 +113,8 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
           PreferencesSwitch(
             icon: Icons.build_circle,
             text: "MOSTRA VARIANTI",
-            description: "possibilità di inserire le varianti agli allenamenti per differenti target",
+            description:
+                "possibilità di inserire le varianti agli allenamenti per differenti target",
             disabled: true,
             value: auth.userC.showVariants,
             onSwitch: (s) async {
@@ -130,8 +127,8 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
           text: _changeLang!,
           disabled: true,
           action: () {},
-        ),
-        Row(
+        ),*/
+        /*Row(
           children: [
             Expanded(
               child: ResizableTextField(
@@ -143,7 +140,10 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
               onPressed: () async {
                 if (writeToDeveloper.isNotEmpty) {
                   try {
-                    await FirebaseStorage.instance.ref('complains/${DateTime.now().microsecondsSinceEpoch}${auth.user.uid}.txt').putString(
+                    await FirebaseStorage.instance
+                        .ref(
+                            'complains/${DateTime.now().microsecondsSinceEpoch}${auth.user.uid}.txt')
+                        .putString(
                           writeToDeveloper,
                           metadata: SettableMetadata(
                             contentType: 'plain/text',
@@ -160,24 +160,27 @@ class _PreferencesRouteState extends State<PreferencesRoute> {
                     );
                   }
                 } else
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_emptyMessage!)));
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(_emptyMessage!)));
               },
               icon: Icon(Icons.send),
             )
           ],
-        )
-      ],*/
+        )*/
+      ],
     );
   }
 }
 
-Future<String?> _showRunasDialog({required final BuildContext context}) => showDialog<String>(
+Future<String?> _showRunasDialog({required final BuildContext context}) =>
+    showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         scrollable: true,
         content: FutureBuilder<QuerySnapshot>(
           future: firestore.collection('users').orderBy('name').get(),
-          builder: (context, snapshot) => _RunasDialog(snapshot.data?.docs ?? []),
+          builder: (context, snapshot) =>
+              _RunasDialog(snapshot.data?.docs ?? []),
         ),
       ),
     );
@@ -208,14 +211,26 @@ class _RunasDialogState extends State<_RunasDialog> {
           ),
           Container(height: 16)
         ]..addAll(
-            widget.users.where((user) => user['name'] != null && _controller.text.toLowerCase().split(' ').every(user['name'].toLowerCase().contains)).map(
+            widget.users
+                .where((user) =>
+                    user['name'] != null &&
+                    _controller.text
+                        .toLowerCase()
+                        .split(' ')
+                        .every(user['name'].toLowerCase().contains))
+                .map(
                   (user) => GestureDetector(
                     onTap: () => Navigator.pop(context, user.id),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         user["name"],
-                        style: user.id == Globals.user.uid ? Theme.of(context).textTheme.subtitle2!.copyWith(color: Colors.green) : Theme.of(context).textTheme.subtitle2,
+                        style: user.id == Globals.user.uid
+                            ? Theme.of(context)
+                                .textTheme
+                                .subtitle2!
+                                .copyWith(color: Colors.green)
+                            : Theme.of(context).textTheme.subtitle2,
                       ),
                     ),
                   ),

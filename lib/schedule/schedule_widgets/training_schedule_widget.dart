@@ -17,7 +17,7 @@ class TrainingScheduleWidget extends ScheduleWidget<TrainingSchedule> {
         children: [
           TextSpan(text: DateFormat.MMMMd('it').format(schedule.date))
         ],
-        style: Theme.of(context).textTheme.overline!.copyWith(
+        style: Theme.of(context).textTheme.labelSmall!.copyWith(
               color: Theme.of(context).primaryColorDark,
               fontWeight: FontWeight.bold,
             ),

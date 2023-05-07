@@ -61,14 +61,14 @@ class _WeekWidgetState extends State<WeekWidget> {
                 Expanded(
                   child: Text(
                     weekdays[(i + DateTime.monday) % 7],
-                    style: theme.textTheme.overline!
+                    style: theme.textTheme.labelSmall!
                         .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Text(
                   Training.tryOf(widget.week.trainings[(i + 1) % 7])?.name ??
                       'riposo',
-                  style: theme.textTheme.overline!.copyWith(
+                  style: theme.textTheme.labelSmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     color: widget.week.trainings[(i + 1) % 7] == null
                         ? theme.disabledColor

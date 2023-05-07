@@ -32,16 +32,19 @@ class ResultsEditRoute extends StatelessWidget {
         children: results.results.keys
             .map((a) => StreamBuilder<Result>(
                 stream: a.resultsStream(date: results.date),
-                initialData: a.resultsOf(results.date).firstWhereNullable((r) => r.isCompatible(results.training)),
+                initialData: a.resultsOf(results.date).firstWhereNullable(
+                    (r) => r.isCompatible(results.training)),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) results.update(a, snapshot.data!);
 
-                  final int count = results.results[a]!.results.values.where((v) => v != null).length;
+                  final int count = results.results[a]!.results.values
+                      .where((v) => v != null)
+                      .length;
 
                   final Athlete athlete = a;
                   final Result res = results.results[a]!;
                   return CustomDismissible(
-                    key: ValueKey(hashList([results, a])),
+                    key: ValueKey(Object.hashAll([results, a])),
                     direction: DismissDirection.endToStart,
                     confirmDismiss: (_) {
                       showResultsEditDialog(
@@ -54,9 +57,14 @@ class ResultsEditRoute extends StatelessWidget {
                     child: CustomExpansionTile(
                       title: athlete.name,
                       leading: Icon(
-                        res.fatigue == null ? Mdi.emoticonNeutralOutline : icons[res.fatigue!],
+                        res.fatigue == null
+                            ? Mdi.emoticonNeutralOutline
+                            : icons[res.fatigue!],
                         size: 42,
-                        color: res.fatigue == null ? Theme.of(context).disabledColor : Color.lerp(Colors.green, Colors.red, res.fatigue! / icons.length),
+                        color: res.fatigue == null
+                            ? Theme.of(context).disabledColor
+                            : Color.lerp(Colors.green, Colors.red,
+                                res.fatigue! / icons.length),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -66,7 +74,8 @@ class ResultsEditRoute extends StatelessWidget {
                             onPressed: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ResultsRouteList(athlete, res.training),
+                                  builder: (context) =>
+                                      ResultsRouteList(athlete, res.training),
                                 )),
                           ),
                           LeadingInfoWidget(
@@ -78,36 +87,57 @@ class ResultsEditRoute extends StatelessWidget {
                       hiddenSubtitle: res.info,
                       children: res.asIterable
                           .map((e) => CustomListTile(
-                                title: Text(e.key.name, textAlign: TextAlign.center),
+                                title: Text(e.key.name,
+                                    textAlign: TextAlign.center),
                                 leading: Text(
-                                  e.value == null ? 'N.P.' : Tipologia.corsaDist.formatTarget(e.value),
+                                  e.value == null
+                                      ? 'N.P.'
+                                      : Tipologia.corsaDist
+                                          .formatTarget(e.value),
                                   style: Theme.of(context).textTheme.headline5,
                                 ),
                                 trailing: RichText(
-                                  text: TextSpan(style: Theme.of(context).textTheme.overline, children: [
-                                    TextSpan(
-                                      text: 'PB: ',
-                                      style: TextStyle(fontWeight: FontWeight.normal),
-                                    ),
-                                    TextSpan(
-                                      text: Tipologia.corsaDist.formatTarget(athlete.pb(e.key.name)),
-                                      style: TextStyle(color: Theme.of(context).primaryColorDark),
-                                    ),
-                                    if (athlete.tb(res.uniqueIdentifier, e.key.name) != null)
-                                      TextSpan(
-                                        text: '\nTB: ',
-                                        style: TextStyle(fontWeight: FontWeight.normal),
-                                      ),
-                                    if (athlete.tb(res.uniqueIdentifier, e.key.name) != null)
-                                      TextSpan(
-                                        text: Tipologia.corsaDist.formatTarget(
-                                          athlete.tb(res.uniqueIdentifier, e.key.name),
+                                  text: TextSpan(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall,
+                                      children: [
+                                        TextSpan(
+                                          text: 'PB: ',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.normal),
                                         ),
-                                        style: TextStyle(
-                                          color: Theme.of(context).primaryColorDark,
+                                        TextSpan(
+                                          text: Tipologia.corsaDist
+                                              .formatTarget(
+                                                  athlete.pb(e.key.name)),
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark),
                                         ),
-                                      ),
-                                  ]),
+                                        if (athlete.tb(res.uniqueIdentifier,
+                                                e.key.name) !=
+                                            null)
+                                          TextSpan(
+                                            text: '\nTB: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.normal),
+                                          ),
+                                        if (athlete.tb(res.uniqueIdentifier,
+                                                e.key.name) !=
+                                            null)
+                                          TextSpan(
+                                            text: Tipologia.corsaDist
+                                                .formatTarget(
+                                              athlete.tb(res.uniqueIdentifier,
+                                                  e.key.name),
+                                            ),
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
+                                          ),
+                                      ]),
                                 ),
                               ))
                           .toList()

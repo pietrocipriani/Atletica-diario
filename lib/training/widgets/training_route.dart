@@ -130,7 +130,8 @@ class TrainingRouteFolder extends StatefulWidget {
 
 /// [State] for [TrainingRoute]
 class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
-  static const Widget _emptyMessage = Center(child: Text('non hai creato ancora nessun allenamento'));
+  static const Widget _emptyMessage =
+      Center(child: Text('non hai creato ancora nessun allenamento'));
 
   bool get _hasItems => Training.hasItems(widget.tag1, widget.tag2);
 
@@ -152,7 +153,8 @@ class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
           onTap: widget.onSelected == null ? null : () => widget.onSelected!(e),
         ),
       );
-    return Training.fromPath(widget.tag1, widget.tag2).map((e) => _TrainingWidget(e));
+    return Training.fromPath(widget.tag1, widget.tag2)
+        .map((e) => _TrainingWidget(e));
   }
 
   String get _path {
@@ -176,7 +178,10 @@ class _TrainingRouteFolderState extends State<TrainingRouteFolder> {
             margin: const EdgeInsets.all(16),
             child: Text(
               _path,
-              style: Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal),
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall!
+                  .copyWith(fontWeight: FontWeight.normal),
               maxLines: 1,
               textAlign: TextAlign.end,
             ),
@@ -258,14 +263,19 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final String description = widget.training.descrizione.isEmpty ? 'nessuna descrizione' : widget.training.descrizione;
+    final String description = widget.training.descrizione.isEmpty
+        ? 'nessuna descrizione'
+        : widget.training.descrizione;
 
     final List<Widget> children = <Widget>[
       Align(
         alignment: Alignment.center,
         child: Text(
           description,
-          style: Theme.of(context).textTheme.overline!.copyWith(fontWeight: FontWeight.normal),
+          style: Theme.of(context)
+              .textTheme
+              .labelSmall!
+              .copyWith(fontWeight: FontWeight.normal),
           textAlign: TextAlign.justify,
         ),
       ),
@@ -286,7 +296,8 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => TrainingInfoRoute(allenamento: widget.training),
+              builder: (context) =>
+                  TrainingInfoRoute(allenamento: widget.training),
             ),
           );
           widget.training.save();
@@ -294,7 +305,8 @@ class _TrainingWidgetState extends State<_TrainingWidget> {
         },
         child: CustomExpansionTile(
           title: widget.training.name,
-          childrenPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+          childrenPadding:
+              const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
           children: children,
           leading: LeadingInfoWidget(
             info: widget.training.ripetuteCount.toString(),

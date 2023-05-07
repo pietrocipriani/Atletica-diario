@@ -38,7 +38,7 @@ class TrainingChip extends StatelessWidget {
         ),
         label: Text(
           training.name,
-          style: theme.textTheme.overline!.copyWith(
+          style: theme.textTheme.labelSmall!.copyWith(
             color: enabled ? null : theme.disabledColor,
             fontWeight: FontWeight.bold,
           ),

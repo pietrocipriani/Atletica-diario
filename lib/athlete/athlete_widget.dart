@@ -9,13 +9,13 @@ import 'package:flutter/material.dart';
 
 class AthleteWidget extends StatelessWidget {
   final Athlete atleta;
-  final TextStyle overlineBoldPrimaryDark;
+  final TextStyle labelSmallBoldPrimaryDark;
   final void Function()? onModified;
 
   AthleteWidget({
     Key? key,
     required this.atleta,
-    required this.overlineBoldPrimaryDark,
+    required this.labelSmallBoldPrimaryDark,
     this.onModified,
   }) : super(key: key);
 
@@ -31,7 +31,7 @@ class AthleteWidget extends StatelessWidget {
         ),
       ),
       title: Text(atleta.name),
-      subtitle: Text(atleta.group!, style: overlineBoldPrimaryDark),
+      subtitle: Text(atleta.group!, style: labelSmallBoldPrimaryDark),
       trailing: LeadingInfoWidget(
         info: '${atleta.trainingsCount}',
         bottom: singPlurIT('allenamento', atleta.trainingsCount),

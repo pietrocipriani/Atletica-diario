@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 
 String? _validator(String? value, Athlete? atleta, bool isNew) {
   if (value == null || value.isEmpty) return 'inserire il nome';
-  if (value != atleta?.name && Athlete.isNameInUse(value)) return isNew ? 'atleta già inserito' : 'nome già esistente';
+  if (value != atleta?.name && Athlete.isNameInUse(value))
+    return isNew ? 'atleta già inserito' : 'nome già esistente';
   return null;
 }
 
 String? _newGroupValidator(String? name) {
   if (name == null || name.isEmpty) return 'inserisci un nome';
-  if (Group.groups.any((group) => group.name == name)) return 'gruppo già esistente';
+  if (Group.groups.any((group) => group.name == name))
+    return 'gruppo già esistente';
   return null;
 }
 
@@ -18,22 +20,27 @@ String? _newGroupValidator(String? name) {
 /// to estabilish that we need to know if `selectedGroup` is the `group` in question or not
 bool _shouldRemoveGroup(Group group, Group? selectedGroup, Athlete? atleta) {
   final List<Athlete> athletes = group.athletes.toList();
-  return selectedGroup != group && (athletes.isEmpty || (athletes.length == 1 && athletes.first == atleta));
+  return selectedGroup != group &&
+      (athletes.isEmpty || (athletes.length == 1 && athletes.first == atleta));
 }
 
 Widget dialog({required BuildContext context, Athlete? atleta}) {
   final TextStyle bodyText1 = Theme.of(context).textTheme.bodyText1!;
-  final TextStyle overlineSelected = Theme.of(context).textTheme.overline!;
-  final TextStyle overline = overlineSelected.copyWith(fontWeight: FontWeight.normal);
-  final TextStyle overlineLineThrough = overline.copyWith(decoration: TextDecoration.lineThrough);
+  final TextStyle labelSmallSelected = Theme.of(context).textTheme.labelSmall!;
+  final TextStyle labelSmall =
+      labelSmallSelected.copyWith(fontWeight: FontWeight.normal);
+  final TextStyle labelSmallLineThrough =
+      labelSmall.copyWith(decoration: TextDecoration.lineThrough);
 
   bool isNew = atleta == null || atleta.isRequest;
   final String mode = isNew ? 'Aggiungi' : 'Modifica';
-  final TextEditingController controller = TextEditingController(text: atleta?.name);
+  final TextEditingController controller =
+      TextEditingController(text: atleta?.name);
 
   final FocusNode addGroupNode = FocusNode();
   final String? groupName = atleta?.group ?? lastGroup;
-  Group? selectedGroup = groupName == null ? Group.groups.first : Group(name: groupName);
+  Group? selectedGroup =
+      groupName == null ? Group.groups.first : Group(name: groupName);
 
   final TextEditingController groupController = TextEditingController();
 
@@ -80,8 +87,9 @@ Widget dialog({required BuildContext context, Athlete? atleta}) {
               maxLines: 1,
               validator: groupValidator,
               focusNode: addGroupNode,
-              decoration: InputDecoration(isDense: true, hintText: 'nuovo gruppo'),
-              style: overline,
+              decoration:
+                  InputDecoration(isDense: true, hintText: 'nuovo gruppo'),
+              style: labelSmall,
               onChanged: (v) => ss(() {}),
             ),
             onTap: (group) {
@@ -102,10 +110,10 @@ Widget dialog({required BuildContext context, Athlete? atleta}) {
                   label: Text(
                     group.name,
                     style: _shouldRemoveGroup(group, selectedGroup, atleta)
-                        ? overlineLineThrough
+                        ? labelSmallLineThrough
                         : selectedGroup == group
-                            ? overlineSelected
-                            : overline,
+                            ? labelSmallSelected
+                            : labelSmall,
                   ),
                 ),
               ),
@@ -116,13 +124,16 @@ Widget dialog({required BuildContext context, Athlete? atleta}) {
       actions: <Widget>[
         cancel,
         TextButton(
-          onPressed: _validator(controller.text, atleta, isNew) != null || (selectedGroup == null && groupValidator(groupController.text) != null)
+          onPressed: _validator(controller.text, atleta, isNew) != null ||
+                  (selectedGroup == null &&
+                      groupValidator(groupController.text) != null)
               ? null
               : () async {
                   String group = selectedGroup?.name ?? groupController.text;
                   print('group: $group');
                   if (atleta != null)
-                    await atleta.update(nickname: controller.text, group: group);
+                    await atleta.update(
+                        nickname: controller.text, group: group);
                   else
                     Athlete.create(nickname: controller.text, group: group);
                   Navigator.pop(context, true);

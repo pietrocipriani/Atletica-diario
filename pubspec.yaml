@@ -31,7 +31,7 @@ dependencies:
   firebase_auth: ^4.4.2
   firebase_crashlytics: ^3.1.2
   cloud_firestore: ^4.5.3
-  google_sign_in: ^5.4.4
+  google_sign_in: ^6.1.0
   dotted_border: ^2.0.0+3
   soundpool: ^2.3.0
   # vibration: ^1.4.0
@@ -53,8 +53,11 @@ dependencies:
   get: ^4.6.5
   sealed_unions: ^3.0.3+1
   flutter_platform_widgets: ^3.3.2
-  firebase_ui_oauth_google: ^1.0.21
+  firebase_ui_oauth_google: ^1.1.4
   firebase_ui_auth: ^1.2.4
+  material_design_icons_flutter: ^6.0.7096
+  fluttertoast: ^8.2.1
+  firebase_ui_firestore: ^1.4.0
   #boot_completed: ^1.1.0
 
 #dependency_overrides:

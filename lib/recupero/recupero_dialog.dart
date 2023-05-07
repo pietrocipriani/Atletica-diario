@@ -56,7 +56,7 @@ class _RecuperoDialogState extends State<RecuperoDialog> {
             Expanded(
               child: Text(
                 "Scegli la modalità di recupero:",
-                style: Theme.of(context).textTheme.overline,
+                style: Theme.of(context).textTheme.labelSmall,
               ),
             ),
             IconButton(

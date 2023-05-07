@@ -1,0 +1,1 @@
+* Chiedere se Tag1/Tag2 vanno bene per la classificazione dei Training o se è meglio una soluzione più flessibile (path)

@@ -41,7 +41,7 @@ class CustomListTile extends StatelessWidget {
             ? null
             : DefaultTextStyle(
                 child: subtitle!,
-                style: Get.textTheme.overline!,
+                style: Get.textTheme.labelSmall!,
               ),
         trailing: trailing,
         isThreeLine: isThreeLine,

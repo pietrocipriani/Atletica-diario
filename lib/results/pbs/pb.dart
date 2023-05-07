@@ -11,7 +11,10 @@ class Pb {
   bool get isEmpty => results.isEmpty;
   int realCount = 0;
 
-  void put({required final Result result, required final int index, required final ResultValue? value}) {
+  void put(
+      {required final Result result,
+      required final int index,
+      required final ResultValue? value}) {
     realCount++;
     if (value == null) return;
 
@@ -35,5 +38,6 @@ class SimpleResult {
   Date get date => _result.date;
   bool get stagional => (Date.now() - _result.date as Duration).inDays <= 365;
 
-  bool get acceptable => filters.entries.every((e) => e.value == null || e.key.evaluate(this) == e.value);
+  bool get acceptable => filters.entries
+      .every((e) => e.value == null || e.key.evaluate(this) == e.value);
 }

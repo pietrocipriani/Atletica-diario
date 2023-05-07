@@ -5,7 +5,6 @@ import 'package:atletica/refactoring/coach/src/view/target/target_category_icon.
 import 'package:atletica/refactoring/common/common.dart';
 import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:atletica/refactoring/common/src/view/enum_selector.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -32,7 +31,15 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
     super.initState();
   }
 
-  String? _infoText, _request, _send, _cancel, _insertUid, _loopback, _insertUidPlaceholder, _insertNamePlaceholder, _waitingForResponse;
+  String? _infoText,
+      _request,
+      _send,
+      _cancel,
+      _insertUid,
+      _loopback,
+      _insertUidPlaceholder,
+      _insertNamePlaceholder,
+      _waitingForResponse;
 
   @override
   void didChangeDependencies() {
@@ -56,13 +63,15 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
   }
 
   bool get _isValid {
-    return _uid.isNotEmpty && Globals.athlete.name != null && Globals.athlete.name!.isNotEmpty;
+    return _uid.isNotEmpty &&
+        Globals.helper.name != null &&
+        Globals.helper.name!.isNotEmpty;
   }
 
   @override
   Widget build(BuildContext context) {
     // TODO: Get off of this route
-    // if (Globals.athlete.hasCoach) WidgetsBinding.instance.addPostFrameCallback((_) => widget.onCoachFound());
+    // if (Globals.helper.hasCoach) WidgetsBinding.instance.addPostFrameCallback((_) => widget.onCoachFound());
     return PlatformScaffold(
       appBar: PlatformAppBar(
         automaticallyImplyLeading: false,
@@ -75,9 +84,10 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              if (_infoText != null) Text(_infoText!, textAlign: TextAlign.justify),
+              if (_infoText != null)
+                Text(_infoText!, textAlign: TextAlign.justify),
               const SizedBox(height: 10),
-              // if (Globals.athlete.needsRequest)
+              // if (Globals.helper.needsRequest)
               PlatformTextField(
                 controller: controller,
                 autofocus: true,
@@ -86,7 +96,7 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (str) => str == null || str.isEmpty
                     ? _insertUid
-                    : str == Globals.athlete.uid
+                    : str == Globals.helper.uid
                         ? _loopback
                         : null, */
                 hintText: _insertUidPlaceholder,
@@ -122,25 +132,26 @@ class _RequestCoachRoute extends State<RequestCoachRoute> {
                   ],
                 ),
               const SizedBox(height: 10),
-              Obx(
-                () => PlatformElevatedButton(
-                  onPressed: Globals.athlete.needsRequest
-                      ? _isValid
-                          ? () => Globals.athlete.requestCoach(
-                                uid: controller.text,
-                                nickname: Globals.athlete.name!,
-                              )
-                          : null
-                      : Globals.athlete.hasRequest
-                          ? () => Globals.athlete.deleteCoachSubscription()
-                          : null,
-                  child: Text(Globals.athlete.coach == null ? _send! : _cancel!),
+              /*Obx(
+                () =>*/
+              PlatformElevatedButton(
+                onPressed: Globals.athlete.needsRequest
+                    ? _isValid
+                        ? () => Globals.athlete.requestCoach(
+                              uid: controller.text,
+                              nickname: Globals.helper.name!,
+                            )
+                        : null
+                    : Globals.athlete.hasRequest
+                        ? () => Globals.athlete.deleteCoachSubscription()
+                        : null,
+                child: Text(Globals.athlete.coach == null ? _send! : _cancel!),
 
-                  // label: Text(Globals.athlete.coach == null ? _send! : _cancel!),
-                  /* materialIcon: Icon(Globals.athlete.coach == null ? Icons.send : Icons.clear),
-                  cupertinoIcon: Icon(Globals.athlete.coach == null ? CupertinoIcons.paperplane_fill : CupertinoIcons.clear), */
-                ),
-              )
+                // label: Text(Globals.coach == null ? _send! : _cancel!),
+                /* materialIcon: Icon(Globals.coach == null ? Icons.send : Icons.clear),
+                  cupertinoIcon: Icon(Globals.coach == null ? CupertinoIcons.paperplane_fill : CupertinoIcons.clear), */
+              ),
+              //)
             ],
           ),
         ),

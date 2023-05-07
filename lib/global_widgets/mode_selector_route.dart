@@ -1,9 +1,7 @@
-import 'package:atletica/coach_role/main.dart';
 import 'package:atletica/refactoring/common/common.dart';
-import 'package:atletica/refactoring/common/src/model/role.dart';
+import 'package:atletica/refactoring/common/src/control/globals.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:get/get.dart';
@@ -17,7 +15,7 @@ import 'package:get/get.dart';
       ),
     ); */
 
-class ModeSelectorRoute extends StatelessWidget {
+/*class ModeSelectorRoute extends StatelessWidget {
   final UserHelper userHelper;
 
   ModeSelectorRoute({required this.userHelper});
@@ -46,11 +44,16 @@ class ModeSelectorRoute extends StatelessWidget {
                       Text(
                         coachInfo,
                         textAlign: TextAlign.center,
-                        // style: Theme.of(context).textTheme.overline,
+                        // style: Theme.of(context).textTheme.labelSmall,
                       ),
                       PlatformElevatedButton(
                         onPressed: () async {
-                          Get.put<CoachHelper>(await userHelper.setRole(Role.coach), tag: 'coachHelper', permanent: true);
+                          // TODO: choose between Get.put and Globals.helper
+                          Get.put<UserHelper>(
+                            await Globals.setRole(Role.coach),
+                            tag: 'helper',
+                            permanent: true,
+                          );
                           Get.offNamed('/coach');
                         },
                         child: Text(coach.toUpperCase()),
@@ -75,11 +78,15 @@ class ModeSelectorRoute extends StatelessWidget {
                       Text(
                         athleteInfo,
                         textAlign: TextAlign.center,
-                        // style: Theme.of(context).textTheme.overline,
+                        // style: Theme.of(context).textTheme.labelSmall,
                       ),
                       PlatformElevatedButton(
                         onPressed: () async {
-                          Get.put<AthleteHelper>(await userHelper.setRole(Role.athlete), tag: 'athleteHelper', permanent: true);
+                          Get.put<UserHelper>(
+                            await userHelper.setRole(Role.athlete),
+                            tag: 'helper',
+                            permanent: true,
+                          );
                           Get.offNamed('/athlete');
                         },
                         child: Text(athlete.toUpperCase()),
@@ -100,3 +107,4 @@ class ModeSelectorRoute extends StatelessWidget {
     );
   }
 }
+*/

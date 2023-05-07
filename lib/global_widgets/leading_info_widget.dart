@@ -23,7 +23,7 @@ class LeadingInfoWidget extends StatelessWidget {
           bottom!,
           style: Theme.of(context)
               .textTheme
-              .overline!
+              .labelSmall!
               .copyWith(fontWeight: FontWeight.normal),
           textAlign: TextAlign.center,
         )

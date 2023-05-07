@@ -1,6 +1,7 @@
 extension IterableExtension<T> on Iterable<T> {
   /// separate `this` elements with the ones from `supplier` which is recomputed every time
   // TODO: better a single computation?
+  // dear dart, I want contravariance
   Iterable<S> separate<S>(final S Function() supplier) sync* {
     final Iterator<T> iterator = this.iterator;
     if (!iterator.moveNext()) return;

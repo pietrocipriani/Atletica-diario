@@ -194,7 +194,7 @@ class _RunningTrainingState extends State<RunningTraining>
                     : null,
                 style: Theme.of(context)
                     .textTheme
-                    .overline
+                    .labelSmall
                     .copyWith(color: Theme.of(context).primaryColorDark),
                 children: [
                   TextSpan(

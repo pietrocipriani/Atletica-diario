@@ -84,17 +84,23 @@ class _TargetPicker extends StatelessWidget {
   /// `null` in `unified` mode
   final TargetCategory? category;
 
-  _TargetPicker({required this.tipologia, required this.category, required this.target, super.key});
+  _TargetPicker(
+      {required this.tipologia,
+      required this.category,
+      required this.target,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
     return CupertinoTextFormFieldRow(
-      controller: TextEditingController(text: tipologia.formatTarget(target[category ?? TargetCategory.values.first])),
+      controller: TextEditingController(
+          text: tipologia
+              .formatTarget(target[category ?? TargetCategory.values.first])),
       textAlign: TextAlign.end,
       placeholder: 'target',
       padding: EdgeInsets.zero,
       prefix: category == null ? null : TargetCategoryIcon(category!),
-      style: Get.textTheme.overline,
+      style: Get.textTheme.labelSmall,
       decoration: BoxDecoration(
         color: Get.theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(20),

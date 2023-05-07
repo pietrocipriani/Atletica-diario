@@ -1,4 +1,5 @@
 import 'package:atletica/refactoring/common/common.dart';
+import 'package:atletica/refactoring/utils/cast.dart';
 import 'package:atletica/ripetuta/template.dart';
 import 'package:atletica/recupero/recupero.dart';
 import 'package:atletica/training/serie.dart';
@@ -16,7 +17,8 @@ class Ripetuta {
     _resolvedTemplate = null;
   }
 
-  SimpleTemplate get resolveTemplate => _resolvedTemplate ?? templates[template]!;
+  SimpleTemplate get resolveTemplate =>
+      _resolvedTemplate ?? templates[template]!;
   bool get hasConcreteTemplate => templates.containsKey(template);
 
   /// `target` in secondi per `Tipologia.corsaDist`, in metri per `Tipologia.salto, Tipologia.lancio`, in metri per `Tipologia.corsaTemp`
@@ -37,18 +39,20 @@ class Ripetuta {
         target = target ?? Target.empty();
 
   Ripetuta.parse(final Serie serie, final Map<String, Object?> raw)
-      : _template = raw['template'] as String,
+      // TODO: better to throw?
+      : _template = cast(raw['template'], '??'),
         target = Target.parse(raw['target']),
         recupero = Recupero(recupero: raw['recupero']),
-        ripetizioni = raw['times'] as int,
+        ripetizioni = cast(raw['times'], 1),
         nextRecupero = Recupero(recupero: raw['recuperoNext']) {
     serie.ripetute.add(this);
   }
-  Ripetuta.parseLegacy(final Serie serie, final Map<String, Object?> raw, final List<Object?> variants)
-      : _template = raw['template'] as String,
+  Ripetuta.parseLegacy(final Serie serie, final Map<String, Object?> raw,
+      final List<Object?> variants)
+      : _template = cast(raw['template'], '??'),
         target = Target.parse(variants.first),
         recupero = Recupero(recupero: raw['recupero']),
-        ripetizioni = raw['times'] as int,
+        ripetizioni = cast(raw['times'], 1),
         nextRecupero = Recupero(recupero: raw['recuperoNext']) {
     variants.removeAt(0);
     serie.ripetute.add(this);

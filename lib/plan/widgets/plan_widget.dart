@@ -72,7 +72,7 @@ class _PlanWidgetState extends State<PlanWidget> {
               ),
               Text(
                 'settiman${widget.plan.weeks.length == 1 ? 'a' : 'e'}',
-                style: Theme.of(context).textTheme.overline,
+                style: Theme.of(context).textTheme.labelSmall,
               ),
             ],
           ),

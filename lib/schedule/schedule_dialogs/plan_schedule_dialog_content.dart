@@ -21,7 +21,7 @@ class PlanScheduleDialogContent extends StatelessWidget {
           Expanded(
             child: Text(
               'nessun piano selezionabile, devi prima crearne uno',
-              style: Theme.of(context).textTheme.overline,
+              style: Theme.of(context).textTheme.labelSmall,
             ),
           ),
           Container(

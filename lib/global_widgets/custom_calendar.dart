@@ -63,8 +63,8 @@ class _CustomCalendarState extends State<CustomCalendar> {
         titleCentered: true,
       ),
       daysOfWeekStyle: DaysOfWeekStyle(
-        weekdayStyle: theme.textTheme.overline!,
-        weekendStyle: theme.textTheme.overline!,
+        weekdayStyle: theme.textTheme.labelSmall!,
+        weekendStyle: theme.textTheme.labelSmall!,
       ),
       eventLoader: (dt) => widget.events(Date.fromDateTime(dt)),
       onDaySelected: (d, f) {

@@ -51,29 +51,29 @@ class _DraggableDaysWeekWidgetState extends State<DraggableDaysWeekWidget> {
         ),
       );
 
-  Widget _dayTitle(final int weekday, final TextStyle overline) => Expanded(
+  Widget _dayTitle(final int weekday, final TextStyle labelSmall) => Expanded(
         flex: 2,
         child: Text(
           weekdays[(weekday + 1) % weekdays.length],
-          style: overline,
+          style: labelSmall,
           textAlign: TextAlign.center,
         ),
       );
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle overline = Theme.of(context).textTheme.overline!;
+    final TextStyle labelSmall = Theme.of(context).textTheme.labelSmall!;
     return Column(
       children: [
-        Row(children: [_dayTitle(0, overline), _dayTitle(1, overline)]),
+        Row(children: [_dayTitle(0, labelSmall), _dayTitle(1, labelSmall)]),
         Row(children: [_dayDraggable(0), _dayDraggable(1)]),
-        Row(children: [_dayTitle(2, overline), _dayTitle(3, overline)]),
+        Row(children: [_dayTitle(2, labelSmall), _dayTitle(3, labelSmall)]),
         Row(children: [_dayDraggable(2), _dayDraggable(3)]),
-        Row(children: [_dayTitle(4, overline), _dayTitle(5, overline)]),
+        Row(children: [_dayTitle(4, labelSmall), _dayTitle(5, labelSmall)]),
         Row(children: [_dayDraggable(4), _dayDraggable(5)]),
         Row(children: [
           Flexible(flex: 1, child: Container()),
-          _dayTitle(6, overline),
+          _dayTitle(6, labelSmall),
           Flexible(flex: 1, child: Container()),
         ]),
         Row(children: [

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:atletica/refactoring/utils/cast.dart';
 import 'package:flutter/material.dart';
 
 class SvgRenderer extends StatelessWidget {
@@ -62,7 +63,11 @@ class _SvgPainter extends CustomPainter {
     final Matrix4 _transform = Matrix4.identity();
     _transform.scale(crop);
     referredTo *= crop;
-    final Offset traslation = (size / 2 - referredTo / 2) as Offset;
+    // the cast should be safe. Dart lacks overloading, but the documentation is clear
+    final Offset traslation = cast<Offset>(
+      size / 2 - referredTo / 2,
+      Offset.zero,
+    );
     canvas.translate(traslation.dx, traslation.dy);
     canvas.drawPath(path.transform(_transform.storage), p);
   }

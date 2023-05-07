@@ -21,7 +21,7 @@ class TimesWidget extends StatelessWidget {
         children: <Widget>[
           Text(
             'x',
-            style: Theme.of(context).textTheme.overline,
+            style: Theme.of(context).textTheme.labelSmall,
           ),
           Text(
             value.toString(),

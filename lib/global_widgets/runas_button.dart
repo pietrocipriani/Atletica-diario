@@ -13,22 +13,24 @@ class RunasButton extends IconButton {
           onPressed: () async {
             String? runas = await _showRunasDialog(context: context);
             if (runas == null) return;
-            if (runas == Globals.userHelper.user.uid) runas = null;
+            if (runas == Globals.helper.user.uid) runas = null;
 
-            await Globals.userHelper.realUser.update({'runas': runas});
-            // TODO: nullify coach and athlete
+            await Globals.helper.realUser.update({'runas': runas});
+            Globals.logout();
             Get.offAllNamed('/role-picker');
           },
         );
 }
 
-Future<String?> _showRunasDialog({required final BuildContext context}) => showDialog<String>(
+Future<String?> _showRunasDialog({required final BuildContext context}) =>
+    showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         scrollable: true,
         content: FutureBuilder<QuerySnapshot>(
           future: firestore.collection('users').orderBy('name').get(),
-          builder: (context, snapshot) => _RunasDialog(snapshot.data?.docs ?? []),
+          builder: (context, snapshot) =>
+              _RunasDialog(snapshot.data?.docs ?? []),
         ),
       ),
     );
@@ -59,14 +61,26 @@ class _RunasDialogState extends State<_RunasDialog> {
           ),
           Container(height: 16)
         ]..addAll(
-            widget.users.where((user) => user['name'] != null && _controller.text.toLowerCase().split(' ').every(user['name'].toLowerCase().contains)).map(
+            widget.users
+                .where((user) =>
+                    user['name'] != null &&
+                    _controller.text
+                        .toLowerCase()
+                        .split(' ')
+                        .every(user['name'].toLowerCase().contains))
+                .map(
                   (user) => GestureDetector(
                     onTap: () => Navigator.pop(context, user.id),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         user["name"],
-                        style: user.id == Globals.userHelper.user.uid ? Theme.of(context).textTheme.subtitle2!.copyWith(color: Colors.green) : Theme.of(context).textTheme.subtitle2,
+                        style: user.id == Globals.helper.user.uid
+                            ? Theme.of(context)
+                                .textTheme
+                                .subtitle2!
+                                .copyWith(color: Colors.green)
+                            : Theme.of(context).textTheme.subtitle2,
                       ),
                     ),
                   ),

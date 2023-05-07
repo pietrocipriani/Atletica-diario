@@ -38,7 +38,7 @@ class _TrainingsWrapperState extends State<TrainingsWrapper> {
                 value,
                 style: Theme.of(context)
                     .textTheme
-                    .overline!
+                    .labelSmall!
                     .copyWith(fontWeight: FontWeight.bold),
               ),
             ),
@@ -47,7 +47,7 @@ class _TrainingsWrapperState extends State<TrainingsWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle overline = Theme.of(context).textTheme.overline!;
+    final TextStyle labelSmall = Theme.of(context).textTheme.labelSmall!;
     final Widget child = Wrap(
       alignment: WrapAlignment.center,
       children: _directoryValues.map(_child).toList(),
@@ -87,7 +87,7 @@ class _TrainingsWrapperState extends State<TrainingsWrapper> {
                 height: 42,
                 child: Text(
                   path,
-                  style: overline,
+                  style: labelSmall,
                   maxLines: 1,
                   textAlign: TextAlign.end,
                 ),

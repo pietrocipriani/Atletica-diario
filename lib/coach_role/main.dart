@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:mdi/mdi.dart';
 
 class CoachMainPage extends StatefulWidget {
+  static const String routeName = '/coach';
+
   @override
   _CoachMainPageState createState() => _CoachMainPageState();
 }
@@ -45,7 +47,8 @@ class _CoachMainPageState extends State<CoachMainPage> {
         body: HomePageWidget(
           onSelectedDayChanged: (day) {
             selectedDay = day;
-            WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => setState(() {}));
           },
           orientation: orientation,
         ),
@@ -54,7 +57,8 @@ class _CoachMainPageState extends State<CoachMainPage> {
                 onPressed: () async {
                   if (await showDialog<bool>(
                         context: context,
-                        builder: (context) => ScheduledTrainingDialog(selectedDay!),
+                        builder: (context) =>
+                            ScheduledTrainingDialog(selectedDay!),
                       ) ??
                       false) setState(() {});
                 },
@@ -78,7 +82,9 @@ class _CoachMainPageState extends State<CoachMainPage> {
               )
             : null,
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-        bottomNavigationBar: orientation == Orientation.portrait ? _BottomAppBar(setState: setState) : null,
+        bottomNavigationBar: orientation == Orientation.portrait
+            ? _BottomAppBar(setState: setState)
+            : null,
       );
     });
   }
@@ -153,14 +159,16 @@ class SectionBtn extends StatelessWidget {
     this.notify = false,
     this.onPop = false,
     this.tooltip,
-    this.onPrimary: true,
+    this.onPrimary = true,
   });
 
   @override
   Widget build(final BuildContext context) {
     Widget iconWidget = Icon(
       icon,
-      color: onPrimary ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
+      color: onPrimary
+          ? Theme.of(context).colorScheme.onPrimary
+          : Theme.of(context).colorScheme.onSurface,
     );
     if (notify)
       iconWidget = Stack(

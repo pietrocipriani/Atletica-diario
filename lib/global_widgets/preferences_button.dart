@@ -9,6 +9,6 @@ class PreferencesButton extends PlatformIconButton {
       : super(
           materialIcon: Icon(Icons.settings),
           cupertinoIcon: Icon(CupertinoIcons.settings),
-          onPressed: () => Get.toNamed('/preferences'),
+          onPressed: () => Get.toNamed(PreferencesRoute.routeName),
         );
 }

@@ -52,7 +52,8 @@ class _CustomMainPageState<T extends CustomMainPage> extends State<T> {
     super.dispose();
   }
 
-  Iterable<Widget> get widgets => widget.events(_selectedDay).map(widget.eventBuilder);
+  Iterable<Widget> get widgets =>
+      widget.events(_selectedDay).map(widget.eventBuilder);
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +162,9 @@ class _TrainingWidgetState extends State<TrainingWidget> {
         onPressed: Date.now() >= widget.scheduledTraining.date
             ? () => showResultsEditDialog(
                   context,
-                  widget.result ?? Result.temp(a, widget.scheduledTraining.date),
+                  widget.result ??
+                      Result.temp(a, widget.scheduledTraining.date),
+                  // TODO: coach or athlete?
                   Globals.athlete.saveResult,
                 )
             : null,
@@ -188,12 +191,15 @@ class _TrainingWidgetState extends State<TrainingWidget> {
             alignment: Alignment.center,
             child: Text(
               a.descrizione,
-              style: theme.textTheme.overline!.copyWith(fontWeight: FontWeight.normal),
+              style: theme.textTheme.labelSmall!
+                  .copyWith(fontWeight: FontWeight.normal),
               textAlign: TextAlign.justify,
             ),
           ),
         const SizedBox(height: 10),
-      ].followedBy(TrainingDescription.fromTraining(a, widget.result)).toList(growable: false),
+      ]
+          .followedBy(TrainingDescription.fromTraining(a, widget.result))
+          .toList(growable: false),
       childrenPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
     );
   }
